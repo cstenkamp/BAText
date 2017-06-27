@@ -1,0 +1,289 @@
+% Masters/Doctoral Thesis 
+% LaTeX Template
+% Version 2.4 (22/11/16)
+% http://www.LaTeXTemplates.com
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[11pt, oneside, english, singlespacing, %TODO: twosided machen
+%draft, % Uncomment to enable draft mode (no pictures, no links, overfull hboxes indicated)
+%nolistspacing, % If the document is onehalfspacing or doublespacing, uncomment this to set spacing in lists to single
+%liststotoc, % Uncomment to add the list of figures/tables/etc to the table of contents
+%toctotoc, % Uncomment to add the main table of contents to the table of contents
+%parskip, % Uncomment to add space between paragraphs
+headsepline, % Uncomment to get a line under the header
+%chapterinoneline, % Uncomment to place the chapter title next to the number on one line
+%consistentlayout, % Uncomment to change the layout of the declaration, abstract and acknowledgements pages to match the default layout
+]{MastersDoctoralThesis} 
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc} 
+\usepackage{palatino} %font style palatino
+\usepackage{algorithm2e}
+
+
+%\usepackage[backend=bibtex,style=authoryear,natbib=true]{biblatex} 
+\usepackage[backend=biber,natbib=true]{biblatex} 
+\addbibresource{mybib.bib} % The filename of the bibliography
+\addbibresource{mybib2.bib}
+\addbibresource{example.bib}
+
+%\bibliography{example.bib}
+
+
+\usepackage[autostyle=true]{csquotes} 
+
+%----------------------------------------------------------------------------------------
+%	MARGIN SETTINGS
+%----------------------------------------------------------------------------------------
+
+\geometry{paper=a4paper, inner=2.5cm, outer=3.8cm, bindingoffset=.5cm, top=1.5cm, bottom=1.5cm, 
+	%showframe, % Uncomment to show how the type block is set on the page
+}
+
+%----------------------------------------------------------------------------------------
+%	THESIS INFORMATION
+%----------------------------------------------------------------------------------------
+
+
+\thesistitle{Controlling Self-Driving Race Cars with Deep Neural Networks} %print with \ttitle
+
+\supervisor{Prof. Dr. Gordon Pipa \\ Leon Sütfeld} %print with \supname
+\examiner{}
+\degree{Bachelor of Science} %print with \degreename
+\author{Christoph Stenkamp} %print with \authorname
+\addresses{}
+\subject{Cognitive Science} %not currently used in the template, print with \subjectname
+\keywords{} %not currently used in the template, print with \keywordnames
+\university{University of Osnabrück} % Your university's name and URL, this is used in the title page and abstract, print it elsewhere with \univname
+\department{department of neuroinformatics} % Your department's name and URL, this is used in the title page and abstract, print it elsewhere with \deptname
+\group{\href{http://researchgroup.university.com}{Research Group Name}} % Your research group's name and URL, this is used in the title page, print it elsewhere with \groupname
+\faculty{\href{http://faculty.university.com}{Faculty Name}} % Your faculty's name and URL, this is used in the title page and abstract, print it elsewhere with \facname
+
+\AtBeginDocument{
+	\hypersetup{pdftitle=\ttitle} 
+	\hypersetup{pdfauthor=\authorname} 
+	\hypersetup{pdfkeywords=\keywordnames} 
+}
+
+
+\begin{document}
+	
+	\frontmatter % Use roman page numbering style (i, ii, iii, iv...) for the pre-content pages
+	
+	\pagestyle{plain} % Default to the plain heading style until the thesis style is called for the body content
+	
+
+%----------------------------------------------------------------------------------------
+%	TITLE PAGE
+%----------------------------------------------------------------------------------------
+
+	\begin{titlepage}
+		\begin{center}
+			
+			\includegraphics[scale = 0.7]{Logo} % University/department logo - uncomment to place it
+			
+			\vspace*{.06\textheight}
+			\HRule \\[0.4cm] % Horizontal line
+			{\huge \bfseries \ttitle\par}\vspace{0.4cm} % Thesis title
+			\HRule \\[1.5cm] % Horizontal line
+			
+			%\vspace*{.06\textheight}
+			{\scshape\LARGE \univname\par}\vspace{.5cm} % University name
+			
+			{\scshape\Large \deptname \par}\vspace{1.5cm}
+			
+			\textsc{\Large Bachelor's Thesis}\\[0.5cm] % Thesis type
+			
+			\vspace*{.1\textheight} 
+			\begin{minipage}[t]{0.4\textwidth}
+				\begin{flushleft} \large
+					\emph{Author:}\\
+					\authorname % Author name - remove the \href bracket to remove the link
+				\end{flushleft}
+			\end{minipage}
+			\begin{minipage}[t]{0.4\textwidth}
+				\begin{flushright} \large
+					\emph{Supervisors:} \\
+					\supname % Supervisor name - remove the \href bracket to remove the link  
+				\end{flushright}
+			\end{minipage}\\[3cm]
+
+			\vfill
+			Osnabrück,\\
+			\today
+			
+		\end{center}
+	\end{titlepage}	
+
+	%----------------------------------------------------------------------------------------
+	%	ABSTRACT PAGE
+	%----------------------------------------------------------------------------------------
+	
+	\begin{abstract}
+		\addchaptertocentry{\abstractname} % Add the abstract to the table of contents
+		This Thesis will be written in the next two months, and I'm pretty scared about that.
+	\end{abstract}
+
+	%----------------------------------------------------------------------------------------
+	%	PREFACE PAGE
+	%----------------------------------------------------------------------------------------
+
+	\begin{preface}{\authorname}{Osnabrück, \today}
+		\addchaptertocentry{\prefacename}
+		\noindent This document was written as the author’s bachelor thesis at the \deptname~at the \univname~during summer 2017 and is an original and independent work by the author \authorname.
+	\end{preface}
+
+
+
+	
+	%----------------------------------------------------------------------------------------
+	%	ACKNOWLEDGEMENTS
+	%----------------------------------------------------------------------------------------
+	
+	\begin{acknowledgements}
+		\addchaptertocentry{\acknowledgementname} % Add the acknowledgements to the table of contents
+		Thanks to my parents, Marie, my supervisors, and my friends.\ldots
+	\end{acknowledgements}
+	
+	
+	%----------------------------------------------------------------------------------------
+	%	QUOTATION PAGE
+	%----------------------------------------------------------------------------------------
+	
+	\newpage
+	\vspace*{0.2\textheight}
+	
+	\noindent\enquote{\itshape There are no surprising facts, only models that are surprised by facts; and if a model is surprised by the facts, it is no credit to that model.}\bigbreak
+	
+	\hfill Eliezer Yudkowsky
+
+
+	%----------------------------------------------------------------------------------------
+	%	LIST OF CONTENTS/FIGURES/TABLES PAGES
+	%----------------------------------------------------------------------------------------
+	
+	\tableofcontents % Prints the main table of contents
+	
+	\listoffigures % Prints the list of figures
+	
+	\listoftables % Prints the list of tables
+	
+	\listofalgorithms
+	%https://tex.stackexchange.com/questions/100346/typesetting-listofalgorithms-like-listoffigures-and-listoftables-using-titletoc
+	%http://latex.org/forum/viewtopic.php?f=59&t=26383
+	
+	%----------------------------------------------------------------------------------------
+	%	ABBREVIATIONS
+	%----------------------------------------------------------------------------------------
+	\newcommand{\abbrevtext}{The abbreviations used throughout the work are compiled in the following list below. Note that the abbreviations denote the singular form of the abbreviated words. Whenever the plural forms is needed, an s is added. Thus, for example, whereas ANN abbreviates \textit{artificial neural network}, the abbreviation of\textit{ artificial neural networks} is written ANNs.}
+
+	\begin{abbreviations}{ll}[\abbrevtext] % Include a list of abbreviations (a table of two columns)
+		
+		\textbf{ANN} & \textbf{A}rtificial \textbf{N}eural \textbf{N}etwork\\
+		\textbf{CNN} & \textbf{C}onvolutional (artificial) \textbf{N}eural \textbf{N}etwork\\
+		\textbf{CPU} & \textbf{C}entral \textbf{P}rocessing \textbf{U}nit\\
+		\textbf{DQN} & \textbf{D}eep-\textbf{Q}-\textbf{N}etwork\\
+		\textbf{GUI} & \textbf{G}raphical \textbf{U}ser \textbf{I}nterface\\
+		
+	\end{abbreviations}
+	
+	%----------------------------------------------------------------------------------------
+	%	SYMBOLS
+	%----------------------------------------------------------------------------------------
+	
+	\begin{symbols}{lll} % Include a list of Symbols (a three column table)
+		
+		%TODO: die hier schöner, mit text drüber a la einheitliche symbole etc, und spaltennamen!
+		
+		$a$ & distance & \si{\meter} \\
+		$P$ & power & \si{\watt} (\si{\joule\per\second}) \\
+		%Symbol & Name & Unit \\
+		
+		\addlinespace % Gap to separate the Roman symbols from the Greek (innerhalb derer: ALPHABETISCH)
+		
+		$\omega$ & angular frequency & \si{\radian} \\
+		
+	\end{symbols}
+	
+	%----------------------------------------------------------------------------------------
+	%	DEDICATION
+	%----------------------------------------------------------------------------------------
+	
+	\dedicatory{For my friends, family, and especially Marie.} 
+	
+	%----------------------------------------------------------------------------------------
+	%	THESIS CONTENT - CHAPTERS
+	%----------------------------------------------------------------------------------------
+	
+	\mainmatter % Begin numeric (1,2,3...) page numbering
+	
+	\pagestyle{thesis} % Return the page headers back to the "thesis" style
+	
+	% Include the chapters of the thesis as separate files from the Chapters folder
+	% Uncomment the lines as you write the chapters
+	
+	\include{Chapters/Chapter1}
+	\include{Chapters/Chapter2} 
+	%\include{Chapters/Chapter3}
+	%\include{Chapters/Chapter4} 
+	%\include{Chapters/Chapter5} 
+	
+	%----------------------------------------------------------------------------------------
+	%	THESIS CONTENT - APPENDICES
+	%----------------------------------------------------------------------------------------
+	
+	\appendix % Cue to tell LaTeX that the following "chapters" are Appendices
+	
+	% Include the appendices of the thesis as separate files from the Appendices folder
+	% Uncomment the lines as you write the Appendices
+	
+	\include{Appendices/AppendixA}
+	%\include{Appendices/AppendixB}
+	%\include{Appendices/AppendixC}
+		
+
+	%----------------------------------------------------------------------------------------
+	%	BIBLIOGRAPHY
+	%----------------------------------------------------------------------------------------
+	
+	
+	\printbibliography[heading=bibintoc]
+	
+	%----------------------------------------------------------------------------------------
+	%	DECLARATION PAGE
+	%----------------------------------------------------------------------------------------
+	
+	\begin{declaration}
+		\addchaptertocentry{\authorshipname} % Add the declaration to the table of contents
+		\noindent I, \authorname, hereby certify that the work presented here is, to the best of my knowledge and belief, original and the result of my own investigations, except as acknowledged, and has not been submitted, either in part or whole, for a degree at this or any other university.\\
+		
+		\vspace{10px}
+		\noindent \rule[-0.3em]{25em}{0.5pt}\\ % This prints a line for the signature
+		signature\\
+		
+		\vspace{4px}
+		\noindent \rule[-0.3em]{25em}{0.5pt}\\ % This prints a line to write the date		
+		city, date
+		
+%		\noindent I, \authorname, declare that this thesis titled, \enquote{\ttitle} and the work presented in it are my own. I confirm that:
+%		
+%		\begin{itemize} 
+%			\item This work was done wholly or mainly while in candidature for a research degree at this University.
+%			\item Where any part of this thesis has previously been submitted for a degree or any other qualification at this University or any other institution, this has been clearly stated.
+%			\item Where I have consulted the published work of others, this is always clearly attributed.
+%			\item Where I have quoted from the work of others, the source is always given. With the exception of such quotations, this thesis is entirely my own work.
+%			\item I have acknowledged all main sources of help.
+%			\item Where the thesis is based on work done by myself jointly with others, I have made clear exactly what was done by others and what I have contributed myself.\\
+%		\end{itemize}
+%		
+
+	\end{declaration}
+	
+	\cleardoublepage
+	
+	%----------------------------------------------------------------------------------------
+	
+\end{document}  
