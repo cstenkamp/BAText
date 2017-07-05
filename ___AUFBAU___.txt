@@ -1,0 +1,16 @@
+1) Introduction to the thesis topic
+1.1) Motivation, Problem Domain, Goal of thesis - Driving in the Matrix, self-driving on the rise, ANNs sind hype seit DQN, biological inspiredness, end-to-end
+1.2) Research Questions - Fahren am Limit, welche Struktur/Architektur/Parameter (auch contributions - was ist neu (vllt DQN gegen ContControl, die Fact dass das nicht in Universe ist, ... ("challenges"? wohl erst später) )... What is the best goal function(!)
+1.3) Related work - erwähnen dass das viele Fragen offen lässt?
+1.4) Reading Guidelines - summary of the chapters
+2) Scientific Background knowledge and theory 
+2.1) Q-Learning
+2.2) ANNs
+2.3) DQN and the follow-ups?
+3) The Program (/experimental set-up)
+3.1) Unity, Tensorflow, ...
+3.2) (General) Design
+3.3) (Precise) Implementation (Algorithm + Challenges & Solutions)
+4) Details of Analysis - Results of Program, answer of research questions (all of them, explicitly!!!)
+5) Discussion of results, comparison to other work, ...
+6) Conclusion & Future directions (letztes von leon explizit viel)

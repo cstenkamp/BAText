@@ -25,10 +25,11 @@ headsepline, % Uncomment to get a line under the header
 
 
 %\usepackage[backend=bibtex,style=authoryear,natbib=true]{biblatex} 
-\usepackage[backend=biber,natbib=true]{biblatex} 
+\usepackage[backend=biber,natbib=true, minbibnames=5, maxbibnames=8]{biblatex} 
 \addbibresource{mybib.bib} % The filename of the bibliography
 \addbibresource{mybib2.bib}
 \addbibresource{example.bib}
+\addbibresource{tensorflow.bib}
 
 %\bibliography{example.bib}
 
@@ -166,12 +167,16 @@ headsepline, % Uncomment to get a line under the header
 	%----------------------------------------------------------------------------------------
 	
 	\tableofcontents % Prints the main table of contents
+%	\addchaptertocentry{Table of Contents} %TODO: das ist die falsche seite!!!
 	
 	\listoffigures % Prints the list of figures
+%	\addchaptertocentry{List of Figures}
 	
 	\listoftables % Prints the list of tables
+%	\addchaptertocentry{List of Tables}
 	
 	\listofalgorithms
+%	\addchaptertocentry{List of Algorithms}
 	%https://tex.stackexchange.com/questions/100346/typesetting-listofalgorithms-like-listoffigures-and-listoftables-using-titletoc
 	%http://latex.org/forum/viewtopic.php?f=59&t=26383
 	
@@ -182,6 +187,7 @@ headsepline, % Uncomment to get a line under the header
 
 	\begin{abbreviations}{ll}[\abbrevtext] % Include a list of abbreviations (a table of two columns)
 		
+%		\addchaptertocentry{\abbrevname}
 		\textbf{ANN} & \textbf{A}rtificial \textbf{N}eural \textbf{N}etwork\\
 		\textbf{CNN} & \textbf{C}onvolutional (artificial) \textbf{N}eural \textbf{N}etwork\\
 		\textbf{CPU} & \textbf{C}entral \textbf{P}rocessing \textbf{U}nit\\
@@ -196,6 +202,7 @@ headsepline, % Uncomment to get a line under the header
 	
 	\begin{symbols}{lll} % Include a list of Symbols (a three column table)
 		
+%		\addchaptertocentry{\symbolsname}
 		%TODO: die hier schöner, mit text drüber a la einheitliche symbole etc, und spaltennamen!
 		
 		$a$ & distance & \si{\meter} \\
@@ -227,7 +234,7 @@ headsepline, % Uncomment to get a line under the header
 	
 	\include{Chapters/Chapter1}
 	\include{Chapters/Chapter2} 
-	%\include{Chapters/Chapter3}
+	\include{Chapters/Chapter3}
 	%\include{Chapters/Chapter4} 
 	%\include{Chapters/Chapter5} 
 	
