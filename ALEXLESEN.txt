@@ -1,0 +1,3 @@
+Lessons from Alex' DDPG
+-Deque als Memory durch List ersetzen, ist vllt schneller
+-

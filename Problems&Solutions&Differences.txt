@@ -1,4 +1,7 @@
-Differences from standard DQN/standard DDPG
+Differences from standard DQN/standard DDPG/Universe
+-no Universe -> Time issues because I have continuous time instead of being able to use environment.step. Because of that, also indeterministic game: because I rely on threads, which are indeterministic, I have indeterministic time-slices and thus the game is not deterministic. Also decoupling of learning & application 
+-Have to use Windows because of Unity+Tensorflow
 
 
 Problems/Solutions
+-In this car simulation, steering the wheel for too much is fatal / having alpha=0 and having a special random-function

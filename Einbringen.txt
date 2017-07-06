@@ -1,0 +1,4 @@
+-DDPG nutzen und mit DQN vergleichen
+-Gute, begründete Randomnessfunction
+-Wahl der ANN-goalfunctions begründen
+-Prioritized action replay
