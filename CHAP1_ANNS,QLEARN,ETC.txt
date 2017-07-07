@@ -1,0 +1,13 @@
+-Machine Learning Slidesatz 10 - what is an agent
+-Mitchell, Russel&Norvig
+-Unsere Slides, CANN-Kurs, Valentins&Melisas teil
+-Paper, like DQN
+
+Was sind ANNS, was ist q-learning
+-Vergleich Sarsa vs Q-learning, online vs offline
+-Actor-Critic (DDPG) vs direct Q-learning
+-die 2 vorteile von DQN
+-Was danach kam
+
+
+-Wie macht man Q-learning mit ANNs? Well, ANNs sind universale funktionsapproximatoren, das heiﬂt das ANN IST diese Q-function

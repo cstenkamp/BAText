@@ -1,7 +1,16 @@
+"ne Kategorie "probleme und Lösungen", wo zeug drin steht wie was ist die goal function, überhaupt das server nutzen, und überhaupt viel aus dem todo! "
+
 Differences from standard DQN/standard DDPG/Universe
 -no Universe -> Time issues because I have continuous time instead of being able to use environment.step. Because of that, also indeterministic game: because I rely on threads, which are indeterministic, I have indeterministic time-slices and thus the game is not deterministic. Also decoupling of learning & application 
+->mal testen wie unterschiedlich die zeitdifferences so sind, und sowieso reinschreiben wie lange der timedelay zwischen vision schicken und action bekommen so ist
 -Have to use Windows because of Unity+Tensorflow
-
+"in torcs mit universe hat man halt die Möglichkeit auf Environment.step, die ich nicht habe! Erwähnen!"
+-
 
 Problems/Solutions
--In this car simulation, steering the wheel for too much is fatal / having alpha=0 and having a special random-function
+-In this car simulation, steering the wheel for too much is fatal / having alpha=0 and having a special random-function (how does THAT work? random? gauss ums letzte steering? (!))
+
+
+Main Questions
+-Which algorithm (DQN vs DDPG)
+-Which Goal-function(!!)

@@ -2,3 +2,4 @@
 -Gute, begründete Randomnessfunction
 -Wahl der ANN-goalfunctions begründen
 -Prioritized action replay
+-Gamma ist nicht global, sondern HÄNGT VOM STATE AB (in bekannten states unwahrscheinlicher random action, siehe count based motivation paper
