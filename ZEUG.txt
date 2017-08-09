@@ -1,0 +1,28 @@
+dass die action von jetzt mit der von der nächsten verbunden (die LÖSUNG davon ist ja das dingsipaper
+dass es nie bis hinten schafft, die lösung dazu wäre count-based motivation
+
+wie sinnvoll ist batchnorm, wie decorrelated sind die daten, wenn alles was er in den ersten 100.000 frames sieht ist wie er sich gegen die wand semmelt
+
+vorgefahrene runden in das replay memory, sodass er nicht mehr das gegen-die-wand-semmeln als maximum sieht
+
+
+im double q stehen welche man zitieren muss für qlearning und sarsa
+
+vergleich der input-werte die ich schicke und die die torcs zur verfügung stellt
+
+
+in der q_learn-function, warum nutzt er nicht self.targetQN.Qout?
+
+TD-Error over time printne
+
+
+
+-soll als nachschlagewerk für die struktur des programms dienen "welches file macht was"
+-was mein teil war und was schon da war soll im letzten kurzen abschnitt von meiner programm-beschreibung sein
+-gym/universe/torcs gehört in nen background-part
+-ne tabelle von torcs "welche features werden genutzt" 
+-sowieso ne aufstellung welche algorithmen sind wovon wofür bekannt (torcs aus dem ddpg-paper, andere findbare sachen und seis nur mariokart, GTAV, nvidia deepdrive)
+-warum unser eigenes? eigene features, live, ..
+-
+
+intro, andere, unsere implementation, vergleiche (DQN DDPG etc), 
