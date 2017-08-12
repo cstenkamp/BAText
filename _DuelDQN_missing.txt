@@ -1,0 +1,56 @@
+The advantage of the dueling architecture lies partly in its
+ability to learn the state-value function efficiently. With
+every update of the Q values in the dueling architecture,
+the value stream V is updated – this contrasts with the updates
+in a single-stream architecture where only the value
+for one of the actions is updated, the values for all other
+actions remain untouched
+
+-anfangen damit dass das sinvoll bei mir ist, da es sinvoll ist wenn viele actions das gleiche tun, was bei mir der Fall ist
+-Our dueling network represents two separate estimators: one for the state value function and one for the state-dependent action advantage function.
+-The main benefit of this factoring is to generalize learning across actions without imposing any change to the underlying reinforcement learning algorithm
+-Our results show that this architecture leads to better policy evaluation in the presence of many similar-valued actions.
+-changes the actual architecture of the ANN, in contrast to previous guys (no new algorithm but new architecture)
+-explicitly separates the representation of state values and (state-dependent) action advantages. The dueling architecture consists of two streams that represent the value and advantage functions, having the same convolutional part
+-der V-stream ist dementsprechend 1 value, die A-strams mehrere
+-dann nen special aggregation layer
+-intuition: value guckt immer ob autos von vorne kommen, advantage schaltet sich nur ann wenn das ne aktion was ändern wird
+-the dueling architecture can more quickly identify the correct action during policy evaluation as redundant or similar actions are added to the learning problem.
+-erstmal zu betrachten: Q(s,a) lässt sich aufteilen in V(s) + A(s,a). Both can be represented with a single deep model (also A^pi(s,a) = Q^pi(s,a) - v^pi(s)). A is a relative measure of the importance of each action (!!)
+-instead of following the convolutional layers with a single sequence of fully connected layers, we instead use two sequences (or streams) of fully connected layers 
+-it follows pretty straightfward, that |E[A^pi(s,a)] = 0... ^
+-au0erdem, für eine deterministische policy die immer argmax_a'Q(s,a') nimmt followed sowieso dass Q(s,a*) = V(s) 
+-we split up, to have theta, beta and alpha, the latter two parameters of the two streams of fc layers
+-if we however simply had a Vstream and Astream and simply added V&A to Q [first of all we needed the Qstream |A| times, and] we couldn't recover V and A.
+-However, we saw that the argmax-action must have an advantage of zero, so we subtract that from every action.
+-note that for the argmax-action, we anyway wanted Q to be =V
+-footnote - in fact, they used the average, increasing stability
+-final layers of both advantage and value stream are fc. dann combined as described. 
+[deren equation 9 auch rein!]
+
+
+-sooo, it gets better in comparison to DQN the more actions are available. Reason is intuitevely simple: it learns a general value that is shared across many similar actions at s -> faster convergence
+-When acting, it suffices to evaluate the advantage stream to make decisions.
+-in their testing they had the same number of units as a corresponding DQN
+
+-schon in der einleitung auf die actual code-schnipsel verweisen? :/ vermutlich, oder?
+-das y y^DQN nennen
+-if we define the optimal Q* = maxpi..., and use the deterministic policy a = argmax_aQ*..., then V*(s) = max_qQ*, then it follows that Q* ALSO satisfies the bellman equation ((2) im DuelDQN Paper)
+-prioritized experience replay: Their key idea was to increase the replay probability of experience tuples that have a high expected learning progress (as measured via the proxy of absolute TD-error) 
+-clipping of gradient norm wieder rein, tun sie in Dueling auch: In addition, we clip the gradients to have
+their norm less than or equal to 10. This clipping is not standard practice in deep RL, but common in recurrent network training (Bengio et al., 2013).
+
+-gradient clipping, learningrate, prioritized replay, and dueling architecture ALL INTERACT!!! -> PARAMETER ANPASSEN!!
+
+
+
+Note that, although orthogonal in their objectives, these
+extensions (prioritization, dueling and gradient clipping)
+interact in subtle ways. For example, prioritization interacts
+with gradient clipping, as sampling transitions with
+high absolute TD-errors more often leads to gradients with
+higher norms. To avoid adverse interactions, we roughly
+re-tuned the learning rate and the gradient clipping norm on
+a subset of 9 games. As a result of rough tuning, we settled
+on 6:2510^-5 for the learning rate and 10 for the gradient
+clipping norm (the same as in the previous section)

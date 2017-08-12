@@ -1,0 +1,37 @@
+-sobald es um expected values geht ist die policy P(a|s), nicht mehr pi(s)=a
+-warum Q-learning mit DeepNets bisher nie geklappt hat: Tsitsiklis, J. & Roy, B. V. An analysis of temporal-difference learning with function approximation. IEEE Trans. Automat. Contr. 42, 674–690 (1997).
+ (wenn ich das lese kann ich auch besser beschreiben warum es instabil ist, der abschnitt bevor ich auf DQN eingehe)
+-preprocessing of the first 4 frames, darauf eingehen!
+-dass das Network in einem Rutsch sämtliche Q-werte berechnet, was das ganze halt super beschleunigt, dass DDPG aber NICHT in einem rutsch sämtliche Qwerte berechnet (sihe mein googledocdingsvieh)
+-Q-values are scaled due to clipping of rewards
+-das prioritized replay wird "prioritized sweeping" in RL genannt, in DQN gequoted:Moore, A.&Atkeson, C. Prioritized sweeping: reinforcement learning with less data and less real time. Mach. Learn. 13, 103–130 (1993).
+-das preprocessing: monochrome und stacking, wobei das mittlerweile ja auch besser gemacht wird
+-clipped all positive rewards to 1 and all negative rewards to -1, which limits the deriavive-scale, makes for an easy learningrate, but looses information
+-frameskipping of 4
+-"note again that the internal state is not observed, but rather..."
+-"sequences of ACTIONS AND observations" are input to the agent... :o (aber übrigens auch die info dass recurrent)
+-dass das ganze nur dann ne MDP ist wenn man sequences of states nimmt, kurz erwähnen und dann nie wieder
+-so if we look at this bellman-temporal-difference-error, we have huge set of optimization problems (each step with its corresp. next step). We could optimize everything, but its more efficient to do stochastic gradient descent and use minibatches
+-off-policy: It learns about the greedy policy a=argmax_a'Q(s,a') while following another behaviour distribution WHICH INCLUDES EXPLORATION!!!!!!!!!!!
+-dass man die "identity known as the bellman equation" eben wohl auch auf Q nutzen kann. Was das sagt ist, dass wenn man die optimal Q*-values der nächsten kennen würde, wäre der logische schritt die action zu nehmen, die r+Q*(s',a') maximiert. Die action-value-function wird, using the Bellman equation as an iterative update, estimated. Ein Q-network wird trainiert by reducing the MSE in the bellman equation, where the optimal target values r+y max_a Q(s',a') are substituted with our "more informed guess" from the next observations (still approxiamte target values)
+-natürlich muss man dann, beim gradient descent schritt, die weights für das target gefixed halten, sodass das ein well-defined optimization problem ist
+-when learning onpolicy the current parameters determine the next data sample that the parameters are trained on. For example, if the maximizing action is to move left then the training samples will be dominated by samples from the left-hand side; if the maximizing action then switches to the right then the training distribution will also switch. It is easy to seehowunwanted feedback loopsmay arise and the parameters could get stuck ina poor localminimum, or evendiverge catastrophically  (QUELLE 20 VOM DQN AGAIN; WARUM QLEARNING BISHER NICHT IN ANNS GEKLAPPT HAT)
+-wenn man replay memory nutzt MUSS man off-policy lernen
+-priorized sweeping und prioritized experience replay lesen
+-[Target Networks] makes the algorithm more stable compared to standard online Q-learning, where an update that increasesQ(st,at) often also increasesQ(st11,a) for all a and hence also increases the target yj, possibly leading to oscillations or divergence of the policy. --> das kann ich easypeasy erklären, da ich ja schon gesagt habt "affects not only the previous state, but also the ones before"!!!!
+-hier haben die ^Q nur für das targetnetwork genommen, das normale heißt Q! 
+-unbedingt "STOCHASTIC GRADIENT DESCENT" explizit erwähnen!!
+-dass as Network einen vector an actionvalues Q(s,\cdot;\theta) zurückgibt!!!!
+-For an n-dimensional state space and an action space containing m actions, the neural network is a function from R^n to R^m
+-
+
+
+-inputval anders so dass actions ebenfalls gespeichert werden und teil des dingsi sind
+-DQNs random agent hatte action selection at 10hz
+-hehey, wenn ich die gleichen rewards hab ist es realistisch die gleiche LR zu haben
+-später nicht nur Adam, sondenr auch RELU quoten (source 31&32 in DQN)
+-später: dass bei mir das credit assignment problem viel größer ist als bei DQN, ich nicht einfach nen punktestand hab den ich als quality measure nehmen kann, und ich meine reward funktion anders definieren muss (sagen sie ja auch selbst, "games demanding more temporally extended planning strategies still constitue a major challenge, like monezumas revenge"
+-Im programm wie DQN die Q-values für bestimmte situationen zeigen um zu demonstrieren dass es checkt was geht (vor ner wand, schnell, kurz vor schluss, ..)
+-differences clippen!!! muss \in [-1,1] sein, geht superschnell und easypeasy!!! https://github.com/cstenkamp/BA-rAIce-ANN/blob/f4b9278bdcdb70bfc6ebd944712326a1e5f8d44f/dddqn.py#L77-L78
+-später im text schreiben dass ich generally die hyperparameters von [minhetal] genommen habe, aber dabei shcreiben wo nicht
+-

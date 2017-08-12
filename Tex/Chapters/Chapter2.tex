@@ -114,9 +114,9 @@ The new knowledge about the environment can be incorporated in two different way
 
 \subsubsection{Q-learning}
 
-In contrast to \textsc{sarsa} stands the \keyword{off-policy} algorithm \keyword{Q-learning}. This algorithm does not need to sample the action $a_{t+1}$, as it calculates the Q-update at iteration i using the best possible action in state $s_{t+1}$\footnote{A slight deviation from this \keyword{double-Q-learning}, an algorithm I will go into detail about lateron.}. As the previous definition of Q-values was only correct in non-terminal states, a case differentiation must be introduced for terminals and non-terminal states. In the following, $y_t$ will stand for the updated estimate of the Q-value at $t$, sampling the necessary states, rewards and actions from the environment, resulting in the formula found in \cite{mnih_human-level_2015}:
-\begin{equation}
-y_{t} = \begin{cases}
+In contrast to \textsc{sarsa} stands the \keyword{off-policy} algorithm \keyword{Q-learning}. This algorithm does not need to sample the action $a_{t+1}$, as it calculates the Q-update at iteration i using the best possible action in state $s_{t+1}$\footnote{A slight deviation from this \keyword{double-Q-learning}, an algorithm I will go into detail about lateron.}. As the previous definition of Q-values was only correct in non-terminal states, a case differentiation must be introduced for terminals and non-terminal states. In the following, $y_t$ will stand for the updated estimate of the Q-value at $t$, sampling the necessary states, rewards and actions from the environment, almost resulting in the formula found in \cite{mnih_human-level_2015}:
+\begin{equation} \label{eq:ycases}
+y_{t} = \begin{cases} 
 r_t & \text{if } t = t_t\\
 r_t + \gamma * max_{a_{t+1}} (\hat{Q}^\pi( s_{t+1}, a_{t+1})) & \text{otherwise}
 \end{cases}
@@ -127,12 +127,13 @@ TD_t := y_t - \hat{Q}^\pi(s_t, a_t)
 %TD_t := \big( r_t + \gamma * max_{a_{t+1}}(\hat{Q}_i^\pi(s_{t+1}, a_{t+1}))\big) - \hat{Q}_i^\pi(s_t, a_t)
 \end{equation}
 
-Using this error straight away allows for the update-rule of an agent in a very limited setting: Consider an agent, specifying his approximation of the Q-function (his \keyword{model}) with a lookup-table, initialized to all zeros. It is proven that for finite-state Markovian problems with nonnegative rewards the update-rule for the Q-table \mbox{$Q(s_t,a_t) \leftarrow r_t^{a_t} + \gamma * Q^\pi(s_{t+1}^{a_t},a_{t+1}) $} converges to the optimal $Q^*$-function, making the greedy policy $\pi^*$ optimal\footnote{Of course the agent will need some kind of exploration technique first, more on that later}. It is noteworthy, that each new temporal difference will affect not only the last prediction, but all previous predictions (learning propagates backwards).
+A Q-learning agent must thus for his learning step observe a snapshot of the environment, consisting of the following input: $\langle s_t, a_t, r_t, s_{t+1}, t+1==t_t \rangle$, where the letter is the information if state $s_{t+1}$ was a terminal state.
+Using the above error straight away allows for the update-rule of an agent in a very limited setting: Consider an agent, specifying his approximation of the Q-function (his \keyword{model}) with a lookup-table, initialized to all zeros. It is proven that for finite-state Markovian problems with nonnegative rewards the update-rule for the Q-table $\hat{Q}(s_t,a_t) \leftarrow r_t^{a_t} + \gamma * \hat{Q}^\pi(s_{t+1}^{a_t},a_{t+1}) $ converges to the optimal $Q^*$-function, making the greedy policy $\pi^*$ optimal\footnote{Of course the agent will need some kind of exploration technique first, more on that later}. It is noteworthy, that each new temporal difference will affect not only the last prediction, but all previous predictions. % (learning propagates backwards).
 %man kann auch Q(s,a) <- Q(s,a) + alpha*TD als update rule nehmen (siehe unseren bericht für CANN), dann ists abhängig von der learning rate(und da TD->0 geht, hat das nen klares Limit)
 
 As however in practice the problems using a table as the Q-functions are only very limited scenarios, an update rule like this is irrelevant. Instead, a better idea is to use this definition of the temporal difference error for a loss function, which is to be minimized throughout the process of RL. A commonly used loss-function is the \keyword{L2-Loss}, which allows gradient descent, updating the parameters of the Q-function into the direction of the newly acquired knowledge. The L2-Loss at iteration i with model-parameters $\theta_i$ is thus defined as the following:
-\begin{equation} \label{eq:1.6}
-L_i(\theta_i) := \Big( y_i(\theta_i) - Q_i^\pi(s_t, a_t; \theta_i)\Big)^2
+\begin{equation} \label{l2loss}
+	L_i(\theta_i) := \Big( y_i(\theta_i) - \hat{Q}_i^\pi(s_t, a_t; \theta_i)\Big)^2
 \end{equation}
 %dass das später noch relevant wird dass er max_q nimmt: it doesn't quite learn from bad rewards if there are also good ones: https://www.youtube.com/watch?v=4MOx2_e5tug
 
@@ -156,24 +157,55 @@ L_i(\theta_i) := \Big( y_i(\theta_i) - Q_i^\pi(s_t, a_t; \theta_i)\Big)^2
 
 % TODO: Ich bin hier noch nicht auf exploration eingegangen... Und außerdem nicht auf actor-critic stuff oder policy gradients, kann ich also jetzt schon mit DQN kommen oder ist das viel zu früh?
 % TODO: sämtlich erwartungswerte fehlen noch, siehe meinen CANN report und das DQN-paper.
+% TODO: offensichtlich, die references. Mainly originales Qlearnpaper, was von bellman, originales reinforcementlearnpaper
 \section{Q-Learning with Neural Networks}
 
-To understand this section, basic knowledge on how \keyword{Artificial Neural Networks} (\textbf{ANN}s) work and what they do is presupposed. As mentioned before, it is not only possible to use a Q-table to estimate the $Q^*$-function, but any kind of function approximator. Thanks to the universality theorem\footnote{http://neuralnetworksanddeeplearning.com/chap4.html, I need a better source on this!}, it is known that ANNs are an example of such. \\
+To understand this section, basic knowledge on how \keyword{Artificial Neural Networks} (\textbf{ANN}s) work and what they do is presupposed. A special focus must also lie on \keyword{Convolutional Neural Networks} (\textbf{CNN}s) \cite{yann_lecun_gradient-based_1998}, mainly used in image processing. As mentioned before, it is not only possible to use a Q-table to estimate the $Q^*$-function, but any kind of function approximator. Thanks to the universality theorem\footnote{http://neuralnetworksanddeeplearning.com/chap4.html, I need a better source on this!}, it is known that ANNs are an example of such. The defining feature of ANNs in comparison to other Machine Learning techniques is their ability to store complex, abstract representations of their input when using a \keyword{deep} enough architecture.
 
 \subsection{Deep Q-learning}
 
-\noindent When using ANNs as function approximators for the model of the environment, it will result in a Loss function depending on the Neural Network parameters, specified by $\theta$. The update rule in Deep Networks depends on the gradient with respect to the weights of this formula, $\Delta_{\theta_i}L(\theta_i)$.
-%ist so nicht ganz wie bei DQN, da da im linken teil der gleichung \theta^- = \theta_{i-1} verwendet wird.. check grad nur nicht warum ind er linken und nicht in der rechten hälfte
-While there are attempts to use Artificial Neural Networks for Q-learning as early as 1993[SOURCE], those had only minor success when being applied to more than toy-problems. But everything changed when Deepmind attacked.
+\noindent The reason to use neural function approximators instead of a simple Q-table approach for reinforcement learning problems is easy to see: While for a Q-table the states and actions of the Markov Decision Process must be discrete and very limited, this is not the case when using higher-level representations. If the agent's observation of a state of the game is high-dimensional (like for example an image) the chance for an agent to re-visit a state it learned about is extremely slight. Instead, an Artificial Neural Network can learn a higher-level representation of the state which group conceptually similar states, and thus generalize to new, previously unseen, states. It is no surprise that the success of \keyword{Deep-Q-Networks} started its journey shortly after the introduction of CNNs, which are able to learn abstract representations of similar images, by now used in countless Computer Vision Applications. \\%TODO: noch ne source?
 
-\subsubsection{Double-Q-Larning}
+\textit{Deep-Q-Network} refers to a family of off-policy, online, active, model-free Q-learning algorithms using Deep Neural Networks. % I made it! I used all of those terms! :D
+When using ANNs as function approximators for the model of the environment, it will result in a Loss function depending on the Neural Network parameters, specified by $\theta$. The update rule in Deep Networks depends on the gradient with respect to the weights of this formula, $\Delta_{\theta_i}L(\theta_i)$.%ist so nicht ganz wie bei DQN, da da im linken teil der gleichung \theta^- = \theta_{i-1} verwendet wird.. check grad nur nicht warum ind er linken und nicht in der rechten hälfte
+While there are attempts to use Artificial Neural Networks for Q-learning as early as 1993[SOURCE], some key components of modern Deep-Q-Networks (\textbf{DQN}s) were missing, leading to satisfactory performance only in very limited settings. In standard online RL tasks, the update step minimizing the loss specified in \ref{l2loss} is performed right after the observation occured to the agent. As consecutive steps of MDPs tend to be correlated, the update using gradient descent is prone to oscillation in its result, thus never converging to an optimal $Q^*$-function. It was not until \keyword{Deepmind}'s famous papers in 2013\cite{mnih_playing_2013} and 2015\cite{mnih_human-level_2015}, that those issues were successfully adressed.
+%warum man generell bei ANNs in minibatches lernt
+The two important innovations introduced in their DQN-architecture were the use of a \keyword{target network} as well as the technique of \keyword{experience replay}, which in combination successfully hindered the problem of oscillating and non-converging action-value function, even though still no formal mathematical proof of that is given. %TODO: or is it by now? I could quote razvan pascanu here
+
+\subsubsection{Experience Replay}
+%dass das auch data efficiency erhöht - alle 4 schritte wird ein 32er minibatch genommen, jedes wird mehrfach genutzt
+As mentioned above, learning only from the most recent experiences biases the policy towards those situations, limiting convergence of the Q-function. To adress this issue, the DQN uses an experience replay memory: Every percept of the environment (the $\langle s_t, a_t, r_t, s_{t+1}, t+1==t_t \rangle$ - tuple) is added to a limited-size memory of the agent. When then performing the learning step, the agent samples random minibatches from this memory to perform learning on a maximally uncorrelated sample of experiences. In the original definition of DQN, those minibatches are drawn uniformely at random, while as of today, better techniques for sampling those minibatches are available\cite{schaul_prioritized_2015}, increasing the performance of the resulting algorithm significantly. %TODO dieses paper wirklich lesen und drauf eingehen, und am besten auch minimal coden, das ist superwichtig!
+
+\subsubsection{Target Networks}
+During the training procedure, the DQN-algorithm uses a separate network to generate the target-Q-values, used to compute the loss (\ref{l2loss}), necessary for the learning step of every iteration. The idea behind that is, that the Q-values of the \keyword{online network} shift in such a way, that a feedback loop can arise between the target- and estimated Q-values, shifting the Q-value more and more into a similar direction. %TODO: das ist sehr unwissenschaftlich ausgedrückt und geht auf jeden Fall besser erklärt, using eine der vorhergegangenen 
+To lessen the risk of such feedback loops, the DQN algorithm introduced the use of a second network for calculating the loss: the target network. This is only periodically updated with the weights of the online network used for the policy, which reduces the risk of correlations in the action-value $Q_t$ and the corresponding target-value $y_t$ (see equation \ref{eq:ycases}).
+
+The use of this two techniques leads to the Q-learning update rule as used in \cite{mnih_human-level_2015}:
+\begin{equation}
+	L_i(\theta_i) = \mathds{E}_{\langle s_t,a_t,r_t,s_{t+1} \rangle \sim U(D)} \Bigg[\Big( r + \gamma * max_{a_{t+1}} \hat{Q}(s_{t+1}, a_{t+1}; \theta^-_i) - \hat{Q}(s_t,a_t;\theta_i) \Big)^2\Bigg]
+\end{equation}
+\begin{flushright}
+	\scriptsize
+	Where $i$ stands for the current network update iteration, $\theta_i$ for the current weights of the target network (updated every $C$ iterations to be equal to the weights of the online network $\theta_i$), $Q(\cdot,\cdot;\theta)$ for the Q-value dependend on a ANN using the weights $\theta$, $\mathds{E}[\cdot]$ for the expected value in an indeterministic environment, D for the contents of the replay memory of length $\lvert D \rvert$ containing $\langle s_t,a_t,r_t,s_{t+1} \rangle$-tuples, and $U(\cdot)$ for a uniform distribution.
+\end{flushright}
+As is the case with the experience replay mechanism, the usage of a target network was improved as well by now - modern algorithms don't perform a hard update of the target network every $C$ steps, but instead perform \keyword{soft target network update}, where every iteration, the weights of the target network are defined as $\theta^-_i := \theta_i * \tau + \theta^-_i * (1-\tau)$ with $0 < \tau \ll 1$, first introduced in [DDPG-Paper]. This improves the stability of the algorithm even more.\\
+
+% TODO: Pseudocode mit den Improvements, double-Q und dueling-Q, aber ERST NACH exploration techniques!
+% Loss function und pseudocode, HIER HIN
+
+\subsubsection{Double-Q-Learning}
+In DoubleQ, we still use the greedy policy to select actions, however we evaluate how good it is with another set of weights
+
 
 \subsubsection{Dueling Q-Learning}
 
+\subsubsection{Using Recurrent Networks}
 
 \subsection{Deterministic Policy Gradient}
 
 \subsection{Exploration techniques}
+
+% TODO: HIER jetzt zwei pseudocodes, einmal von DQN, einmal von DDPG, mit entsprechenden exploration techniques
 
 \chapter{Related work}
 
@@ -181,6 +213,7 @@ While there are attempts to use Artificial Neural Networks for Q-learning as ear
 
 Gym/Universe
 Torcs
+schreiben dass die Arcade Learning Environment (Bellemare et al., 2013 aus dem Dueling) zu Gym wurde (I guess)
 
 \section{Self-driving cars}
 
@@ -189,6 +222,7 @@ RRT*
 Tensorkart
 Tesla
 Lidar
+hier in den fußnoten die ganzen non-scientific quellen wie tensorkart undso
 
 \chapter{Program Architecture}
 
@@ -199,6 +233,8 @@ The program was written by the author of this work and is licensed under the GNU
 \section{Design choices}
 
 \subsection{The game as a reinforcement learning problem}
+
+-ungefähres UML-diagramm
 
 \subsection{The vectors}
 
@@ -216,15 +252,32 @@ The program was written by the author of this work and is licensed under the GNU
 
 \subsubsection{Communication}
 
+-den sockets post
+-das von leon gemalte ablaufdiagramm
+
 \subsection{The agent}
+
+Unbedingt auf jeden Fall UML-diagramm
+
+\subsubsection{Challenges and Solutions}
+
+DQN vs DDPG, sehend vs nicht-sehend, ...
 
 \subsubsection{Pretraining}
 
 \subsubsection{The different agents}
 
-\subsubsection{Challenges and Solutions}
+sehend vs nicht sehend, ...
 
-hier auch Batchnorm, DQN vs DDPG, sehend vs nicht-sehend, ...
+\subsubsection{Network architecture}
+
+1. dqn-algorithm
+  - anzahl layer, Batchnorm, doubles dueling
+  - clipping wieder rein, reference auf das dueling
+  - MIT GRAFIK
+2. ddpg
+  - anzahl layer, Batchnorm
+  - MIT GRAFIK
 
 \chapter{Analysis, Results and open Questions}
 
@@ -232,6 +285,10 @@ testing took place on a win10 machine, ...
 Answer all of the research questions explicitly!!!
 
 \chapter{Discussion}
+
+"Fragestellung aus der Einleitung wird erneut aufgegriffen und die Arbeitsschritte
+werden resümiert"
+Zusammen mit der Conclusion 10\% der Gesamtlänge
 
 \chapter{Conclusion and future directions}
 
@@ -243,7 +300,7 @@ Answer all of the research questions explicitly!!!
 
 
 %----------------------------------------------------------------------------------------
-%
+%----------------------------------------------------------------------------------------
 %\section{Getting Started with this Template}
 %
 %If you are familiar with \LaTeX{}, then you should explore the directory structure of the template and then proceed to place your own information into the \emph{THESIS INFORMATION} block of the \file{main.tex} file. You can then modify the rest of this file to your unique specifications based on your degree/university. Section \ref{FillingFile} on page \pageref{FillingFile} will help you do this. Make sure you also read section \ref{ThesisConventions} about thesis conventions to get the most out of this template.

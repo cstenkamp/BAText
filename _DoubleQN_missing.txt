@@ -1,0 +1,26 @@
+-DeepQ overestimates actionvalues under certain conditions. DoubleQpaper shows that its harmful and improves by using doubleQ
+-Q-learning (Watkins, 1989) is one of the most popular reinforcement learning algorithms, but it is known to sometimes learn unrealistically high action values because it includes a maximization step over estimated action values, which tends to prefer overestimated to underestimated values.
+-Overestimations occur when actionvalues are inaccurate, irrespective of the source
+-Problem is given then, when not all values are simply uniformly higher, but if the argmax changes
+-so DoubleDQN does not only yields more accurate value estimates, but leads to much higher scores on several games.
+
+-In the original Double Q-learning algorithm, two value functions are learned by assigning each experience randomly to update one of the two value functions, such that there are two sets of weights,  and 0. For each update, one set of weights is used to determine the greedy policy and the other to determine its value
+-"In DoubleQ, we still use the greedy policy to select actions, however we evaluate how good it is with another set of weights"
+-dass estimation errors, regardless of their source (environmental noise, function approximation, non-stationarity), wenn man maxt, definitiv zu ner nach oben gebiasten noisesource werden, ist ja wohl klar
+-there is a definite lower bound for how much max_aQpi(s,a) >= V*(s), and in double Q the lower bound for the error is 0
+-Qlearnings overestimations increase with the number of actions [as shown by DoubleQ]
+-man kann sich doubleQ halt deswegen als unbiased vorstellen, weil die wahrscheinlichkeit, dass beide policies in the future immer die gleichen actions overestimaten verschwindend gering ist [not bad actually]
+-"a function that is flexible enough to cover all samples leads to high overestimations."
+-when functions overfit (which flexible functions like ANNs do a lot), they tend have very steep curves -> overestimations are normal. Even wen using true action values. Overestimation combined with bootstrapping then has the pernicious effect of propagating the wrong relative information about which states are more valuable than others, directly affecting the quality of the learned policies.
+-The idea of Double Q-learning is to reduce overestimations by decomposing the max operation in the target into action selection and action evaluation. Although not fully decoupled, the target network in the DQN architecture provides a natural candidate for the second value function, without having to introduce additional networks
+-We therefore propose to evaluate the greedy policy according to the online network, but using the target network to estimate its value. 
+[update rule gleich, target ist hingegen <einzige gleichung auf page 4 im ddqn paper>
+-no actual second network, but target network, achtung, quote them: "perhaps the minimal possible change to DQN towards Double Q-learning."
+-Double DQN improves over DQN both in terms of value accuracy and in terms of policy quality
+-man sieht in den tables dass die scores von dqn droppen as overestimation begins
+-betonen dass "the only differnce is the target"
+
+
+
+-Hrr.... GORILA
+-Most interesting problems are too large to learn all action values in all states separately. Instead, we can learn a parameterized value function Q(s; a; t).
