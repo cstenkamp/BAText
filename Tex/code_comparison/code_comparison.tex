@@ -1,0 +1,79 @@
+\documentclass[10pt]{article}
+\usepackage{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[scaled=0.72]{beramono}
+\usepackage{pifont,calc,xcolor}
+\usepackage{parcolumns}
+\usepackage{listings}
+\usepackage{lscape}
+
+\geometry{
+	a4paper,
+	top=10mm,
+	bottom=10mm,
+	left=20mm,
+	right=10mm,
+}
+
+\definecolor{verylightgray}{gray}{0.89}
+\newlength\lsthorizontalpadding
+\setlength\lsthorizontalpadding{3pt}
+\newcommand*\lstnumberstyle{\ttfamily\scriptsize}
+\newlength\lstnumbersep
+\setlength\lstnumbersep{5pt}
+\newlength\lstnumberwidth
+\setlength\lstnumberwidth{\widthof{\lstnumberstyle00}+\lstnumbersep+\lsthorizontalpadding}
+\lstset{
+	numberblanklines=false
+    ,basicstyle=\ttfamily%
+    ,breaklines=true%
+    ,tabsize=1%
+    ,showstringspaces=false%
+    ,numbers=left%
+    ,numbersep=\lstnumbersep%
+    ,numberstyle=\lstnumberstyle%
+    ,framesep=0pt%
+    ,xleftmargin=\lstnumberwidth%
+    ,framexleftmargin=\lsthorizontalpadding%
+    ,xrightmargin=\lsthorizontalpadding%
+    ,framexrightmargin=\lsthorizontalpadding%
+    ,backgroundcolor=\color{verylightgray}%
+    ,postbreak=\ding{229}\space%
+    ,escapeinside={*(}{*)}
+    \linespread{1.2}
+}
+
+
+\lstdefinelanguage{Pseudo}{
+	morekeywords={for, do, end, if, then, input, otherwise},
+	sensitive=false,
+	morecomment=[l]{#},
+	morestring=[b]",
+}
+\lstset{language=Python,
+	commentstyle=\color{gray},
+}
+
+\pagestyle{empty}
+\parindent=0pt
+
+
+\begin{document}
+	\lstinputlisting[language=Python, firstline=29]{../codes/dqn.txt}
+	\begin{landscape}
+		\begin{parcolumns}[distance=0.1em,colwidths={1=33em}]{2}
+			\colchunk[1]{ \lstinputlisting[language=Pseudo]{../codes/pseudo_dqn.txt}}
+			\colchunk[2]{ \lstinputlisting[language=Python, lastline=27]{../codes/dqn.txt} }
+		\end{parcolumns}
+	\end{landscape}
+
+	
+%	\lstinputlisting[language=Python, firstline=33]{../codes/ddpg.txt}
+%	\begin{landscape}
+%		\begin{parcolumns}[distance=0.1em,colwidths={1=33em}]{2}
+%			\colchunk[1]{ \lstinputlisting[language=Pseudo]{../codes/pseudo_ddpg.txt}}
+%			\colchunk[2]{ \lstinputlisting[language=Python, lastline=32]{../codes/ddpg.txt} }
+%		\end{parcolumns}
+%	\end{landscape}
+\end{document}

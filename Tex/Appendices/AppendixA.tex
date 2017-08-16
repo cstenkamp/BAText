@@ -1,25 +1,41 @@
 % Appendix A
 
-\chapter{Frequently Asked Questions} % Main appendix title
+\newgeometry{
+	a4paper,
+	top=20mm,
+	bottom=6mm,
+	inner=24mm,
+	outer=9mm,} %bindingoffset=.5cm
+
+\chapter{Comparison Pseudocode \& Python-code} % Main appendix title
+% https://tex.stackexchange.com/questions/22988/multicolumn-listing-for-comparison-in-latex
 
 \label{AppendixA} % For referencing this appendix elsewhere, use \ref{AppendixA}
 
-\section{How do I change the colors of links?}
+\vspace{-0.8cm}
 
-The color of links can be changed to your liking using:
+\section{DQN}
 
-{\small\verb!\hypersetup{urlcolor=red}!}, or
 
-{\small\verb!\hypersetup{citecolor=green}!}, or
+\lstinputlisting[language=Python, firstline=29]{codes/dqn.txt}
+\begin{landscape}
+	\begin{parcolumns}[distance=0.1em,colwidths={1=33em}]{2}
+		\colchunk[1]{ \lstinputlisting[language=Pseudo]{codes/pseudo_dqn.txt}}
+		\colchunk[2]{ \lstinputlisting[language=Python, lastline=27]{codes/dqn.txt} }
+	\end{parcolumns}
+\end{landscape}
 
-{\small\verb!\hypersetup{allcolor=blue}!}.
+\section{DDPG}
 
-\noindent If you want to completely hide the links, you can use:
 
-{\small\verb!\hypersetup{allcolors=.}!}, or even better: 
 
-{\small\verb!\hypersetup{hidelinks}!}.
+\lstinputlisting[language=Python, firstline=33]{codes/ddpg.txt}
+\begin{landscape}
+	\begin{parcolumns}[distance=0.1em,colwidths={1=33em}]{2}
+		\colchunk[1]{ \lstinputlisting[language=Pseudo]{codes/pseudo_ddpg.txt}}
+		\colchunk[2]{ \lstinputlisting[language=Python, lastline=32]{codes/ddpg.txt} }
+	\end{parcolumns}
+\end{landscape}
 
-\noindent If you want to have obvious links in the PDF but not the printed text, use:
 
-{\small\verb!\hypersetup{colorlinks=false}!}.
+

@@ -12,6 +12,8 @@
 \newcommand{\code}[1]{\texttt{#1}}
 \newcommand{\file}[1]{\texttt{\bfseries#1}}
 \newcommand{\option}[1]{\texttt{\itshape#1}}
+\newcommand{\batchnorm}{batch normalization }
+\newcommand{\Batchnorm}{Batch normalization }
 
 %----------------------------------------------------------------------------------------
 
@@ -30,72 +32,91 @@ The metaphor behind RL is that of a decision maker (\keyword{agent}) and an \key
 
 In the classical RL approach, the environment is divided into discrete time steps. If that is the case, the environment corresponds to a \keyword{Markov Decision Process} (\textbf{MDP}). Formally, a MDP is a 5-tuple $\langle S, A, P, R, \gamma \rangle$, consisting of the following:\\
 \begin{align*}
-S &- \text{set of states } s\in S\\
-A &- \text{set of actions } a \in A\\
-P(s'|s, a) &- \text{transition probability function from state } s \text{ to state } s’ \text{ under action } a\\
-R(r|s, a) &- \text{ reward probability function for action } a \text{ performed in state } s \\
+\mathcal{S} &- \text{set of states } s\in \mathcal{S}\\
+\mathcal{A} &- \text{set of actions } a \in \mathcal{A}\\
+P(s'|s, a) &- \text{transition probability function from state } s \text{ to state } s’ \text{ under action } a: \mathcal{S} \times \mathcal{A} \rightarrow \mathcal{S} \\
+R(r|s, a) &- \text{ reward probability function for action } a \text{ performed in state } s: \mathcal{S} \times \mathcal{A} \times \mathcal{S} \rightarrow \mathds{R} \\
 \gamma &- \text{discount factor for future rewards } 0 \leq \gamma \leq 1
 \end{align*}
 
 %dass wir eigentlich noch ne initial state distrubition haben, und dass für den reward gilt S x A -> |R
-In general, both the state transition function and the reward function may be indeterministic, meaning that neither reward nor the following state are in complete control of the decision maker. Because of that, it can always only be talked about the expected value depending on the random distribution of states. Given both $s$ and $s'$ however, the reward is assumed to be deterministic. I will refer to the actual result of a state transition at discrete point in time $t$ as $s_{t+1}$ and to the result of the reward function as $r_t$. If no point in time is explicitly specified, it is assumed that all variables use the same $t$.
+In general, both the state transition function and the reward function may be indeterministic, meaning that neither reward nor the following state are in complete control of the decision maker. Because of that, it can always only be talked about the expected value of anything, depending on the random distribution of states. I will come back to that later. Given both $s$ and $s'$ however, the reward is assumed to be deterministic. I will refer to the actual result of a state transition at discrete point in time $t$ as $s_{t+1}$ and to the result of the reward function as $r_t$. If no point in time is explicitly specified, it is assumed that all variables use the same $t$.\\
 
-While an \keyword{offline learner} gets as input the problem definition in the form of a complete MDP, where the only task left is to classify actions yielding high rewards from actions giving suboptimal results, the task for an \keyword{online reinforcement learning} agent is a lot harder, as it has to learn the MDP itself via trial and error. In the process of reinforcement learning, the agent will encounter states $s$ of the environment, performing actions $a$. The future state $s_{t+1}$ of the environment may be indeterministic, but depends on the history of previous states $s_0, .., s_t$ as well as the action of the agent $a_t$. It is assumed that the \keyword{Markov property} holds, which means that a state  $s_{t+1}$ depends only on the current state $s_t$ and currenct action $a_t$: $p(s_{t+1}|s_t,a_t) = p(s_{t+1}|s_0,a_0,..,s_t,a_t)$
+\noindent While an \keyword{offline learner} gets as input the problem definition in the form of a complete MDP, where the only task left is to classify actions yielding high rewards from actions giving suboptimal results, the task for an \keyword{online reinforcement learning} agent is a lot harder, as it has to learn the MDP itself via trial and error. In the process of reinforcement learning, the agent will encounter states $s$ of the environment, performing actions $a$. The future state $s_{t+1}$ of the environment may be indeterministic, but depends on the history of previous states $s_0, .., s_t$ as well as the action of the agent $a_t$. It is assumed that the \keyword{Markov property} holds, which means that a state  $s_{t+1}$ depends only on the current state $s_t$ and currenct action $a_t$: $p(s_{t+1}|s_t,a_t) = p(s_{t+1}|s_0,a_0,..,s_t,a_t)$
 
-Throughout interacting with the environment, the agent receives rewards $r$, depending on his action $a$ as well as the state of the environment $s$. In many RL problems, the full state of the environment is not known to the agent, and it only perceives an observation depending on the environment: $o_t := o(s_t)$\footnote{From now on, when I mean the state of the environment, I will explicitly refer to it as $s_e$, while reserving $s$ for the agent's obvervation of the enviroment $o(s_e)$}. This is referred to as \keyword{partial observability}, and the corresponding decision process is a \keyword{partially observable MDP}. Additionally, the agent knows when a final state of the environment is reached, terminating the current training episode. An episode thus consists for the agent of a sequence of observations, actions and rewards ($S \times A \times \mathds{R}$) until at time $t_t$ some terminal state $s_{t_t}$ is reached: $$Episode := \big((s_0, a_0, r_0), (s_1, a_1, r_1), (s_2,a_2,r_2), .., (s_{t_t}, a_{t_t}, r_{t_t})\big)$$
+Throughout interacting with the environment, the agent receives rewards $r$, depending on his action $a$ as well as the state of the environment $s$. In many RL problems, the full state of the environment is not known to the agent, and it only perceives an observation depending on the environment: $o_t := o(s_t)$\footnote{From now on, when I mean the state of the environment, I will explicitly refer to it as $s_e$, while reserving $s$ for the agent's obvervation of the enviroment $o(s_e)$}. This is referred to as \keyword{partial observability}, and the corresponding decision process is a \keyword{partially observable MDP}. Additionally, the agent knows when a final state of the environment is reached, terminating the current training episode. An episode thus consists for the agent of a sequence of observations, actions and rewards ($\mathcal{S} \times \mathcal{A} \times \mathds{R}$) until at time $t_t$ some terminal state $s_{t_t}$ is reached: $$Episode := \big((s_0, a_0, r_0), (s_1, a_1, r_1), (s_2,a_2,r_2), .., (s_{t_t}, a_{t_t}, r_{t_t})\big)$$
 %A training example for the agent thus consists of the tuple  <o_t, a_t, r_t, o_{t+1}, t>. 
 
 \subsubsection{Value of a state}
-In the process of reinforcement learning, the agent tries to perform as well as possible in the previously unknown environment. For that, it uses an \mbox{action-policy $\pi$,} depending on some parameters $\theta$. The policy maps states to actions, which in the case of a \keyword{deterministic} policy leads to $\pi_\theta(s) = a$. Though a stochastic policy is possible, it will not be considered for now.\footnote{It is obvious, that the result of both the reward function and the state transition function depend on $\pi$. To be explicit about that, I will refer to a reward dependent on $\pi$ as $r^\pi$ and a state transition dependent on $\pi$ as $s^\pi$. If state or reward depends on an explicit action instead, I refer to it as $r^a$ and $s^a$. Whenever not necessary for clarity, I will also drop $\pi$s dependence on $\theta$.} As the agent does not have supervised data for what actions are the ground truth, it must learn some kind of measure for the value of being in a certain state or performing a certain action. The commonly used measure for the value of a state can be calculated by the immediate reward this state gives, summed with the expected value of the discounted future reward the agent will archieve by continuing to follow his policy from this state on: 
-\begin{equation} \label{eq:1.1}
-	V^\pi(s_t) := \mathds{E}_S \Big[ \sum_{t'=t}^{t_t} ( \gamma^{t'-t} * r^\pi_{t'} ) \Big]
+In the process of reinforcement learning, the agent tries to perform as well as possible in the previously unknown environment. For that, it uses an \mbox{action-policy $\pi$,} depending on some parameters $\theta$. The policy maps states to actions, which in the case of a \keyword{deterministic} policy leads to $\pi_\theta(s) = a$. Though a stochastic policy is possible, it will not be considered for now.\footnote{It is obvious, that the result of both the reward function and the state transition function depend on $\pi$. To be explicit about that, I will refer to a reward dependent on $\pi$ as $r^\pi$ and a state transition dependent on $\pi$ as $s^\pi$. If state or reward depends on an explicit action instead, I refer to it as $r^a$ and $s^a$. Whenever not necessary for clarity, I will also drop $\pi$s dependence on $\theta$.} As the agent does not have supervised data for what actions are the ground truth, it must learn some kind of measure for the value of being in a certain state or performing a certain action. The commonly used measure for the value of a state when using policy $\pi$ can be calculated by the immediate reward this state gives, summed with the expected value of the discounted future reward the agent will archieve by continuing to follow his policy $\pi$ from this state on:
+\begin{equation} \label{eq:valuedefinition}
+	V^\pi(s_t) := \mathds{E}_{s\sim\rho^\pi} \Big[ \sum_{t'=t}^{t_t} ( \gamma^{t'-t} * r^\pi_{t'} ) \Big]
 \end{equation}
-Using the discounted future reward is useful because in an indeterministic environment it gets less likely that the agent actually reaches this state, and to make the agents perform good actions as quickly as possible.
+As the future rewards depend on future states one can, as already mentioned, only talk about the expected Value depending on the actual state distribution. This distribution depends on the agents policy, but may still be indeterministic\footnote{That is one of the reasons to discount future rewards: The agent cannot be fully sure if it actually reaches the states it strives For. Also, using the discounted reward hopefully helps making the agent perform good actions as quickly as possible.}. The discounted state visitation distribution for a policy $\pi$ is denoted $\rho^\pi$.
 
-The actual, underlying Value of a state $s$ is defined as the value of the state when using the best possible policy, which corresponds to the maximally archievable reward starting in state $s$:
-\begin{equation} \label{eq:1.15}
+The actual, underlying Value of a state $V^*(s)$ could accordingly be defined as the value of the state when using the best possible policy, which corresponds to the maximally archievable reward starting in state $s_t$:
+\begin{equation*} 
 	V^*(s_t) := max_\pi V^\pi(s_t)
-\end{equation}
+\end{equation*}
 
-While \keyword{passive reinforcement learning} simply tries to learn the Value-function without the need of action selection, an \keyword{active reinforcement learner} tries to estimate a good policy, using which those high-value states are actually reached. If the value of every state is known, then the optimal policy can be defined as the one archieving maximal value for every upcoming state: \mbox{$\pi^* := argmax_\pi V^\pi(s) \forall s \in S$}. Knowing what an optimal policy does, and using \ref{eq:1.1} and \ref{eq:1.15}, it is possible to re-write the definition of the value of a state recursively as 
+While \keyword{passive learning} simply tries to learn the Value-function $V^*$ without the need of action selection, an \keyword{active reinforcement learner} tries to estimate a good policy, using which those high-value states are actually reached. If the value of every state is known, then the optimal policy can be defined as the one archieving maximal value for every state of the MDP: \mbox{$\pi^* := argmax_\pi V^\pi(s) \forall s \in \mathcal{S}$}. Knowing what an optimal policy does, we can re-write or definition of the value $V^\pi(s)$ \ref{eq:valuedefinition} recursively as
 \begin{align}
-	V^*(s_t) &= max_\pi \mathds{E}_S \Big[ \big(\sum_{t'=t}^{t_t} ( \gamma^{t'-t} * r^\pi_{t'} )\big) \Big] \label{eq:1.16}\\
-	&= max_\pi  \mathds{E}_S \big[ (r^\pi_t + \gamma * V^\pi(s_{t+1}^\pi)) \big] 
+	V^\pi(s_t) &= \mathds{E}_{s\sim\rho^\pi} \Big[ \sum_{t'=t}^{t_t} ( \gamma^{t'-t} * r^\pi_{t'} ) \Big] \nonumber \\
+	&= r_t^\pi + \gamma * \mathds{E}_{s\sim\rho^\pi} \Big[ \sum_{t'=t+1}^{t_t} ( \gamma^{t'-t} * r^\pi_{t'} ) \Big] \nonumber \\
+	&= r_t^\pi + \gamma * V^\pi(s_{t+1}) \label{statebellman}
 \end{align}
 %again, dass r von pi abhängt wird nicht deutlich
-This is known as the \keyword{Bellman Equation}, which allowed for the birth of dynamic programming. It rewrites the value of the decision problem at time $t$ in terms of the immediate reward at $t$ plus the value of the remaining decision problem at $t+1$, resulting from the initial choices.
+This relation is known as the \keyword{Bellman Equation}, which allowed for the birth of dynamic programming. Dynamic programming however needs to the complete MDP, which is not given in most of the relevant situations.
 % TODO CITE HINZUFÜGEN!!!!!!!!
 %https://en.wikipedia.org/wiki/Bellman_equation#The_Bellman_equation
 
 \subsubsection{Value of an action}
-While the definition of a state-value is useful, it alone does not help an agent to perform optimally, as neither the successor function $P(s'|s,a)$, nor the reward function $R(r|s,a)$ are known to the agent. While so-called \keyword{model-based} reinforcement learning tries to learn both of those explicitly to reconstruct the entire MDP, \keyword{model-free} agents use a different measure of quality: the \keyword{Q-value}. It represents the expected value of performing action $a_t$ in a state $s_t$, afterwards following the policy $\pi$.
+While the definition of a state-value is useful, it alone does not help an agent to perform optimally, as neither the successor function $P(s'|s,a)$, nor the reward function $R(r|s,a)$ are known to the agent. While so-called \keyword{model-based} reinforcement learning (also referred to as \keyword{Certainty Equivalence}) tries to learn both of those explicitly to reconstruct the entire MDP, \keyword{model-free} agents use a different measure of quality: the \keyword{Q-value}. It represents the expected value of performing action $a_t$ in a state $s_t$, afterwards following the policy $\pi$:
 \begin{equation} \label{eq:1.2}
-	Q^\pi(s_t,a_t) :=  \mathds{E}_S \big[ r_t^{a_t} + \gamma * V^\pi(s_{t+1}^{a_t}) \big]
+	Q^\pi(s_t,a_t) :=  \mathds{E}_{s\sim\rho^\pi} \big[ r_t^{a_t} + \gamma * V^\pi(s_{t+1}^{a_t}) \big]
 \end{equation}
-With the optimal, maximally archivable action-value $Q^*$ being respectively
-\begin{align}
-	Q^*(s_t,a_t) &=  \mathds{E}_S \big[ r_t^{a_t} + \gamma * V^*(s_{t+1}^{a_t}) \big] \\
-	&= max_\pi \mathds{E}_S \big[ ( r_t^{a_t} + \gamma * V^\pi(s_{t+1}^{a_t})) \big]
-\end{align}
+With the Q-value $Q^*$ of the optimal policy accordingly 
+\begin{align*}
+	Q^*(s_t,a_t) &=  \mathds{E}_{s\sim\rho^\pi} \big[ r_t^{a_t} + \gamma * V^*(s_{t+1}^{a_t}) \big] \\
+	&= max_\pi Q^\pi(s_t,a_t)
+\end{align*}
 
-For the Q-value, the Bellman equation holds as well: If the optimal value $Q^*(s_{t+1},a_{t+1})$ was known for all possible actions, then the optimal action at time $t$ is the one maximizing the sum of immediate reward and corresponding Q-value\footnote{This is because of the definition of Bellman's \keyword{Principle of Optimality}, which states that "An optimal policy has the property that whatever the initial state and initial decision are, the remaining decisions must constitute an optimal policy with regard to the state resulting from the first decision\cite{Bellman1957}"}:
+For the Q-value, the Bellman equation holds as well: If the correct Q-value under policy $\pi$, $Q^\pi(s_{t+1},a_{t+1})$, was known for all possible actions at time $t$, then the optimal action is the one maximizing the sum of immediate reward and corresponding Q-value\footnote{This is because of the definition of Bellman's \keyword{Principle of Optimality}, which states that ``An optimal policy has the property that whatever the initial state and initial decision are, the remaining decisions must constitute an optimal policy with regard to the state resulting from the first decision"  (quote \cite{bellman_dynamic_nodate})}. Thus, we can rewrite the value of our decision problem at time $t$ in terms of the immediate reward at $t$ plus the value of the remaining decision problem at $t+1$, resulting from the initial choices:
 \begin{equation} \label{bellman}
-	Q^*(s_t,a_t) = \mathds{E}_S \big[ r_t + \gamma * max_{a_{t+1}} Q^*(s_{t+1},a_{t+1})  \big]
+	Q^\pi(s_t,a_t) =  \mathds{E}_{s\sim\rho^\pi} \big[r_t^{a_t} + \gamma *  Q^\pi(s_{t+1},\pi(s_{t+1}))  \big]
 \end{equation}
 
-As the Value of a state is defined as the maximally archievable reward from that state, the relation between $Q$ and $V$ can be expressed as 
+As the Value of a state is defined as the maximally archievable reward from that state, the relation between $Q$ and $V$ can be expressed as
 \begin{equation} \label{eq:1.25}
 V(s_t) = max_{a_t} Q(s_t, a_t)
 \end{equation}
 
-% (dadrunter noch ne formel haben wie V von Q berechnet wird). 
-When an agent knows the Q-value for each action of a state, it can easily infer the optimal action in state $s_t$ as $a^*_t := argmax_{a_t}(Q(s_t, a_t))$ and thus the optimal policy $\pi^*$, %that takes action a* \forall s states 
-guaranteeing maximum future reward at every state. The goal of a model-free RL agent is thus to get a maximally precise estimate of $Q^*$, yielding maximal reward for every state. For that, it does not need to explicitly learn the reward- and transition function, but instead can model only the Q-function. Its policy is then to simply always take the action yielding the highest value for every state (a \keyword{greedy} policy\footnote{in fact, the agent cannot act only according to the greedy policy, as it will need to explore the environment, The problem of exploration will be considered later in this thesis.}).  In RL settings with a highly limited amount of discrete states and actions, the respective Q-function estimate can be specified as a lookup table, whereas for areas of interest, the function is calculated using a kind of nonlinear function approximator. 
+\subsubsection{Quality of a policy}
 
-Throughout exploration of the environment, the agent collects more information of it, continually updating its estimate $Q^\pi$. For that, it uses samples from its episodes of interacting with the environment. % also s, a, r, s', a', t.... wie formulier ich das gut?
+Any agents goal is to find a policy that can follow the trajectory of that state distribution with the highest expected reward. If the actual Q-value for each action of each state was known, then the optimal policy can be defined as the one taking the optimal action in each state:
+\begin{equation}
+	\pi^* = argmax_aQ^*(s,a) \forall s,a \in \mathcal{S} \times \mathcal{A}
+\end{equation}
+This policy guarantees maximum future reward at every state. Note however, that finding $argmax_aQ(s,a)$ is only easily possible if $\mathcal{A}$ is discrete and finite (more on that later). 
+
+As for the actual performance of a policy, a useful measure is the \keyword{performance objective} $J$. It integrates over the whole state space $\mathcal{S}$ with each state $s$ weighted by its distribution due to policy $\pi$. If we also considered stochastic policies, one would also have to integrate over the whole action space $\mathcal{A}$, however we will only consider deterministic policies here. The integral can, as shown by \cite{silver_deterministic_2014}, be expressed by the expectation of the Value of states following the distribution $s\sim\rho^\pi$:
+\begin{align}
+	J(\pi) &= \int_\mathcal{S} \rho^\pi(s) V^\pi(s) ds\\
+	       &= \mathds{E}_{s\sim\rho^\pi} \big[V^\pi(s)]\\
+	       &= \mathds{E}_{s\sim\rho^\pi} \big[Q^\pi(s, \pi(s))]
+\end{align}
+%TODO dass das jetzt bei off-policy anders ist, da wir da differentiaten müssen zwischen policy der wir folgen und policy anhand derer wir evaluieren!!!!!!!
+
+
+\noindent We assume for now that once an agent knows $Q^*$, it can simply follow the policy that always takes the action yielding the highest value for every state (the \keyword{greedy} policy)\footnote{in fact, the agent cannot act only according to the greedy policy, as it will need to \keyword{explore} the environment first. The problem of exploration will be considered later in this thesis.}. 
+
+Thus, the goal of a model-free RL agent is to get a maximally precise estimate of $Q^*$. For that, it does not need to explicitly learn the reward- and transition function, but instead can model the Q-function directly. In RL settings with a highly limited amount of discrete states and actions, the respective Q-function estimate can be specified as a lookup table, whereas for areas of interest, the function is estimated using a kind of nonlinear function approximator. The agents approximation of $Q^\pi$ will be denoted $\hat{Q}^\pi$. \\
+
+\noindent Throughout exploration of the environment, the agent collects more information of it, continually updating its estimate $\hat{Q}^\pi$. For that, it uses samples from its episodes of interacting with the environment. % also s, a, r, s', a', t.... wie formulier ich das gut?
 
 
 \section{Temporal difference Learning}
+%TODO actually, its only TD learning if we're learning the VALUE-function
 
 %die relevanten cites hier sind sutton1988 und watkins1989. Der proof is dayan1992... und sowieso bellman
 %Reinforcement learning can solve Markov decision processes without explicit specification of the transition probabilities; the values of the transition probabilities are needed in value and policy iteration. In reinforcement learning, instead of explicit specification of the transition probabilities, the transition probabilities are accessed through a simulator that is typically restarted many times from a uniformly random initial state. Reinforcement learning can also be combined with function approximation to address problems with a very large number of states.
@@ -104,16 +125,20 @@ Throughout exploration of the environment, the agent collects more information o
 %Temporal difference learning ist Sutton 1988 in ftp://mi.eng.cam.ac.uk/pub/reports/auto-pdf/rummery_tr166.pdf
 %Q-learning is Watkins 1989 in ibidem
 
-Throughout the process of reinforcement learning, the agent continually improves its estimates $\hat{Q}$ of $Q^*$. The loss of its current estimate could be seen as the squared difference $(\hat{Q}$-$Q^*)^2$, however as the agent has no knowledge of $Q^*$, it needs some way of approximating it. For that, a Q-learning agent performs \keyword{iterative approximation}, using the information about the environment, to continually update its estimates of $Q^*$.
-\noindent Using the recursive definition of a Q-value given in the Bellman equation \ref{bellman} allows for a technique called \keyword{temporal difference learning}\cite{sutton1988}: At time $t+1$, the agent can compare its estimate of the Q-function of the last step, $\hat{Q}^\pi(s_t, a_t)$, with a new estimate using the new information it gained from the environment: $r_{t+1}$ and $s_{t+1}$.  Because of the newly gained information from the underlying model, the new estimate will be closer to the actual function $Q^*$ than the original value:
+Throughout the process of reinforcement learning, the agent continually improves its estimates $\hat{Q}^\pi$ of $Q^\pi$. The loss of its current estimate could be seen as the squared difference $(\hat{Q}^\pi - Q^\pi)^2$, however as the agent has no knowledge of $Q^\pi$, it needs some way of approximating it. For that, a Q-learning agent performs \keyword{iterative approximation}, using the information about the environment, to continually update its estimates of $Q^\pi$.
+\noindent Using the recursive definition of a Q-value given in the Bellman equation \ref{bellman} allows for a technique called \keyword{temporal difference learning}\cite{sutton_learning_1988}: At time $t+1$, the agent can compare its estimate of the Q-function of the last step, $\hat{Q}^\pi(s_t, a_t)$, with a new estimate using the new information it gained from the environment: $r_{t+1}$ and $s_{t+1}$.  Because of the newly gained information from the underlying MDP, the new estimate will be closer to the actual function $Q^\pi$ than the original value:
 \begin{align} 
-	\hat{Q}^\pi(s_t,a_t) &= r_t + \mathds{E}_S \big[ \gamma * max_{a_{t+1}} \hat{Q}^\pi(s_{t+1},a_{t+1})  \big]\\
-	                     &\approx r_t + \gamma * r_{t+1} + \mathds{E}_S \big[ \gamma^2 * max_{a_{t+2}} \hat{Q}^\pi(s_{t+2},a_{t+2})  \big] \label{bellmanmal2}
+	\hat{Q}^\pi(s_t,a_t) &= r_t + \mathds{E}_{s\sim\rho^\pi} \big[ \gamma * max_{a_{t+1}} \hat{Q}^\pi(s_{t+1},a_{t+1})  \big]\\
+	                     &\approx r_t + \gamma * r_{t+1} + \mathds{E}_{s\sim\rho^\pi} \big[ \gamma^2 * max_{a_{t+2}} \hat{Q}^\pi(s_{t+2},a_{t+2})  \big] \label{bellmanmal2}
 \end{align}
 
-Keeping in mind that $\hat{Q}^\pi$ is only an estimator of the $Q^*$-values of the underyling model, it becomes clear that equation \ref{bellmanmal2} is closer to the actual $Q^*$, as it incorporates more information stemming from the model itself. 
+%Q^\pi(s_t,a_t) :=  \mathds{E}_{s\sim\rho^\pi} \big[ r_t^{a_t} + \gamma * V^\pi(s_{t+1}^{a_t}) \big]
 
-In temporal difference learning, the mean-squared error of the \keyword{temporal difference} from the Bellman equation, $r_t + \gamma * Q(s_{t+1},a_{t+1}) - Q(s_t,a_t)$, gets minimized via iterative approximation. Because the optimal target-values $Q^*(s_{t+1},a_{t+1})$ are not available, they are substituted with the \textit{more informed guess}, stemming from observations in the environment. It is noteworthy, that each update of the Q-function using the temporal difference will affect not only the last prediction, but all previous predictions.
+Keeping in mind that $\hat{Q}^\pi$ is only an estimator of the $Q^\pi$-values of the underyling model, it becomes clear that equation \ref{bellmanmal2} is closer to the actual $Q^\pi$, as it incorporates more information stemming from the model itself. 
+
+In temporal difference learning, the mean-squared error of the \keyword{temporal difference} from this Bellman equation, $r_t + \gamma * Q(s_{t+1},a_{t+1}) - Q(s_t,a_t)$, gets minimized via iterative approximation. Even though $r_t + \gamma * \hat{Q}^\pi(s_{t+1},a_{t+1})$ also uses an estimate, it contains more information from the environment, and is thus a \textit{more informed guess} than $\hat{Q}^\pi(s_s,a_s)$. That makes it reasonable to substitute the unknown $Q^\pi(s_{t+1},a_{t+1})$ by $\hat{Q}^\pi(s_{t+1},a_{t+1})$.
+
+\noindent It is noteworthy, that each update of the Q-function using the temporal difference will affect not only the last prediction, but all previous predictions.
 
 %Q^*(s_t,a_t) &= \mathds{E}_S \big[ r_t^{a_t} + \gamma * V^*(s_{t+1}^{a_t}) \big]\\
 %% &= r_t^{a_t} + \gamma * \Big( r_{t+1}^{a_\pi} + \gamma * V^\pi(s_{t+2}^{a_\pi})\Big) \\
@@ -123,33 +148,49 @@ In temporal difference learning, the mean-squared error of the \keyword{temporal
 
 % TODO sarsa ist sutton and barto 1998
 \subsubsection{\textsc{SARSA}}
-The new knowledge about the environment can be incorporated in two different ways. For the first method, the agent samples a full tuple of $\langle s_t, a_t, r_t, s_{t+1}, a_{t+1} \rangle$ from the environment, to then calculate the temporal difference error in non-terminal states as $ TD := (r_t + \gamma * \hat{Q}_i^\pi(s_{t+1}, a_{t+1})) - \hat{Q}_i^\pi(s_t, a_t)  $. This algorithm of calculating the temporal difference error is known as  \keyword{\textsc{sarsa}}, and it is an example of \keyword{on-policy} learning. In on-policy learning, the agent uses his own policy in every estimate of the Q-value. 
+The new knowledge about the environment can be incorporated in two different ways. For the first method, the agent samples a full tuple of $\langle s_t, a_t, r_t, s_{t+1}, a_{t+1} \rangle$ from the environment, to then calculate the temporal difference error in non-terminal states as $ TD := (r_t + \gamma * \hat{Q}^\pi(s_{t+1}, a_{t+1})) - \hat{Q}^\pi(s_t, a_t)  $. This algorithm of calculating the temporal difference error is known as  \keyword{\textsc{sarsa}}, and it is an example of \keyword{on-policy} temporal difference learning. In on-policy learning, the agent uses its own policy in every estimate of the Q-value. That can, if the policy of the agent is not stochastic, lead to the agent getting stuck in local optima.
 
 \subsubsection{Q-learning}
 
-In contrast to \textsc{sarsa} stands the \keyword{off-policy} algorithm \keyword{Q-learning}. This algorithm does not need to sample the action $a_{t+1}$, as it calculates the Q-update at iteration $i$ using the best possible action in state $s_{t+1}$.\footnote{A slight deviation from this \keyword{double-Q-learning}, an algorithm I will go into detail about lateron.} As the previous definition of Q-values was only correct in non-terminal states, a case differentiation must be introduced for terminals and non-terminal states. In the following, $y_t$ will stand for the updated estimate of the Q-value at $t$, sampling the necessary states, rewards and actions from the environment, almost resulting in the formula found in \cite{mnih_human-level_2015}:
+In contrast to \textsc{sarsa} stands the \keyword{Q-learning} algorithm \cite{watkins_learning_1989}. Q-learning does not need to sample the action $a_{t+1}$, as it calculates the Q-update at iteration $i$ using the best possible action in state $s_{t+1}$. \footnote{A slight deviation from this \keyword{double-Q-learning}, an architecture I will go into detail about lateron.} 
+
+As the previous definition of Q-values was only correct in non-terminal states, a case differentiation must be introduced for terminal- and non-terminal states. In the following, $y_t$ will stand for the updated estimate of the Q-value at $t$, sampling the necessary states, rewards and actions from the environment, almost resulting in the formula found in \cite{mnih_human-level_2015}. To express its dependence on the policy $\pi$, it will be superscripted by it:
 \begin{equation} \label{eq:ycases}
-	y_{t} = \begin{cases} 
+	y_t^\pi = \begin{cases} 
 		r_t & \text{if } t = t_t\\
-		r_t + \gamma * max_{a_{t+1}} (\hat{Q}^\pi( s_{t+1}, a_{t+1})) & \text{otherwise}
+		r_t + \gamma * max_{a_{t+1}} \hat{Q}^\pi( s_{t+1}, a_{t+1}) & \text{otherwise}
 \end{cases}
 \end{equation}
 The temporal difference error for time $t$ is accordingly defined as 
 \begin{equation}
-TD_t := y_t - \hat{Q}^\pi(s_t, a_t)
+TD_t := y_t^\pi - \hat{Q}^\pi(s_t, a_t)
 %TD_t := \big( r_t + \gamma * max_{a_{t+1}}(\hat{Q}_i^\pi(s_{t+1}, a_{t+1}))\big) - \hat{Q}_i^\pi(s_t, a_t)
 \end{equation}
 
-A Q-learning agent must thus for his learning step observe a snapshot of the environment, consisting of the following input: $\langle s_t, a_t, r_t, s_{t+1}, t+1==t_t \rangle$ (where the latter is the information if state $s_{t+1}$ was a terminal state). Q-learning is considered an off-policy algorithm, because it learns about the greedy policy $a=argmax_{a'}Q(s,a')$, while not necessarily following it.\footnote{This is because in its actual policy, the agent includes some way to explore the environment, more on that later.}
+A Q-learning agent must thus observe a snapshot of the environment, consisting of the following input: $\langle s_t, a_t, r_t, s_{t+1}, t+1==t_t \rangle$ (where the latter is the information if state $s_{t+1}$ was a terminal state). That information is then used to calculate the temporal difference error.
 
-Using the above error straight away allows for the update-rule of an agent in a very limited setting: Consider an agent, specifying his approximation of the Q-function (his \keyword{model}) with a lookup-table, initialized to all zeros. It is proven by \cite{watkins_technical_1992} that for finite-state Markovian problems with nonnegative rewards the update-rule for the Q-table $\hat{Q}(s_t,a_t) \leftarrow r_t^{a_t} + \gamma * \hat{Q}^\pi(s_{t+1}^{a_t},a_{t+1}) $ converges to the optimal $Q^*$-function, making the greedy policy $\pi^*$ optimal\footnote{Of course the agent will need some kind of exploration technique first, more on that later}.  % (learning propagates backwards).
-%man kann auch Q(s,a) <- Q(s,a) + alpha*TD als update rule nehmen (siehe unseren bericht für CANN), dann ists abhängig von der learning rate(und da TD->0 geht, hat das nen klares Limit)
+Using the above error straight away allows for the update-rule of an agent in a very limited setting: Consider an agent, specifying his approximation of the Q-function (his \keyword{model}) with a lookup-table, initialized to all zeros. It is proven by \cite{watkins_technical_1992} that for finite-state Markovian problems with nonnegative rewards the update-rule for the Q-table (with $0 \leq \alpha \leq 1$ as the learning rate)
+\begin{equation*} \label{eq:qtable}
+	\hat{Q}^\pi_{i+1}(s_t,a_t) \leftarrow \alpha * \Big(r_t^{a_t} + \gamma * \hat{Q}^\pi_i(s_{t+1}^{a_t},a_{t+1}) \Big) + (1-\alpha) * \hat{Q}^\pi_i(s_t,a_t)
+\end{equation*}
+converges to the optimal $Q^*$-function, making the greedy policy $\pi^*$ optimal\footnote{Of course the agent will need some kind of exploration technique first, more on that later}. Note, that the same update rule as for the Q-function could be performed for the V-function.\\
 
-As however in practice the problems using a table as the Q-functions are only very limited scenarios, an update rule like this is irrelevant. Instead, a better idea is to use this definition of the temporal difference error for a loss function, which is to be minimized throughout the process of RL. A commonly used loss-function is the \keyword{L2-Loss}, which allows gradient descent, updating the parameters of the Q-function into the direction of the newly acquired knowledge. The L2-Loss at iteration i with model-parameters $\theta_i$ is thus defined as the following:
+In contrast to \textsc{Sarsa}, Q-learning is an \keyword{off-policy} algorithm, meaning that the policy it uses in its evaluation of the Q-value is not necessarily the one it actually uses: When calculating the temporal difference error, the agent considers Q-values $\hat{Q}^{\pi_{greedy}}(s,a)$, basing on $\pi_{greedy}(s) = argmax_{a'}\hat{Q}(s,a')$, as better approximation of the real action-value function $Q^\pi(s,a)$. Therefore, it learns about $\pi_{greedy}$, which is to always take the action promising maximum Value. Because following the deterministic $\pi_{greedy}$ does not allow for  \keyword{exploration}, this is not the policy the agent actually pursues. When using off-policy algorithms with $\pi$ as the policy we learn about and $\beta$ as the policy we act upon, our performance objective $J(\pi)$ must change, as it must incorporate that while the value of a state is calculated using $\pi$, the distribution of states follows from policy $\beta$: 
+\begin{equation} \label{eq:performance}
+	J_\beta(\pi) = \mathds{E}_{s\sim\rho^\beta} \big[Q^\pi(s, \pi(s))]
+\end{equation}\\
+
+The process of reinforcement learning consists of two steps: \keyword{policy evaluation}, where the agent evaluates its current policy according to the knowledge gained from the environment and, basing on that, \keyword{policy improvement}. In the standard Q-learning considered here, those steps are interleaved, leading to a form of generalised policy iteration: the Q-learner learns action value-function and its policy simultaneously. After updating its Q-function estimate via the temporal difference error, the agent updates its policy to be a \keyword{soft} version of the greedy policy $\pi_{i+1}(s) := argmax_a Q^{\pi_i}(s,a) \forall s \in \mathcal{S}$, while keeping mechanism allowing for exploration.  Learning with this approach is however generally limited: $argmax_aQ(\cdot, a)$ can only easily be found in settings where the action space $A$ is finite and discrete, as it requires a global maximization over all possible actions. In a later section, I will go into detail about another architecture which does run into those problems, by splitting up policy evaluation and policy improvement explicitly.\\
+
+
+Sticking for a while with discrete actions $\mathcal{A} \subseteq \mathds{N}^n$ however, a Q-learner using tables as Q-function-approximator also reaches its limits really fast, as the state space $\mathcal{S}$ may also be continuous or simply too big for a table to be useful. If that is the case, an update rule like in equation \ref{eq:qtable} becomes irrelevant quickly. Instead, a better idea is to use this definition of the temporal difference error for a loss function, which is to be minimized throughout the process of RL. A commonly used loss-function is the \keyword{L2-Loss}, which allows for gradient descent, updating the parameters of the Q-function into the direction of the newly acquired knowledge. If one does that, it may also be useful to calculate the loss of a batch of temporal differences simultaneously (more on that later). The L2-Loss for batch $batch$ with model-parameters $\theta_i$, making up the policy $\pi_{\theta_i}$ is thus defined as the following: 
 \begin{equation} \label{l2loss}
-	L_i(\theta_i) := \mathds{E}_{s,a,r} \Big[ \big( y_i(\theta_i) - \hat{Q}_i^\pi(s_t, a_t; \theta_i)\big)^2 \Big]
+	L_{batch}(\theta_i) := \mathds{E}_{s,a,r \sim batch} \Big[ \big( y_{batch}^{\pi_{\theta_i}} - \hat{Q}_{batch}^{\pi_{\theta_i}}(s, a)\big)^2 \Big]
 \end{equation}
-%dass das später noch relevant wird dass er max_q nimmt: it doesn't quite learn from bad rewards if there are also good ones: https://www.youtube.com/watch?v=4MOx2_e5tug
+
+
+
+
 
 
 
@@ -170,24 +211,26 @@ As however in practice the problems using a table as the Q-functions are only ve
 %Report von valentin melisa und mir und benni
 
 % TODO: Ich bin hier noch nicht auf exploration eingegangen... Und außerdem nicht auf actor-critic stuff oder policy gradients, kann ich also jetzt schon mit DQN kommen oder ist das viel zu früh?
-% TODO: sämtlich erwartungswerte fehlen noch, siehe meinen CANN report und das DQN-paper.
 % TODO: offensichtlich, die references. Mainly originales Qlearnpaper, was von bellman, originales reinforcementlearnpaper
 \section{Q-Learning with Neural Networks}
 
-To understand this section, basic knowledge on how \keyword{Artificial Neural Networks} (\textbf{ANN}s) work and what they do is presupposed. A special focus must also lie on \keyword{Convolutional Neural Networks} (\textbf{CNN}s) \cite{yann_lecun_gradient-based_1998}, mainly used in image processing. As mentioned before, it is (in theory) not only possible to use a Q-table to estimate the $Q^*$-function, but any kind of function approximator. Thanks to the universality theorem\footnote{http://neuralnetworksanddeeplearning.com/chap4.html, I need a better source on this!}, it is known that ANNs are an example of such. The defining feature of ANNs in comparison to other Machine Learning techniques is their ability to store complex, abstract representations of their input when using a \keyword{deep} enough architecture.
+To understand this section, basic knowledge on how \keyword{Artificial Neural Networks} (\textbf{ANN}s) work and what they do is presupposed. A special focus must also lie on \keyword{Convolutional Neural Networks} (\textbf{CNN}s) \cite{yann_lecun_gradient-based_1998}, mainly used in image processing. As mentioned before, it is (in theory) not only possible to use a Q-table to estimate the $Q^\pi$-function, but any kind of function approximator. Thanks to the universality theorem\footnote{http://neuralnetworksanddeeplearning.com/chap4.html, I need a better source on this!}, it is known that ANNs are an example of such. The defining feature of ANNs in comparison to other Machine Learning techniques is their ability to store complex, abstract representations of their input when using a \keyword{deep} enough architecture.
 
-\subsection{Deep Q-learning}
+\subsection{Deep Q-learning} \label{ch:DQN}
 
-\noindent The reason to use neural function approximators instead of a simple Q-table approach for reinforcement learning problems is easy to see: While for a Q-table the states and actions of the Markov Decision Process must be discrete and very limited, this is not the case when using higher-level representations. If the agent's observation of a state of the game is high-dimensional (like for example an image) the chance for an agent to observe the exact same observation twice is extremely slight. Instead, an Artificial Neural Network can learn a higher-level representation of the state, grouping conceptually similar states, and thus generalize to new, previously unseen, states. It is no surprise that the success of \keyword{Deep-Q-Networks} started its journey shortly after the introduction of CNNs, which are able to learn abstract representations of similar images, by now used in countless Computer Vision Applications. \\%TODO: noch ne source?
+\noindent The reason to use neural function approximators instead of a simple Q-table approach for reinforcement learning problems is easy to see: While for a Q-table the states and actions of the Markov Decision Process must be discrete and very limited, this is not the case when using higher-level representations. If the agent's observation of a state of the game is high-dimensional (like for example an image) the chance for an agent to observe the exact same observation twice is extremely slight. Instead, an Artificial Neural Network can learn a higher-level representation of the state, grouping conceptually similar states, and thus generalize to new, previously unseen states. It is no surprise that the success of \keyword{Deep-Q-Networks} started its journey shortly after the introduction of CNNs, which are able to learn abstract representations of similar images, by now used in countless Computer Vision Applications. \\%TODO: noch ne source?
 
-\textit{Deep-Q-Network} refers to a family of off-policy, online, active, model-free Q-learning algorithms using Deep Neural Networks. % I made it! I used all of those terms! :D
-When using ANNs as function approximators for the model of the environment, it will result in a Loss function depending on the Neural Network parameters, specified by $\theta$. The update rule in Deep Networks depends on the gradient with respect to its, $\nabla_{\theta_i}L(\theta_i)$. These weights correspond to the parameters of the $\hat{Q}$-function of the agent. %ist so nicht ganz wie bei DQN, da da im linken teil der gleichung \theta^- = \theta_{i-1} verwendet wird.. check grad nur nicht warum ind er linken und nicht in der rechten hälfte
-While there are attempts to use Artificial Neural Networks for Q-learning as early as 1993[SOURCE], some key components of modern Deep-Q-Networks (\textbf{DQN}s) were missing, leading to satisfactory performance only in very limited settings. In standard online RL tasks, the update step minimizing the loss specified in \ref{l2loss} is performed right after the observation occured to the agent. As consecutive steps of MDPs tend to be correlated, the update using gradient descent is prone to oscillation in its result, thus never converging to an optimal $Q^*$-function. It was not until \keyword{Deepmind}'s famous papers in 2013\cite{mnih_playing_2013} and 2015\cite{mnih_human-level_2015}, that those issues were successfully adressed.
+\textit{Deep-Q-Network} (\textbf{DQN}) refers to a family of off-policy, online, active, model-free Q-learning algorithms using Deep Neural Networks. % I made it! I used all of those terms! :D
+When using ANNs as function approximators for the model of the environment, it will result in a Loss function depending on the Neural Network parameters, specified by $\theta$. These weights correspond to the parameters of the $\hat{Q}$-function of the agent. As previously mentioned, this kind of Q-learning defines its policy straight-forward, depending on the $argmax_a$ of the Q-function. I will therefore replace the dependence of $\hat{Q}^\pi(s,a)$ on $\pi$ by a dependence on its parameters: $\hat{Q}(s,a;\theta_i)$. The update rule in Deep Networks depends on the gradient with respect to its loss, $\nabla_{\theta_i}L(\theta_i)$.  %ist so nicht ganz wie bei DQN, da da im linken teil der gleichung \theta^- = \theta_{i-1} verwendet wird.. check grad nur nicht warum ind er linken und nicht in der rechten hälfte
 
-One important step when using ANNs instead of Q-tables is, to perform stochastic gradient descent using minibatches. In every gradient descent step of the Neural Network, neither only the last temporal difference error $TD_t$ is considered, nor the entire sequence $TD_0, .., TD_{t_t}$. Instead, as usual when dealing with ANNs, minibatches are sampled from the set of all observations. When performing the gradient descent step, the weights for the target $y_t$ are fixed, making the minimization of the temporal difference error a well-defined optimization problem, similar to that one of supervised learning, during the learning step.\\
+While there are attempts to use Artificial Neural Networks for Q-learning as early as 1994\cite{rummery_-line_1994}, some key components of modern Deep-Q-Networks were missing, leading to satisfactory performance only in very limited settings. In standard online RL tasks, the update step minimizing the loss specified in \ref{l2loss} is performed not for a batch, but for each time $t$ right after the observation occured to the agent. 
 
-%warum man generell bei ANNs in minibatches lernt
-\noindent The two important innovations introduced in Deepminds DQN-architecture were the use of a \keyword{target network} as well as the technique of \keyword{experience replay}, which in combination successfully hindered the problem of oscillating and non-converging action-value function, even though still no formal mathematical proof of that is given. %TODO: or is it by now? I could quote razvan pascanu here
+In those situations, the current parameters of the policy determine the next sample the parameters are trained on. It is easy to see, that those consequtive steps of MPDs tend to be correllated: It is very likely, that the maximizing action of time $t$ is similar to the one at $t+1$. Thus, when using consecutive steps of the MDP is not representatitive for the distribution of the whole underlying model. ANNs require independent and identically distributed samples, which is not given if the samples are generated sequentially. As shown by \cite{john_n._tsitsiklis_analysis_1997}, the update using gradient descent is prone to feedback loops and thus oscillation in its result, thus never converging to an optimal $Q^\pi$-function. 
+
+It was not until \keyword{Deepmind}'s famous papers in 2013\cite{mnih_playing_2013} and 2015\cite{mnih_human-level_2015}, that those issues were successfully adressed. One important step when using ANNs instead of Q-tables is to perform stochastic gradient descent using minibatches. In every gradient descent step of the Neural Network, neither only the last temporal difference error $TD_t$ is considered (leading to oscillations), nor the entire sequence $TD_0, .., TD_{t_t}$ (taking far too long with ANNs). Instead, as usual when dealing with ANNs, minibatches are sampled from the set of all observations. When performing the gradient descent step, the weights for the target $y_t$ are fixed, making the minimization of the temporal difference error a well-defined optimization problem (similar to that one of supervised learning) during the learning step.\\
+
+
+\noindent The two important innovations introduced in the DQN-architecture were the use of a \keyword{target network} as well as the technique of \keyword{experience replay}, which in combination successfully hindered the problem of oscillating and non-converging action-value functions, even though still no formal mathematical proof of convergence is given. %TODO: or is it by now? I could quote razvan pascanu here
 
 \subsubsection{Experience Replay}
 %dass das auch data efficiency erhöht - alle 4 schritte wird ein 32er minibatch genommen, jedes wird mehrfach genutzt
@@ -195,10 +238,10 @@ As mentioned above, learning only from the most recent experiences biases the po
 
 \subsubsection{Target Networks}
 During the training procedure, the DQN-algorithm uses a separate network to generate the target-Q-values, used to compute the loss (\ref{l2loss}), necessary for the learning step of every iteration. The idea behind that is, that the Q-values of the \keyword{online network} shift in such a way, that a feedback loop can arise between the target- and estimated Q-values, shifting the Q-value more and more into a similar direction. %TODO: das ist sehr unwissenschaftlich ausgedrückt und geht auf jeden Fall besser erklärt, using eine der vorhergegangenen 
-To lessen the risk of such feedback loops, the DQN algorithm introduced the use of a second network for calculating the loss: the target network. This is only periodically updated with the weights of the online network used for the policy, which reduces the risk of correlations in the action-value $Q_t$ and the corresponding target-value $y_t$ (see equation \ref{eq:ycases}).
+To lessen the risk of such feedback loops, the DQN algorithm introduced the use of a second network for calculating the loss: the \keyword{target network}. This is only periodically updated with the weights of the online network used for the policy, which reduces the risk of correlations in the action-value $Q_t$ and the corresponding target-value $y_t$ (see equation \ref{eq:ycases}).
 
-The use of this two techniques leads to the Q-learning update rule as used in \cite{mnih_human-level_2015}:
-\begin{equation}
+The use of this two techniques leads to the Q-learning update rule, using the loss as used in \cite{mnih_human-level_2015}:
+\begin{equation} \label{qloss_target}
 	L_i(\theta_i) = \mathds{E}_{\langle s_t,a_t,r_t,s_{t+1} \rangle \sim U(D)} \Bigg[\Big( r + \gamma * max_{a_{t+1}} \hat{Q}(s_{t+1}, a_{t+1}; \theta^-_i) - \hat{Q}(s_t,a_t;\theta_i) \Big)^2\Bigg]
 \end{equation}
 \begin{flushright}
@@ -212,7 +255,7 @@ As is the case with the experience replay mechanism, the usage of a target netwo
 
 \subsubsection{Double-Q-Learning}
 In DoubleQ, we still use the greedy policy to select actions, however we evaluate how good it is with another set of weights
-
+DDQN: instead of taking the max over Q-values when computing the target-Q value for our training step, we use our primary network to chose an action, and our target network to generate the target Q-value for that action. 
 
 \subsubsection{Dueling Q-Learning}
 
@@ -222,34 +265,116 @@ In DoubleQ, we still use the greedy policy to select actions, however we evaluat
 
 \subsection{Actor-Critic architectures}
 
-All previously introduced techniques are adaptations of the Q-learning algorithm \cite{sutton_learning_1988},\cite{watkins_learning_1989}. In Q-learning, the algorithms learns via temporal differences the state-action value Q for the greedy policy $\pi = argmax_a Q(s,a) \forall s \in S$. As purely using this policy hinders the agent from \keyword{exploration}, Q-learning algorithms must always be off-policy, and actually follow a slightly different policy than $\pi$. Learning with this approach is however generally limited: $argmax_aQ(\cdot, a)$ can only easily be found in settings where the action space $A$ is finite and discrete.\\
+The previously introduced technique, a direct adaptation of the Q-learning algorithm \cite{sutton_learning_1988}\cite{watkins_learning_1989}, is a kind of \keyword{generalised policy iteration}, where the policy evaluation and policy improvement happen in the same step. The algorithms learns via temporal differences the state-action value $Q^{\pi_{greedy}}(s,a)$ for the states it encountered with its current policy $\pi$. It then updates $\pi$ to a soft version of that greedy policy $\pi_{i+1}(s) := soft(argmax_a Q^{\pi_{greedy}}(s,a) \forall s \in \mathcal{S})$, where the $soft$-function ensures appropriate exploration. Learning the Q-function and the policy simulatenously is however generally limited: $argmax_aQ(\cdot, a)$ can only easily be found in settings where the action space $A$ is finite and discrete, as it requires a global maximization over all possible actions. While discretizing the action space is possible, it gives rise to the \keyword{curse of dimensionality}, especially when the discretization is fine grained. An iterative optimization process like the argmax-operation would thus likely be intractable.\\
 
-\noindent However in a lot of scenarios, the action space is not discrete, but continuous: \mbox{$A \subseteq \mathds{R}^n$}. In such situations, the approach is to model the policy explicitly, with another function approximator. This gives rise to \keyword{actor-critic} architectures. In an actor-critic approach, there are two function approximators: The \keyword{critic} uses temporal differences to estimate the Q-value of states $s \in S$ and actions $a \in A$. If the critic were perfect, it would return the true action-value function of the policy $\pi$, $Q^\pi(s,a)$. As that is not the case however, it is in fact similar to the Bellman-function-approximator from previous sections. In contrast to those however, the policy is now explicitly modeled by the \keyword{actor}. In the case of a stochastic policy, it would be represented by a parametric probability distribution $\pi_\theta(a|s) = \mathds{P}[a|s;\theta]$, however here we only consider the case of deterministic policies $a = \pi_\theta(s)$. Note however, that this will (again) lead to the necessesity of off-policy algorithms, as a purely deterministic policy does not allow for adequate exploration of state-space $S$ or action-space $A$.
 
-Standard actor-critic algorithms necessarily rely on the \keyword{policy gradient theorem}, which states a relation between the gradient of the policy and the gradient of the performance function:
-\begin{equation}
-	\nabla_{\theta}J(\pi_\theta) = \mathds{E}_{s\sim\rho^\pi,a\sim\pi}[\nabla_\theta log \pi_\theta(a|s)\hat{Q}^\pi(s,a)]
-\end{equation} %TODO: das ist nur richtig wenn ich den performance dingsi J, von unten, schon vorher erklärt habeeeee
+\noindent However in a lot of scenarios, the action space is not discrete, but continuous: \mbox{$A \subseteq \mathds{R}^n$}. In such situations, the alternative is to move the policy into the \textit{direction of the gradient of Q}. For that, it is necessary to model the policy explicitly with another function approximator. This gives rise to \keyword{actor-critic} architectures, where both policy and Q-function are explicitly modeled: The \keyword{critic} uses temporal differences to estimate the Q-value of states $s \in \mathcal{S}$ and actions $a \in \mathcal{A}$. If the critic were perfect, it would return the true action-value function of the policy $\pi$, $Q^\pi(s,a)$. As that is not the case however, it is in fact similar to the Bellman-function-approximator from previous sections. In contrast to those however, the policy is now explicitly modeled by the \keyword{actor}. In the case of a stochastic policy, it would be represented by a parametric probability distribution $\pi_\theta(a|s) = \mathds{P}[a|s;\theta]$, however here we only consider the case of deterministic policies $a = \pi_\theta(s)$, which takes the necessity of averaging over all possible actions of our policy. Note however, that using deterministic policies will (again) lead to the necessesity of off-policy algorithms, as a purely deterministic policy does not allow for adequate exploration of state-space $\mathcal{S}$ or action-space $\mathcal{A}$. Thus, to measure the performance of our policy, we must use function \ref{eq:performance}, which averages over the state distribution of our behaviour policy $\beta \neq \pi$. 
 
-%dass das eigentlich nur mit der richtigen Q* gehen würde, und dass wir aufpassen müssen dass unser ^Q  das nicht biased
+To learn both actor and critic, actor-critic algorithms rely on a version of the \keyword{policy gradient theorem}, which states a relation between the gradient of the policy and the gradient of the performance function \ref{eq:performance}. The idea behind policy gradient algorithms is accordingly to adjust the parameters $\theta$ of the policy in the direction of the performance gradient $\nabla_{\theta}J(\pi_\theta)$, as moving uphill into the direction of the performance gradient corresponds to maximizing the global performance of the policy.
+
 \subsubsection{Deterministic Policy Gradient}
 
-The idea in the Deterministic Policy Gradient technique is to use a relation between the gradient of the deterministic policy (estimated by the actor), and the gradient of the action-value function Q. The critic estimates Q-function using a differentiable function approximator, and then updates the \textit{policy} parameters (the ones of the actor) in the dirction of the approximate action-value gradient.\footnote{\textit{``The critic estimates the action-value function while the actor ascends the gradient of the action-value-function"} (cf. \cite{silver_deterministic_2014})}
+The idea in the \keyword{Deterministic Policy Gradient} (\textbf{DPG}) technique is to use a relation between the gradient of the (deterministic) policy (estimated by the actor), and the gradient of the action-value function Q. The critic estimates the Q-function using a differentiable function approximator, and then the actor updates the \textit{policy} parameters in the direction of the gradient of Q, rather than to maximize it globally.\footnote{\textit{``The critic estimates the action-value function while the actor ascends the gradient of the action-value-function"} (quote \cite{silver_deterministic_2014})}\\
 
-%TODO den folgenden abschnitt an den Anfaaaang
-As mentioned at the beginning, the state transition of MDPs is in general indeterministic. Because of that, one can only talk about state distributions, depending on the policy of the agent: $\rho^\pi(s)$. An agent's goal is to gain a policy that can follow the trajectory of that state distribution with the highest \keyword{expected} reward. Thus, we can only write the performance ojective $J$ of a policy $\pi$ as expectation, which is technically the integral over the state- as well as the action-distribution, each depending on the policy.
+\noindent The deterministic policy gradient theorem, put forward in \cite{silver_deterministic_2014}, uses the chain rule to state a relation between the gradient of the performance objective of a policy $J(\pi)$ (see equation \ref{eq:performance}) and the gradients of the policy-function $\pi$ and the Q-function $Q$. 
+\begin{align} \label{eq:policygradient}
+	\nabla_{\theta}J_\beta(\pi_\theta) &\approx \int_{\mathcal{S}} \rho^\beta(s) \nabla_\theta \pi_{\theta}(a|s)Q^\pi(s,a) ds \nonumber \\
+	    &= \mathds{E}_{s\sim\rho^\beta} \Big[ \nabla_\theta \pi_\theta Q^\pi \big(s,\pi_\theta(s)\big)   \Big] \nonumber \\
+		&= \mathds{E}_{s\sim\rho^\beta} \Big[ \nabla_\theta \pi_{\theta}(s) \nabla_a Q^\pi(s,a) \Big|_{a=\pi_\theta(s)} \Big]
+\end{align}
+
+This shows, that the gradient of the performance-objective of the policy with respect to its parameters (this is what we want to maximize) corresponds oth the gradient of the policy with respect to its weights times the gradient of the Q-function w.r.t. the actions. 
+
+In practice, the true function $Q^\pi(s,a)$ is unkown and must be estimated. For that, the critic uses Q-learning as explained in the sections above. It is however important, that the the approximation $\hat{Q}\pi(s,a)$ is \keyword{compatible}, preserving the true gradient $\nabla_a Q^\pi(s,a) \approx \nabla_a \hat{Q}^\pi(s,a)$. This is the case when its gradient w.r.t. its weights is orthogonal to the gradient w.r.t. its actions, and the critic minimizes the mean-squared error between the gradient of $Q^\pi$ and $\hat{Q}^\pi$. Both conditions are however approximately fulfilled when using a critic that finds $Q^\pi(s,a) \approx \hat{Q}^\pi(s,a)$.
+
+What this results in, is a \keyword{compatible off-policy deterministic actor critic} algorithm. In the first step of this algorithm, the critic calculates the temporal difference error to update its own parameters like in previous sections, and then the actor updates its parameters in the direction of the critic's action-value gradient:
+\begin{align}
+	TD_t    &= r_t + \gamma Q^w(s_{t+1}, \pi_{\theta}(s_{t+1})) - Q^w(s_t, a_t)\\
+	w_{t+1} &= w_t + \alpha_w * TD_t * \nabla_w Q^w(s_t, a_t) \\
+	\theta_{i+1} &= \theta_t + \alpha_\theta * \nabla_\theta \pi_\theta(s_t) \nabla_a Q^w(s_t,a_t) \big|_{a=\pi_\theta(s)}
+\end{align}
+
+
+When updating the policy, its parameters $\theta_{i+1}$ are updated in proportion to the gradient $\nabla_{\theta}J(\pi_\theta)$. Because of the deterministic policy gradient theorem \ref{eq:policygradient}, this
+
+As however ach state suggests a different direciton, one must average by taking the expectation w.r.t. the state distribution $\rho^\pi(s)$: 
 \begin{equation}
-	J(\pi_\theta) = \mathds{E}_{s\sim\rho^\pi,a\sim\pi}[R(s,a)].
+	\theta_{i+1} = \theta_i + \alpha * \mathds{E}_{s\sim\rho^{\pi_i}} \big[ \nabla_{\theta}J(\pi_\theta) \big]
 \end{equation}
-%TODO: well, das hier ganz an den anfang. 
-The idea behind policy gradient algorithms is accordingly to adjust the parameters $\theta$ of the policy in the direction of the performance gradient $\nabla_{\theta}J(\pi_\theta)$.
-%TODO hier policy gradient theorem, bah.
-%TODO die komplette rechte hälfte der zweiten seite vom silver-paper
+Using the chain rule, this can be decomposed into the gradient of the action-value w.r.t. the actions and the gradient of the policy w.r.t. the policy parameters:
+\begin{equation}
+	\theta_{i+1} = \theta_i + \alpha * \mathds{E}_{s\sim\rho^{\pi_i}} \big[ \nabla_{\theta} \pi_\theta(s) \nabla_a Q^{\pi_i}(s,a) \Big|_{a=\pi_\theta(s)} \big]
+\end{equation}
+Silver et al \cite{silver_deterministic_2014} proved that it is not necessary to compute the gradient of the state distribution, and that this [line above] update follows precisely the gradient of the performance objective:
+\begin{equation}
+	\nabla_{\theta}J(\pi_\theta) = \mathds{E}_{s\sim\rho^{\pi_i}} \big[ \nabla_{\theta} \pi_\theta(s) \nabla_a Q^\pi(s,a) \Big|_{a=\pi_\theta(s)} \big]
+\end{equation} 
+% \nabla_{\theta}J(\pi_\theta) IS THE DETEMRINISTIC POLICY GRADIENT
+They say themselves that these algorithms may have convergence issues in practice, due both to bias introduced by the fucntion approximator, as well as instablilities caused by off-policy learning.
+
+Off-policy deterministic actor-critic now learns a deterministic target policy $\pi(s)$ from trajectories generated by an arbitrary stochastic policy, $\beta(a|s) = \mathds{P}[a|s]$.
+Now, the performance objective is the value function of the target policy %TODO also hab ich sie vorher ebendoch falsch definiert
+Now we re-define the performance objective again by the value function of the target policy, averaged over the state distribution of the behaviour policy: 
+\begin{align}
+	J_\beta(\pi_\theta) &= \mathds{E}_{s\sim\rho^\beta} \big[ V^\pi_(s)\\
+	  &= \mathds{E}_{s\sim\rho^\beta} \big[ Q^\pi(s,\pi(s)) \big]
+\end{align}
+
+OOOKAY; lets try this again.
+As before, we want to find a policy maximizing some measure of discounted future rewards, for which we will again consider the Value of a state, as defined in \ref{eq:valuedefinition}. A performance objective of our policy is now the value of the state, according to our policy. This performance objective depends however on the actual state distribution (which is, as defined, indeterministic), as well as the action distribution of our policy, which may well be stochastic. In the following, we will consider only deterministic policies. While that takes the necessity of finding the exptected value of that distribution, it only allows for off-policy algorithms, where the distribution of the states depends on another, stochastic, policy than the one we actually learn. To get the actual performance objective, we must thus average the known value function over the state distribution of our behaviour policy $\beta \neq \pi$:
+\begin{align}
+	J_\beta(\pi_\theta) &= \int_S \rho^\beta(s) V^\pi(s) ds\\
+	  &= \mathds{E}_{s\sim\rho^\beta} \big[ V^\pi(s) \big]\\
+	  &= \mathds{E}_{s\sim\rho^\beta} \big[ Q^\pi(s,\pi(s)) \big]	
+\end{align}
+The gradient of that is now 
+\begin{equation} \label{policygradient}
+	\nabla_{\theta}J_\beta(\pi_\theta) \approx	 \mathds{E}_{s\sim\rho^\beta } \Big[ \nabla_{\theta} \pi_\theta(s) \nabla_a Q^\pi(s,a) \big|_{a=\pi_\theta(s)} \Big]
+\end{equation}
+because of the deterministic policy gradient theorem put forward in \cite{silver_deterministic_2014}.
+What they then do is to develop an actor-critic algorithm that updates the policy in the direction of that. 
+Again, they replace $Q^\pi(s,a)$ by $Q^w(s,a)$. A critic estimates this value function, off-policy from trajectroeies generated by $\beta(a|s)$.
+Then, in the update, they calculate....
+\begin{align}
+	TD_i    &= r_t + \gamma Q^w(s_{t+1}, \pi_\theta(s_{t+1})) - Q^w(s_t, a_t)\\
+	w_{i+1} &= w_t + \alpha_w TD_i \nabla_w Q^w(s_t, a_t) \\
+	\theta_{i+1} &= \theta_i + \alpha_\theta \nabla_\theta \pi_\theta(s_t) \nabla_a Q^w(s_t, a_t) |_{a=\pi_\theta(s)}
+\end{align}
+
+However, it must hold that $\nabla_a Q^\pi(s,a)$ can be replaced by $\nabla_a Q^w(s,a)$ without affecting the policy gradient \ref{policygradient}. This is the case when the gradients are orthogonal, and $w$ minimizes $MSE(\theta,w)$. Silver et al \cite{silver_deterministic_2014} suggest to do that via linear regression, however of course we will use ANNs (that then minimize the Mean-squared projected Bellman error by stochatic gradient descent)
+
+What that results to is COPDAC-Q (compatible off-policy deterministic actor critic q learner)
+
+DPG is more data efficient than normal PG, as it doesnt need to take the integral of the actionspace of the policy
+
+WANN BAU ICH DAS BILD EIN????
+
+[analogous, in a policy gradient context, to Q-learnign: it learns a determinsitic greedy policy, off-policy, while exectuging a noisy version of that]
 
 \subsubsection*{Deep DPG}
 
-The \keyword{Deep DPG Algorithm} is an off-policy actor-critic, online, active, model-free, deterministic policy gradient algorithm for continous action-spaces.
+The \keyword{Deep DPG Algorithm} is an off-policy actor-critic, online, active, model-free, deterministic policy gradient algorithm for continous action-spaces. The basic idea behind \keyword{Deep DPG} (\textbf{DDPG}) is to combine the ideas of the DQN (section \ref{ch:DQN}) with the architecture put forward by Silver et al. \cite{silver_deterministic_2014} revolving around the deterministic policy gradient. As for that, they also use parameterized deterministic actor function $\pi(s) = a$ as well as critic function $Q(s,a)$.
 
+The update of the critic is performed analogous to the Q-value approximator in the Deep-Q-Network architecture. $\langle s_t, a_t, r_t, s_{t+1} \rangle$-samples are sampled from a replay memory of limited size, to then perform Q-learnig via temporal differences (see \ref{l2loss} and \ref{qloss_target}). For that, it is also required to use target networks with the previously mentioned soft updates. Target networks are necessary for both the policy approximator as well as the Q-value approximator [SEE ALGORITHM BELOW].
+
+in combination, that leads to the following update step:
+The critic minimizes the loss
+\begin{equation}
+	Loss := \frac{1}{N} \sum_i \Big( \big( r_i + \gamma Q'(s_{i+1},\pi'(s_{i+1}|\theta^{\pi'})|\theta^{Q'} \big) - Q(s_i,a_i|\theta^Q)\Big)^2
+\end{equation}
+And the actor updates its plicy using the sampled policy gradient:
+\begin{equation}
+	\nabla_{\theta^\pi}J \approx \frac{1}{N} \sum_i \nabla_a Q(s_i,\pi(s_i)|\theta^Q) \nabla_{\theta^\pi} \pi(s_i|\theta^\pi)
+\end{equation}
+How that looks in an actual Tensorflow implementation can be seen later in this thesis, the corresponding pseudocode is to be found in \cite{lillicrap_continuous_2015}.
+
+Dabieschreiben dass das halt so macht wegen den minibatches? arrg
+
+Using normal Q-learning for the actor leads to the same overfitting problems as it does in DQN, if not using DoubleQ. [Q-learning is prone to overestimatng values] -> it did so in ddpg, however they say it still performed well
+
+[hier schon auf wawrzynksi sowie wawrzynksi\&tanwani2013 eingehen]
+
+[WO im tatsächlichem Netz die actions bei actor und critic reingehen]
 
 \subsection{Exploration techniques}
 
@@ -257,7 +382,11 @@ As mentioned in the beginning of this chapter, I only considered deterministic p
 
 Blablabla, dass das der Grund ist warum alle unsere algorithmen bisher off-policy waren - in DQN steht "wir lernen über die greedy argmax policy while performing epsilon-greedy", und in DPG steht auch "the basic idea is to choose actions according to a stochastic behaviour policy (to ensure adequate exploration), but to learn about a deterministic target policy"
 
+von DDPG: "An advantage of off-policy algorithms such das DDPG is that we can trat the problem of exploration independently from the learning algorithm" [VIELLEICHT AM ANFANG SCHON???]
+
 % TODO: HIER jetzt zwei pseudocodes, einmal von DQN, einmal von DDPG, mit entsprechenden exploration techniques
+% TODO letzten 2 absätze von chaper 3 vom ddpg-paper ist über exploration und den orntstien-uhlenbeck prozess
+
 
 \chapter{Related work}
 
@@ -278,6 +407,9 @@ Tensorkart
 Tesla
 Lidar
 hier in den fußnoten die ganzen non-scientific quellen wie tensorkart undso
+
+DDPG auf torc hat übrigens im pixel-case nen sehrsehr ählnichen punktestand wie im low-dimensional case (1840 vs 1876 im best case, -393 vs -401 im average case).
+
 
 \chapter{Program Architecture}
 
@@ -335,6 +467,11 @@ sehend vs nicht sehend, ...
 2. ddpg
   - anzahl layer, Batchnorm
   - MIT GRAFIK
+  
+-auf meien DQN-config eingehen und(!!!) ne DDPG-config machen, using the "experiment details" vom ddpg paper  
+  
+  
+In the original DDPG-algorithm \cite{lillicrap_continuous_2015}, the authors used \keyword{batch normalization} \cite{ioffe_batch_2015} to have the possibility of using the same network hyperparameters for differently scaled input-values. In the learning step when using minibatches, \batchnorm normalizes each dimension across the samples in a batch to have unit mean and variance, whilst keeping a running mean and variance to normalize in non-learning steps. In Tensorflow, batchnorm can be added with an additional layer and an additional input, specifying the phase (learning step/non-learning step)\footnote{cf. \url{https://www.tensorflow.org/api\_docs/python/tf/contrib/layers/batch_norm}}. Though Lillicrap et al. seemed to have success on using \batchnorm, in practice it lead to unstability, even on simple physics tasks in openAI's gym. As I am not the only one having this issue \footnote{redditlink}, I left out batch normalization for good.
 
 \chapter{Analysis, Results and open Questions}
 

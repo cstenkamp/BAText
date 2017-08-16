@@ -1,0 +1,103 @@
+class DDPG_model():
+	def __init__(self,  session):
+		self.session = session
+		self.critic = Critic(self.session)    
+		self.actor = Actor(self.session) 
+		self.session.run(tf.global_variables_initializer())
+		self.session.run(_netCopyOps(self.actor.target, self.actor.online)) 
+		self.session.run(_netCopyOps(self.critic.target, self.critic.online))
+		#replay buffer defined by the agent
+		
+	#exploration noise added by the agent
+	#agent samples all observations
+	def inference(self, oldstates): #called for every step t
+		return self.actor.predict(oldstates, "target", is_training=False) 		
+		#agent adds exploration noise afterwards
+		#done by the agent
+		#done by the agent
+	def train_step(self, batch): #also called for every step t
+		oldstates, actions, rewards, newstates, terminals = batch
+		targetActorAction = self.actor.predict(newstates, "target")
+		targetCriticQ = self.critic.predict(newstates, targetActorAction, "target")
+		cumrewards = np.reshape([rewards[i] if terminals[i] else rewards[i]+0.99*targetCriticQ[i] for i in range(len(rewards))], (len(rewards),1))
+		_, loss = self.critic.train(oldstates, actions, cumrewards)
+
+		onlineActorActions = self.actor.predict(oldstates)
+		grads = self.critic.action_gradients(oldstates, onlineActorActions)
+		self.actor.train(oldstates, grads[0])
+		#updating the targetnets
+		self.critic.update_target_network()
+		self.actor.update_target_network()
+		return
+	
+class Actor(object):
+	def __init__(self, inputsize, num_actions, actionbounds, session):
+		with tf.variable_scope("actor"):
+			self.online = lowdim_actorNet(inputsize, num_actions, actionbounds)
+			self.target = lowdim_actorNet(inputsize, num_actions, actionbounds, name="target")
+			self.smoothTargetUpdate = _netCopyOps(self.online, self.target, 0.001)
+			# provided by the critic network
+			self.action_gradient = tf.placeholder(tf.float32, [None, num_actions], name="actiongradient")
+			self.actor_gradients = tf.gradients(self.online.scaled_out, self.online.trainables, -self.action_gradient)
+			self.optimize = tf.train.AdamOptimizer(1e-4).apply_gradients(zip(self.actor_gradients, self.online.trainables))
+def train(self, inputs, a_gradient):
+	self.session.run(self.optimize, feed_dict={self.online.ff_inputs:inputs, self.action_gradient: a_gradient})
+def predict(self, inputs, which="online"):
+	net = self.online if which == "online" else self.target
+	return self.session.run(net.scaled_out, feed_dict={net.ff_inputs:inputs})
+def update_target_network(self):
+	self.session.run(self.smoothTargetUpdate)
+
+class Critic(object):
+	def __init__(self, inputsize, num_actions, session):
+		with tf.variable_scope("critic"):
+			self.online = lowdim_criticNet(inputsize, num_actions)
+			self.target = lowdim_criticNet(inputsize, num_actions, name="target")    
+			self.smoothTargetUpdate = _netCopyOps(self.online, self.target, 0.001)
+			self.target_Q = tf.placeholder(tf.float32, [None, 1], name="target_Q")
+			self.loss = tf.losses.mean_squared_error(self.target_Q, self.online.Q)
+			self.optimize = tf.train.AdamOptimizer(1e-3).minimize(self.loss)
+			self.action_grads = tf.gradients(self.online.Q, self.online.actions)
+	def train(self, inputs, action, target_Q):
+		return self.session.run([self.optimize, self.loss], feed_dict={self.online.ff_inputs:inputs, self.online.actions: action, self.target_Q: target_Q})
+	def predict(self, inputs, action, which="online"):
+		net = self.online if which == "online" else self.target
+		return self.session.run(net.Q, feed_dict={net.ff_inputs:inputs, net.actions: action})
+	def action_gradients(self, inputs, actions):
+		return self.session.run(self.action_grads, feed_dict={self.online.ff_inputs:inputs, self.online.actions: actions})
+	def update_target_network(self):
+		self.session.run(self.smoothTargetUpdate)
+
+def _netCopyOps(fromNet, toNet, tau = 1):
+	op_holder = []
+	for idx,var in enumerate(fromNet.trainables[:]):
+		op_holder.append(toNet.trainables[idx].assign((var.value()*tau) + ((1-tau)*toNet.trainables[idx].value())))
+	return op_holder
+
+def dense(x, units, activation=tf.identity, decay=None, minmax = float(x.shape[1].value) ** -.5):
+	return tf.layers.dense(x, units,activation=activation, kernel_initializer=tf.random_uniform_initializer(-minmax, minmax), kernel_regularizer=decay and tf.contrib.layers.l2_regularizer(1e-2))
+
+class lowdim_actorNet():
+	def __init__(self, inputsize, num_actions, actionbounds, outerscope="actor", name="online"):       
+		tanh_min_bounds,tanh_max_bounds = np.array([-1]), np.array([1])
+		min_bounds, max_bounds = np.array(list(zip(*actionbounds))) 
+		self.name = name
+		with tf.variable_scope(name):
+			self.ff_inputs =   tf.placeholder(tf.float32, shape=[None, inputsize], name="ff_inputs")  
+			self.fc1 = dense(self.ff_inputs, 400, tf.nn.relu, decay=decay)
+			self.fc2 = dense(self.fc1, 300, tf.nn.relu, decay=decay)
+			self.outs = dense(self.fc2, num_actions, tf.nn.tanh, decay=decay, minmax = 3e-4)
+			self.scaled_out = (((self.outs - tanh_min_bounds)/ (tanh_max_bounds - tanh_min_bounds)) * (max_bounds - min_bounds) + min_bounds) 
+			self.trainables = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=outerscope+"/"+self.name)
+
+class lowdim_criticNet():
+	def __init__(self, inputsize, num_actions, outerscope="critic", name="online"):       
+		self.name = name   
+		with tf.variable_scope(name):
+			self.ff_inputs =   tf.placeholder(tf.float32, shape=[None, inputsize], name="ff_inputs")  
+			self.actions = tf.placeholder(tf.float32, shape=[None, num_actions], name="action_inputs")  
+			self.fc1 = dense(self.ff_inputs, 400, tf.nn.relu, decay=True)
+			self.fc1 =  tf.concat([self.fc1, self.actions], 1)   
+			self.fc2 = dense(self.fc1, 300, tf.nn.relu, decay=True)
+			self.Q = dense(self.fc2, 1, decay=True, minmax=3e-4)
+			self.trainables = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=outerscope+"/"+self.name)		

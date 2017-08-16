@@ -1,0 +1,36 @@
+DoubleQ used already the Arcade Learning Environment (ALE) [https://arxiv.org/pdf/1207.4708.pdf]. The idea behind that is to evaluate the general competency of "big" artificial intelligence (general gampe playing, reinforcement leraning, planning). Algorithms should be "copmared across domains that are (i) varied enough to claim generality, (ii) each interesting enough to be representative of settings that might be faced in practice, and (iii) each created by an independent party to be free of experimenter’s bias." The idea is to have enough games, that algorithms can be fine-tuned on a small number of training games before testing them on unseen testing games.
+"ALE also provides a game-handling layer which
+transforms each game into a standard reinforcement learning problem by identifying the
+accumulated score and whether the game has ended. By default, each observation consists
+of a single game screen (frame): a 2D array of 7-bit pixels, 160 pixels wide by 210 pixels
+high. The action space consists of the 18 discrete actions defined by the joystick controller"
+" The user therefore has access to several dozen games through a single common
+interface"
+
+
+Possibility to compare RL agent to planning agents, in their example they also head breadth-first eartch and Upper confidence bounds applied to trees
+
+"While the agent’s goal in all games is to maximize its score, scores for two different games cannot be easily compared"
+-> their solution is to normalize scores. Also given score range [r_{g,min}, r_{g,max}], der normalized score berechent sich (s_{g,i}-r_{g,min})-(r_{g,max}-r_{g,min}). die r_{g,min}, r_{g,max} sind dann min und max der basline agents (random, perturb, const)... und die haben im gegensatz zu DQN keine human baselines, but they know they should.
+
+
+
+
+ALE is built on top of Stella1
+, an open-source Atari 2600 emulator. It allows the user to
+interface with the Atari 2600 by receiving joystick motions, sending screen and/or RAM
+information, and emulating the platform. ALE also provides a game-handling layer which
+transforms each game into a standard reinforcement learning problem by identifying the
+accumulated score and whether the game has ended. By default, each observation consists
+of a single game screen (frame): a 2D array of 7-bit pixels, 160 pixels wide by 210 pixels
+high. The action space consists of the 18 discrete actions defined by the joystick controller.
+The game-handling layer also specifies the minimal set of actions needed to play a particular
+game, although none of the results in this paper make use of this information. When running
+in real-time, the simulator generates 60 frames per second, and at full speed emulates up to
+6000 frames per second. The reward at each time-step is defined on a game by game basis,
+typically by taking the difference in score or points between frames. An episode begins on
+the first frame after a reset command is issued, and terminates when the game ends. The
+game-handling layer also offers the ability to end the episode after a predefined number of
+frames2
+. The user therefore has access to several dozen games through a single common
+interface, and adding support for new games is relatively straightforward.

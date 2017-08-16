@@ -24,6 +24,10 @@ headsepline, % Uncomment to get a line under the header
 \usepackage{algorithm2e}
 \usepackage{amsmath}
 \usepackage{dsfont}
+\usepackage{hyperref}
+\usepackage{pifont,calc,xcolor}
+\hypersetup{colorlinks=false} % hides the links in the PDF but not in printed text
+%others would be: \hypersetup{...  urlcolor= .. citecolor = .. allcolor = .. hidelinks }
 
 %\usepackage[backend=bibtex,style=authoryear,natbib=true]{biblatex} 
 \usepackage[backend=biber,natbib=true, minbibnames=5, maxbibnames=8]{biblatex} 
@@ -40,6 +44,55 @@ headsepline, % Uncomment to get a line under the header
 
 \geometry{paper=a4paper, inner=2.5cm, outer=3.8cm, bindingoffset=.5cm, top=1.5cm, bottom=1.5cm, 
 	%showframe, % Uncomment to show how the type block is set on the page
+}
+
+%----------------------------------------------------------------------------------------
+%	TO INCLUDE THE CODE COMPARISONS IN THE APPENDIX
+%----------------------------------------------------------------------------------------
+\usepackage[scaled=0.72]{beramono}
+\usepackage{parcolumns}
+\usepackage{listings}
+\usepackage{lscape}
+
+
+
+\definecolor{verylightgray}{gray}{0.89}
+\newlength\lsthorizontalpadding
+\setlength\lsthorizontalpadding{3pt}
+\newcommand*\lstnumberstyle{\ttfamily\scriptsize}
+\newlength\lstnumbersep
+\setlength\lstnumbersep{8pt}
+\newlength\lstnumberwidth
+\setlength\lstnumberwidth{\widthof{\lstnumberstyle00}+\lstnumbersep+\lsthorizontalpadding}
+\lstset{
+	numberblanklines=false
+	,basicstyle=\ttfamily%
+	,breaklines=true%
+	,tabsize=1%
+	,showstringspaces=false%
+	,numbers=left%
+	,numbersep=\lstnumbersep%
+	,numberstyle=\lstnumberstyle%
+	,framesep=0pt%
+	,xleftmargin=\lstnumberwidth%
+	,framexleftmargin=\lsthorizontalpadding%
+	,xrightmargin=\lsthorizontalpadding%
+	,framexrightmargin=\lsthorizontalpadding%
+	,backgroundcolor=\color{verylightgray}%
+	,postbreak=\ding{229}\space%
+	,escapeinside={*(}{*)}
+	\linespread{1.04}
+}
+
+	
+\lstdefinelanguage{Pseudo}{
+	morekeywords={for, do, end},
+	sensitive=false,
+	morecomment=[l]{#},
+	morestring=[b]",
+}
+\lstset{language=Python,
+	commentstyle=\color{gray},
 }
 
 %----------------------------------------------------------------------------------------
@@ -247,7 +300,7 @@ headsepline, % Uncomment to get a line under the header
 	% Include the appendices of the thesis as separate files from the Appendices folder
 	% Uncomment the lines as you write the Appendices
 	
-%	\include{Appendices/AppendixA}
+	\include{Appendices/AppendixA}
 	%\include{Appendices/AppendixB}
 	%\include{Appendices/AppendixC}
 		
