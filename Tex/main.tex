@@ -1,3 +1,5 @@
+%CITATIONS: https://www.sharelatex.com/blog/2013/08/08/thesis-series-pt4.html
+
 % Masters/Doctoral Thesis 
 % LaTeX Template
 % Version 2.4 (22/11/16)
@@ -17,21 +19,23 @@ headsepline, % Uncomment to get a line under the header
 %chapterinoneline, % Uncomment to place the chapter title next to the number on one line
 %consistentlayout, % Uncomment to change the layout of the declaration, abstract and acknowledgements pages to match the default layout
 ]{MastersDoctoralThesis} 
+\setcounter{tocdepth}{1}
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc} 
 \usepackage{palatino} %font style palatino
-\usepackage{algorithm2e}
+\usepackage{algorithm}
 \usepackage{amsmath}
 \usepackage{dsfont}
 \usepackage{hyperref}
-\usepackage{pifont,calc,xcolor}
 \hypersetup{colorlinks=false} % hides the links in the PDF but not in printed text
 %others would be: \hypersetup{...  urlcolor= .. citecolor = .. allcolor = .. hidelinks }
+\usepackage{pifont,calc,xcolor}
 
 %\usepackage[backend=bibtex,style=authoryear,natbib=true]{biblatex} 
 \usepackage[backend=biber,natbib=true, minbibnames=5, maxbibnames=8]{biblatex} 
-\addbibresource{chapter1basics.bib}
+%\addbibresource{chapter2basics.bib}
+\addbibresource{chapter3basics.bib}
 
 %\bibliography{example.bib}
 
@@ -64,25 +68,7 @@ headsepline, % Uncomment to get a line under the header
 \setlength\lstnumbersep{8pt}
 \newlength\lstnumberwidth
 \setlength\lstnumberwidth{\widthof{\lstnumberstyle00}+\lstnumbersep+\lsthorizontalpadding}
-\lstset{
-	numberblanklines=false
-	,basicstyle=\ttfamily%
-	,breaklines=true%
-	,tabsize=1%
-	,showstringspaces=false%
-	,numbers=left%
-	,numbersep=\lstnumbersep%
-	,numberstyle=\lstnumberstyle%
-	,framesep=0pt%
-	,xleftmargin=\lstnumberwidth%
-	,framexleftmargin=\lsthorizontalpadding%
-	,xrightmargin=\lsthorizontalpadding%
-	,framexrightmargin=\lsthorizontalpadding%
-	,backgroundcolor=\color{verylightgray}%
-	,postbreak=\ding{229}\space%
-	,escapeinside={*(}{*)}
-	\linespread{1.04}
-}
+
 
 	
 \lstdefinelanguage{Pseudo}{
@@ -93,6 +79,29 @@ headsepline, % Uncomment to get a line under the header
 }
 \lstset{language=Python,
 	commentstyle=\color{gray},
+}
+
+%------------- for code inline in the text-----------------------------------------------
+\definecolor{evenmorelightgray}{gray}{0.95}
+%\newcommand{\inlinecode}[1]{\colorbox{verylightgray}{\lstinline[basicstyle=\ttfamily\color{white}]{#1}}}
+\newcommand{\inlinecode}[1]{\colorbox{evenmorelightgray}{\lstinline[basicstyle=\ttfamily\color{black}]{#1}}}
+
+%----------------------------------------------------------------------------------------
+%	TIKZ STUFF
+%----------------------------------------------------------------------------------------
+
+
+\usepackage{tikz}
+\usetikzlibrary{arrows,positioning} 
+\tikzset{
+	%Define style for boxes
+	punkt/.style={
+		rectangle,
+		rounded corners,
+		draw=black, very thick,
+		text width=6.5em,
+		minimum height=2em,
+		text centered}
 }
 
 %----------------------------------------------------------------------------------------
@@ -240,12 +249,14 @@ headsepline, % Uncomment to get a line under the header
 	\begin{abbreviations}{ll}[\abbrevtext] % Include a list of abbreviations (a table of two columns)
 		
 %		\addchaptertocentry{\abbrevname}
-		\textbf{ANN} & \textbf{A}rtificial \textbf{N}eural \textbf{N}etwork\\
-		\textbf{CNN} & \textbf{C}onvolutional (artificial) \textbf{N}eural \textbf{N}etwork\\
-		\textbf{CPU} & \textbf{C}entral \textbf{P}rocessing \textbf{U}nit\\
-		\textbf{DDPG} & \textbf{D}eep \textbf{D}eterministic \textbf{P}olicy \textbf{G}radient - Network\\
-		\textbf{DQN} & \textbf{D}eep-\textbf{Q}-\textbf{N}etwork\\
-		\textbf{GUI} & \textbf{G}raphical \textbf{U}ser \textbf{I}nterface\\
+		\textbf{ANN}	& \textbf{A}rtificial \textbf{N}eural \textbf{N}etwork\\
+		\textbf{CNN} 	& \textbf{C}onvolutional (artificial) \textbf{N}eural \textbf{N}etwork\\
+		\textbf{CPU} 	& \textbf{C}entral \textbf{P}rocessing \textbf{U}nit\\
+		\textbf{DDPG} 	& \textbf{D}eep \textbf{D}eterministic \textbf{P}olicy \textbf{G}radient - Network\\
+		\textbf{DQN} 	& \textbf{D}eep-\textbf{Q}-\textbf{N}etwork\\
+		\textbf{GUI} 	& \textbf{G}raphical \textbf{U}ser \textbf{I}nterface\\
+		\textbf{MDP}	& \textbf{M}arkov \textbf{D}ecision \textbf{P}rocess\\
+		\textbf{POMDP} 	& \textbf{P}artially \textbf{O}bserved \textbf{M}arkov \textbf{D}ecision \textbf{P}rocess\\
 		
 	\end{abbreviations}
 	
@@ -288,8 +299,8 @@ headsepline, % Uncomment to get a line under the header
 	\include{Chapters/Chapter1}
 	\include{Chapters/Chapter2} 
 	\include{Chapters/Chapter3}
-	%\include{Chapters/Chapter4} 
-	%\include{Chapters/Chapter5} 
+	\include{Chapters/Chapter4} 
+	\include{Chapters/Chapter5} 
 	
 	%----------------------------------------------------------------------------------------
 	%	THESIS CONTENT - APPENDICES
@@ -301,6 +312,7 @@ headsepline, % Uncomment to get a line under the header
 	% Uncomment the lines as you write the Appendices
 	
 	\include{Appendices/AppendixA}
+	\restoregeometry
 	%\include{Appendices/AppendixB}
 	%\include{Appendices/AppendixC}
 		

@@ -1,49 +1,93 @@
-%% Chapter Template
-%
-%\chapter{Program Architecture} % Main chapter title
-%
-%\label{ChapterX} % Change X to a consecutive number; for referencing this chapter elsewhere, use \ref{ChapterX}
-%
-%%----------------------------------------------------------------------------------------
-%%	SECTION 1
-%%----------------------------------------------------------------------------------------
-%
-%\section{Program Design}
-%
-%\begin{algorithm}[H]
-%	\KwData{this text}
-%	\KwResult{how to write algorithm with \LaTeX2e }
-%	initialization\;
-%	\While{not at end of this document}{
-%		read current\;
-%		\eIf{understand}{
-%			go to next section\;
-%			current section becomes this one\;
-%		}{
-%		go back to the beginning of current section\;
-%	}
-%}
-%\caption{How to write algorithms}
-%\end{algorithm}
-%
-%%-----------------------------------
-%%	SUBSECTION 1
-%%-----------------------------------
-%\subsection{Subsection 1}
-%
-%Nunc posuere quam at lectus tristique eu ultrices augue venenatis. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Aliquam erat volutpat. Vivamus sodales tortor eget quam adipiscing in vulputate ante ullamcorper. Sed eros ante, lacinia et sollicitudin et, aliquam sit amet augue. In hac habitasse platea dictumst.
-%
-%%-----------------------------------
-%%	SUBSECTION 2
-%%-----------------------------------
-%
-%\subsection{Subsection 2}
-%Morbi rutrum odio eget arcu adipiscing sodales. Aenean et purus a est pulvinar pellentesque. Cras in elit neque, quis varius elit. Phasellus fringilla, nibh eu tempus venenatis, dolor elit posuere quam, quis adipiscing urna leo nec orci. Sed nec nulla auctor odio aliquet consequat. Ut nec nulla in ante ullamcorper aliquam at sed dolor. Phasellus fermentum magna in augue gravida cursus. Cras sed pretium lorem. Pellentesque eget ornare odio. Proin accumsan, massa viverra cursus pharetra, ipsum nisi lobortis velit, a malesuada dolor lorem eu \cite{mnih_human-level_2015} neque. \cite{bojarski_end_2016}
-%
-%%----------------------------------------------------------------------------------------
-%%	SECTION 2
-%%----------------------------------------------------------------------------------------
-%
-%\section{Main Section 2}
-%
-%Sed ullamcorper quam eu nisl interdum at interdum enim egestas. Aliquam placerat justo sed lectus lobortis ut porta nisl porttitor. Vestibulum mi dolor, lacinia molestie gravida at, tempus vitae ligula. Donec eget quam sapien, in viverra eros. Donec pellentesque justo a massa fringilla non vestibulum metus vestibulum. Vestibulum in orci quis felis tempor lacinia. Vivamus ornare ultrices facilisis. Ut hendrerit volutpat vulputate. Morbi condimentum venenatis augue, id porta ipsum vulputate in. Curabitur luctus tempus justo. Vestibulum risus lectus, adipiscing nec condimentum quis, condimentum nec nisl. Aliquam dictum sagittis velit sed iaculis. Morbi tristique augue sit amet nulla pulvinar id facilisis ligula mollis. Nam elit libero, tincidunt ut aliquam at, molestie in quam. Aenean rhoncus vehicula hendrerit.
+\chapter{Related work}
+
+\label{ch:relatedwork}
+%----------------------------------------------------------------------------------------
+
+% Define some commands to keep the formatting separated from the content 
+
+[as mentioned before, there are two levels in the thesis - on the abstract level, the aim is to build a good agent for self-driving cars. On the practical level, it is still one specific simulation of a game, and one at first has to make the given game a RL problem, before you can eben talk about trying to solve that. To show how that is normally done, there is the first section. In the second section I will then talk about successful approaches of self-driving cars in reality. That is at first subdivided into real-life and games. Our game is (like so many others) supposed to work as a bridge between reallife and games. As for that, I will also talk about what data is normally available, ...
+
+\section{Reinforcement Learning Frameworks}
+
+[hier zuerst noch ne kurze zusammenfassung, und das bild mit der environment-agent metapher!]
+Gym/Universe
+Torcs
+schreiben dass die Arcade Learning Environment (Bellemare et al., 2013 aus dem Dueling) zu Gym wurde (I guess)
+torcs: im DDPG-paper steht "Torcs has previously been used as a testbed in other
+policy learning approaches (Koutnik et al., 2014b). "!!!!!!!!!!!!!!!
+fußnote dass ich auch im code nen evaluator für ddpg hab der gym und pendulum swingup nutzt\\
+
+
+In the previous chapter, I outlined the general structure of a reinforcement learning problem. In summary, it consists of agent and environment, where the environment is discretized into timesteps and only partially observed by the agent (\textbf{POMDP}). Each timestep, the agent gets an observation of the environment's state (making up its \keyword{internal state} and a scalar reward, and chooses an action to return to the environment. A graphical description of this interaction is depicted in figure \ref{fig:agentenvironment}.
+\begin{figure}[h]
+	\centering %https://tex.stackexchange.com/questions/57958/how-to-position-the-labels-of-the-path-in-automata
+	\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=1.5cm,
+	semithick, scale = .8, transform shape]
+	\node[punkt] (env) {Environment};
+	\node[punkt, inner sep=5pt, right=of env] (agent) {Agent};
+	\path[->] (agent.north) edge[bend right=35] node[above]{action} (env.north);
+	\path[->] (env.south) edge[bend left=-20] node[below]{reward} (agent.south);
+	\path[->] (env.south) edge[bend left=-65] node[below]{observation} (agent.south);
+	\end{tikzpicture}
+	\caption{Interaction between agent and environment in RL}
+	\label{fig:agentenvironment}
+\end{figure}
+
+When developing RL agents, it is not enough to create algorithm, but also to have a specification of agent environment that allows for a dataflow as described above. The original Deep-Q-Network \cite{mnih_playing_2013} as well as its follow-ups \cite{van_hasselt_deep_2015}\cite{wang_dueling_2015} trained their agents on several \textsc{Atari} games using the \keyword{Arcade Learning Environment} (\textbf{ALE}) \cite{bellemare_arcade_2012}. The ALE was developed with the intention to evaluate the generality of several AI techniques, especially general game playing, reinforcement learning and planning. The important contribution of \cite{bellemare_arcade_2012} was to provide a testbed for any kind of agent, by providing a simple common interface to more than a hundred different tasks. The ALE consists of an Atari-Simulator as well as a game-handling layer, which transformed all of the included Atari-games to a standard reinforcement learning problem. Doing that, it provided the accumulated score so far (corresponding to the reward), the information whether game ended (indicating the end of a training episode), as well as a $160 \times 210$  2D array of 7-bit pixels (corresponding to the agent's observation). As the game screen does not correspond to the internal state of the simulator, the ALE corresponds to a POMDP. The possible input to the simulation consists of 18 discrete actions. 
+
+Environments with discrete actions only are however severly limited, and most of the interesting real-world applications, as for example autonomous driving, require however real-valued action spaces. The test scenarios for the Deep-DPG algorithm consisted thus of a number of simulated physics-tasks, using the MuJoCo physics environment. \\
+
+\noindent Both of the above mentioned environments are by now, among many others, merged into the \keyword{OpenAI gym} environment \cite{brockman_openai_2016}. The OpenAI gym\footnote{\url{https://gym.openai.com}} is created as a toolkit, helping reinforcement learning research by including a collection of benchmark problems with a common interface. The idea is to provide consistent, standardized environments, such that algorithms are easy to benchmark. In that respect, their goal was to provide the reinforcement-learning-pendant of a labeled dataset, such as ImageNet. Aside the previously mentioned ALE as well as a number of physics tasks using the MuJoCo physics-engine, the openAI gym contains the boardgame Go, two-dimensional continous control tasks (\keyword{Box2D games}), a 3D-shooter by the name of \keyword{Doom}, and several other tasks. These tasks are varied in their complexity, input and output: some of them use low-dimensional state representations consisting of only a four-dimensional vector of scalars, while others use a 2D-pixel image of RGB colors.  
+
+The goal of openAI gym is to be as convenient and accessible as possible. For that, one of their design decisions was to make a clear cut between agent and environment, only the latter of which is provided by OpenAI. The exemplary sourcecode found in algorithm \ref{alg:gym}, taken from \url{https://gym.openai.com/docs}, outlines the ease of creating an agent working in the gym framework.
+\begin{algorithm}[h]
+\lstset{
+	numberblanklines=false
+	,breaklines=true%
+	,tabsize=1%
+	,showstringspaces=false%
+	,postbreak=\ding{229}\space%
+}
+\begin{lstlisting}[language=Python,frame=none]
+import gym
+env = gym.make('CartPole-v0')
+for i_episode in range(20):
+	observation = env.reset()
+	for t in range(100):
+		env.render()
+		print(observation)
+		action = env.action_space.sample()
+		observation, reward, done, info = env.step(action)
+		if done:
+			print("Episode finished after {} timesteps".format(t+1))
+			break
+\end{lstlisting}%
+\caption{Interaction with the openAI gym environment}
+\label{alg:gym}
+\end{algorithm}
+The code outlines how the general dataflow between agent and environment usually takes place: After a reset, the environment provides the first \keyword{observation} to the agent. Afterwards, it is the agent's turn to provide an action. Even though not featured in this easy example, the action is performed by usage of the observation. Once an agent has calculated the action and provided it to the environment, it can perform another simulation step, returning $\langle observation, reward, done, info\rangle$, which is a tuple consisting of another observation of the environment's state, a scalar reward, the information if the episode is finished and it is time to reset the environment, as well as some information for debugging, typically not used in the final description of an agent. In the remainder of this work, I will refer to this dataflow as a baseline on how the interaction of environment and agent should look like.\\
+
+It is worth noting, that the openAI gym is not even 
+
+
+\section{Self-driving cars}
+
+\subsection{real-life}
+
+Nvidias deep-drive
+RRT*
+Tesla
+
+\subsubsection{available data in real-life}
+
+Lidar
+
+
+\subsection{games}
+
+Tensorkart
+hier in den fußnoten die ganzen non-scientific quellen wie tensorkart undso
+
+Das Aufteilen von autonomous driving into the subcomponents, wie bei der vorlesung von Julian... oder, as quoted by TORCS-Paper: "The racing problem could be split into a number of different components, including robust control of the vehicle, dynamic and static trajectory planning, car setup, inference and vision, tactical decisions (such as overtaking) and finally overall racing strategy"
+
+DDPG auf torc hat übrigens im pixel-case nen sehrsehr ählnichen punktestand wie im low-dimensional case (1840 vs 1876 im best case, -393 vs -401 im average case).

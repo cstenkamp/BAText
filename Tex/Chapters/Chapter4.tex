@@ -1,0 +1,85 @@
+\chapter{Program Architecture}
+
+\label{ch:program}
+
+The program was written by the author of this work and is licensed under the GNU General Public License (GNU GPLv3). Its source code is attached in the appendix of this work and additionally can be found digitally on the enclosed CD-ROM. The machine learning part was written in \textsc{Python}, using the \textsc{Tensorflow}-library \parencite{abadi_tensorflow:_2015}.
+%TODO: TF-version, dann noch was zu Unity!!!
+
+[tf gibt automatic differentiation, multi-gpu support, python interface]
+
+\section{Design choices}
+%\begin{algorithm}[H]
+%	\KwData{this text}
+%	\KwResult{how to write algorithm with \LaTeX2e }
+%	initialization\;
+%	\While{not at end of this document}{
+%		read current\;
+%		\eIf{understand}{
+%			go to next section\;
+%			current section becomes this one\;
+%		}{
+%		go back to the beginning of current section\;
+%	}
+%}
+%\caption{How to write algorithms}
+%\end{algorithm}
+
+\subsection{The game as a reinforcement learning problem}
+
+-ungefähres UML-diagramm
+-das spiel itself ist ein partially observable MDP, und es ist (as tested) surprisingly indeterministic
+
+[Ah. Should have googled first before posting. Differences in FPU calculations on different processors. Differences in timing affecting things like the number of times a random number generator is called. These can cause the physics to get out of sync]
+https://forum.unity3d.com/threads/is-unity-physics-is-deterministic.429778/
+
+\subsection{The vectors}
+
+\subsection{Exploration}
+
+\subsection{Reward}
+
+\subsection{Performance measure}
+
+\section{Implementation}
+
+\subsection{The game}
+
+\subsubsection{What Leon did already}
+
+\subsubsection{Communication}
+
+-den sockets post
+-das von leon gemalte ablaufdiagramm
+
+\subsection{The agent}
+
+Unbedingt auf jeden Fall UML-diagramm
+
+\subsubsection{Challenges and Solutions}
+
+DQN vs DDPG, sehend vs nicht-sehend, ...
+
+\subsubsection{Pretraining}
+
+\subsubsection{The different agents}
+
+sehend vs nicht sehend, ...
+
+\subsubsection{Network architecture}
+
+1. dqn-algorithm
+- anzahl layer, Batchnorm, doubles dueling
+- clipping wieder rein, reference auf das dueling
+- grundsätzlich gegen batchnorm entschieden, siehe reddit post
+- MIT GRAFIK
+- Adam und tensorflow quoten, siehe zotero
+2. ddpg
+- anzahl layer, Batchnorm
+- MIT GRAFIK
+
+-schöne grafik.
+-auf meien DQN-config eingehen und(!!!) ne DDPG-config machen, using the "experiment details" vom ddpg paper  
+
+
+In the original DDPG-algorithm \cite{lillicrap_continuous_2015}, the authors used \keyword{batch normalization} \cite{ioffe_batch_2015} to have the possibility of using the same network hyperparameters for differently scaled input-values. In the learning step when using minibatches, \batchnorm normalizes each dimension across the samples in a batch to have unit mean and variance, whilst keeping a running mean and variance to normalize in non-learning steps. In Tensorflow, batchnorm can be added with an additional layer and an additional input, specifying the phase (learning step/non-learning step)\footnote{cf. \url{https://www.tensorflow.org/api\_docs/python/tf/contrib/layers/batch_norm}}. Though Lillicrap et al. seemed to have success on using \batchnorm, in practice it lead to unstability, even on simple physics tasks in openAI's gym. As I am not the only one having this issue \footnote{redditlink}, I left out batch normalization for good.
+

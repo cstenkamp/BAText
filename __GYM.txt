@@ -1,1 +1,30 @@
 https://arxiv.org/pdf/1606.01540.pdf
+
+"OpenAI Gym is a toolkit for reinforcement learning research. It includes a growing collection of
+benchmark problems that expose a common interface"
+
+" OpenAI Gym aims to combine the best elements
+of these previous benchmark collections, in a software package that is maximally convenient and
+accessible. It includes a diverse collection of tasks (called environments) with a common interface, and this
+collection will grow over time"
+
+
+[agent, environment, action, observation, reward, POMDP, episodes...]
+
+
+ob0 = env.reset() # sample environment state, return first observation
+a0 = agent.act(ob0) # agent chooses first action
+ob1, rew0, done0, info0 = env.step(a0) # environment returns observation,
+# reward, and boolean flag indicating if the episode is complete.
+a1 = agent.act(ob1)
+ob2, rew1, done1, info1 = env.step(a1)
+...
+a99 = agent.act(o99)
+ob100, rew99, done99, info2 = env.step(a99)
+# done99 == True => terminal
+
+
+Design decisions - clear cut between agent and environment (they only provide environment)
+   -> also support online learning, where the agent takes at every action (observation, reward, done)
+
+Suggest additionally to final performance to count how long it took an agent to learn threshold level of average performance

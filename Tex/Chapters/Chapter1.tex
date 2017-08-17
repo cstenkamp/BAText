@@ -5,12 +5,25 @@
 \label{ChapterX} % Change X to a consecutive number; for referencing this chapter elsewhere, use \ref{ChapterX}
 
 %----------------------------------------------------------------------------------------
+
+% Define some commands to keep the formatting separated from the content 
+\newcommand{\keyword}[1]{\textit{#1}}
+\newcommand{\tabhead}[1]{\textbf{#1}}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\file}[1]{\texttt{\bfseries#1}}
+\newcommand{\option}[1]{\texttt{\itshape#1}}
+\newcommand{\batchnorm}{batch normalization }
+\newcommand{\Batchnorm}{Batch normalization }
+
+%----------------------------------------------------------------------------------------
 %	SECTION 1
 %----------------------------------------------------------------------------------------
 
 "sollte etwa 10\% der Gesamtarbeit ausmachen"
 
 \section{Motivation}
+
+Google's self-driving car, Tesla autopilot, die vision von Ubers autonomous taxis, ...
 
 \subsection{Problem Domain}
 
@@ -19,3 +32,39 @@
 \section{Research Questions}
 
 \section{Reading Guidelines}
+
+
+\section{noclue}
+
+As put forward by \keyword{Lex Fridman} in his MIT lecture "\keyword{Deep Learning for Self-Driving Cars}"\footnote{MIT 6.S094, course website: \url{http://selfdrivingcars.mit.edu/}} the tasks for self-driving cars can be sub-divided into the following categories: 
+\begin{itemize} \bfseries
+	\item Localization and Mapping
+	\item Scene Understanding
+	\item Movement Planning
+	\item Driver State
+\end{itemize}
+[rrt* macht halt sowas von 3., end-to-end macht die kiste insgesamt nen bisschen anders]
+
+Semi-autonomous vehicle components: Radar, Visible-light-camera, LIDAR, infrared-camera, stereo vision, GPS/IMU, CAN, Audio
+
+Localization and Mapping: eg. $file:///C:/Users/Marie/Downloads/VISAPP_2015_145.pdf$
+Scene Understanding/Object Detection: Scene Segentation Network (SegNet)
+Movement Planning: Previously by stuff like RRT* (optimization-based control), however reinforcement learning!
+
+End-to-End: NVIDIA Paper
+
+dass Reinforcement Learning ja eigentlich nicht so der beste approach ist
+
+
+Normally when dealing with self-driving cars, there are countless additional issues, each making up a whole new challenge on their own, like wheather conditions (snow, rain, fog), pedestrians, other cars, reflections, merging into ongoing traffic, ...
+we make it easier here.
+
+Or, according to the Torcs-paper:
+The racing problem could be split into a number of different components, including
+robust control of the vehicle, dynamic and static trajectory planning,
+car setup, inference and vision, tactical decisions (such as overtaking) and fi-
+nally overall racing strategy. With only a single car on the track, the overall
+problem can be formalised as a partially observable Markov decision processes.
+
+
+--> Because we only consider the case of a  single car on the track it definitely is a POMDP! seeee next chapter yay

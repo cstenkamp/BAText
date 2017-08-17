@@ -1,0 +1,38 @@
+At the car level, new simulation modules can be developed,
+which include intelligent control systems for various car components. At the
+driver level, a low-level API gives detailed (but only partial) access to the simulation
+state. This could be used to develop anything from mid-level control
+systems to complex driving agents that find optimal racing lines, react successfully
+in unexpected situations and make good tactical race decisions. Finally,
+for researchers that like a challenge and are also interested in visual processing,
+a 3d projection interface is available
+
+In TORCS, the participating players are referred to as “robots”. They are
+loaded as external modules in TORCS. This means that new artificially intelligent
+agents can be developed independently and they only have to satisfy the
+basic API requirements for robot code
+
+Before every race, each robot can gather and process information about the
+track’s geometry and surfaces. It is up to the user to decide how much of this
+information use
+
+robots have 50FPS
+
+The default interface is through a low-level API2 which can provide detailed
+information about the race status to the robot, exact position, distance from the
+edge of the track, the position of other cars, etc. However, there are many parts
+of the simulation state to which the robots have no direct access. Consequently,
+even the basic driving problem is partially observable
+
+Robots may also use a calculated three-dimensional projection, instead of
+the low-level API. This is intended to be used for researchers that have an
+interest in visual processing. However, the overall problem then becomes much
+harder as there is significantly less information directly available
+
+The racing problem could be split into a number of different components, including
+robust control of the vehicle, dynamic and static trajectory planning,
+car setup, inference and vision, tactical decisions (such as overtaking) and fi-
+nally overall racing strategy. With only a single car on the track, the overall
+problem can be formalised as a partially observable Markov decision processes.
+
+!!! mit nur einem Auto ist es nen POMDP!!!
