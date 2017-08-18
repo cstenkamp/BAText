@@ -37,7 +37,7 @@
 \section{DQN}
 \label{ap:dqn}
 
-The following section describes the structure of an acutal reinforcement learning agent, using a \textbf{Dueling Deep-Q-Network} as its model (as described in \cite{wang_dueling_2015}), performing \textbf{Double Q-learning} (as described in \cite{van_hasselt_deep_2015}). The last page consists of a comparison between the pseudocode of the general program flow of a DDQN-network (taken from \cite{mnih_human-level_2015}, with changes from \cite{van_hasselt_deep_2015} and \cite{lillicrap_continuous_2015} in blue) to the left and its corresponding python-code to the right, where each line of the pseudocode corresponds exactly to the respective line of the python-code. For information on which python- and tensorflow version are used, please see chapter+\ref{ch:program}. This code is extracted from the actual implementation within the scope of this thesis, with some changes abstracting away irrelevant details.\\
+The following section describes the structure of an actual reinforcement learning agent, using a \textbf{Dueling Deep-Q-Network} as its model (as described in \cite{wang_dueling_2015}), performing \textbf{Double Q-learning} (as described in \cite{van_hasselt_deep_2015}). The last page consists of a comparison between the pseudocode of the general program flow of a DDQN-network (taken from \cite{mnih_human-level_2015}, with changes from \cite{van_hasselt_deep_2015} and \cite{lillicrap_continuous_2015} in blue) to the left and its corresponding python-code to the right, where each line of the pseudocode corresponds exactly to the respective line of the python-code. For information on which python- and tensorflow version are used, please see chapter+\ref{ch:program}. This code is extracted from the actual implementation within the scope of this thesis, with some changes abstracting away irrelevant details.\\
 
 \lstinputlisting[language=Python, firstline=29]{codes/dqn.txt}
 \begin{landscape}
@@ -51,6 +51,7 @@ The following section describes the structure of an acutal reinforcement learnin
 \section{DDPG}
 \label{ap:ddpg}
 
+The following section describes the structure of an actual reinforcement learning agent, using an \textbf{actor-critic architecture} as its model, basing on the \text{Deep Deterministic Policy gradient}, as described in \cite{silver_deterministic_2014} and \cite{lillicrap_continuous_2015}. The last page consists of a comparison between the pseudocode of the general program flow of a DDPG-agent (taken from \cite{lillicrap_continuous_2015}) to the left and its corresponding python-code to the right, where each line of the pseudocode corresponds exactly to the respective line of the python-code. For information on which python- and tensorflow version are used, please see chapter+\ref{ch:program}. This code is extracted from the actual implementation within the scope of this thesis, with some changes abstracting away irrelevant details.\\
 
 \lstinputlisting[language=Python, firstline=33]{codes/ddpg.txt}
 \begin{landscape}

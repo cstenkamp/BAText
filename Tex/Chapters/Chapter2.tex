@@ -321,22 +321,22 @@ This may sound unintuitive at first, because there is no specific loss function 
 The technique introduced in the previous sections is a direct adaption of the Q-learning algorithm \cite{sutton_learning_1988}\cite{watkins_learning_1989}, adapted for higher-level function approximators. Standard Q-learning is a kind of \keyword{generalized policy iteration}, where the policy evaluation and policy improvement happen in the same step. The algorithms learns via temporal differences the state-action value $Q^{\pi_{greedy}}(s,a)$ for the states it encountered with its current policy $\pi$. It then updates $\pi$ to a soft version of that greedy policy: $\pi_{i+1}(s) := soft(argmax_a Q^{\pi_{greedy}}(s,a) \forall s \in \mathcal{S})$, where the $soft$-function ensures appropriate exploration. Learning the Q-function and the policy simultaneously is however generally limited: $argmax_aQ(\cdot, a)$ can only easily be found in settings where the action space $\mathcal{A}$ is finite and discrete, as it requires a global maximization over all possible actions. While discretizing the action space is possible, it gives rise to the \keyword{curse of dimensionality}, especially when the discretization is fine grained. An iterative optimization process like the $argmax$-operation would thus likely be intractable.\\
 
 
-\noindent However in a lot of scenarios, the action space is not discrete, but continuous: \mbox{$A \subseteq \mathds{R}^n$}. In such situations, the alternative is to move the policy into the \textit{direction of the gradient of Q}. For that, it is necessary to model the policy explicitly with another function approximator. This gives rise to \keyword{actor-critic} architectures, where both policy and Q-function are explicitly modeled: The \keyword{critic} corresponds again to a Bellman-function-approximator, using temporal differences to estimate the action-value $Q^\pi(s,a)$\footnote{In that, it corresponds precisely to the model of the previous approach. However, as we now allow for a continuous action-space $\mathcal{A}$, it is not possible to use a network returning multiple Q-values at once, for each action $a \in \mathcal{A}$. Instead, the actions must also be inputs to the critic, which then outputs one $Q(s,a)$-value.}. In contrast to the previous approach however, the policy is now explicitly modeled by the \keyword{actor}. In the case of a stochastic policy, it would be represented by a parametric probability distribution $\pi_\theta(a|s) = \mathds{P}[a|s;\theta]$, however here we only consider the case of deterministic policies $a = \pi_\theta(s)$, which takes the necessity of averaging over all possible actions when calculating its performance objective according to equation~\ref{eq:performance01} or equation~\ref{eq:performance}. Note however, that using deterministic policies will (again) lead to the necessesity of off-policy algorithms, as a purely deterministic policy does not allow for adequate exploration of state-space $\mathcal{S}$ or action-space $\mathcal{A}$. Thus, to measure the performance of our policy, we must use function \ref{eq:performance}, which averages over the state distribution of our behaviour policy $\beta \neq \pi$. 
+\noindent However in a lot of scenarios, the action space is not discrete, but continuous: \mbox{$A \subseteq \mathds{R}^n$}. In such situations, the alternative is to move the policy into the \textit{direction of the gradient of Q}. For that, it is necessary to model the policy explicitly with another function approximator. This gives rise to \keyword{actor-critic} architectures, where both policy and Q-function are explicitly modeled: The \keyword{critic} corresponds again to a Bellman-function-approximator, using temporal differences to estimate the action-value $Q^\pi(s,a)$\footnote{In that, it corresponds precisely to the previous approach. However, as we now allow for a continuous action-space $\mathcal{A}$, the network cannot return multiple Q-values at once, for each action $a \in \mathcal{A}$. Instead, the actions must also be inputs to the critic, which then outputs one $Q(s,a)$-value.}. In contrast to the previous approach however, the policy is now explicitly modeled by the \keyword{actor}. In the case of a stochastic policy, it would be represented by a parametric probability distribution $\pi_\theta(a|s) = \mathds{P}[a|s;\theta]$, however here we only consider the case of deterministic policies $a = \pi_\theta(s)$, which takes the necessity of averaging over all possible actions when calculating its performance objective according to equation~\ref{eq:performance01} or equation~\ref{eq:performance}. Note however, that using deterministic policies will (again) lead to the necessesity of off-policy algorithms, as a purely deterministic policy does not allow for adequate exploration of state-space $\mathcal{S}$ or action-space $\mathcal{A}$. Thus, to measure the performance of our policy, we must use function \ref{eq:performance}, which averages over the state distribution of our behaviour policy $\beta \neq \pi$. 
 
-To train both actor and critic, actor-critic algorithms rely on a version of the \keyword{policy gradient theorem}, which states a relation between the gradient of the policy and the gradient of its performance function. The idea behind actor-critic policy gradient algorithms is accordingly to adjust the parameters $\theta$ of the policy in the direction of the performance gradient $\nabla_{\theta}J(\pi_\theta)$, as moving uphill into the direction of the performance gradient corresponds to maximizing the global performance of the policy\footnote{The original policy gradient, introduced in \cite{sutton_policy_2000}, assumes on-policy learning with a stochastic policy. However, to derive the stochastic policy gradient, one must integrate over the whole action-space, making its usage less efficient and requiring more training than the DPG, introduced here.}.
+To train both actor and critic, actor-critic algorithms rely on a version of the \keyword{policy gradient theorem}, which states a relation between the gradient of the policy and the gradient of its performance function. The idea behind actor-critic policy gradient algorithms is accordingly to adjust the parameters $\theta$ of the policy in the direction of the performance gradient $\nabla_{\theta}J(\pi_\theta)$, as moving uphill into the direction of the performance gradient corresponds to maximizing the global performance of the policy\footnote{The original policy gradient, introduced in \cite{sutton_policy_2000}, assumes on-policy learning with a stochastic policy. However, to derive the stochastic policy gradient, one must integrate over the whole action-space, making its usage less efficient and requiring more training than the DPG, introduced here.}. The DPG technique is the policy gradient analogue to Q-learning: It learns a deterministic greedy policy in an off-policy setting, following a trajectory of states due to a noisy version of the learned policy.
 
 \subsubsection{Deterministic Policy Gradient}
 
 The idea in the \keyword{Deterministic Policy Gradient} (\textbf{DPG}) technique is to use a relation between the gradient of the (deterministic) policy (represented by the actor), and the gradient of the action-value function Q. The existance of a relation is easy to see, because as introduced in equation~\ref{eq:performance}, the performance of our policy $\pi$ is measured using Q. 
 
 The \keyword{off-policy deterministic policy gradient theorem}, put forward in \cite{silver_deterministic_2014}, states the following relation between the gradient of the performance objective of a policy $J(\pi)$ (see equation \ref{eq:performance}) and the gradients of the policy-function $\pi$ and the action-value function $Q$. 
-\begin{align} \label{eq:policygradient}
+\begin{align}
 	\nabla_{\theta}J_\beta(\pi_\theta) &\approx \int_{\mathcal{S}} \rho^\beta(s) \nabla_\theta \pi_{\theta}(a|s)Q^\pi(s,a) ds \nonumber \\
-%	    &= \mathds{E}_{s\sim\rho^\beta} \Big[ \nabla_\theta \pi_\theta Q^\pi \big(s,\pi_\theta(s)\big)   \Big] \nonumber \\
-		&= \mathds{E}_{s\sim\rho^\beta} \left[  \nabla_\theta \pi_{\theta}(s) \nabla_a Q^\pi(s,a) \big|_{a=\pi_\theta(s)} \right] 
+	    &= \mathds{E}_{s\sim\rho^\beta} \Big[ \nabla_\theta \pi_\theta Q^\pi \big(s,\pi_\theta(s)\big)   \Big] \nonumber \\
+		&= \mathds{E}_{s\sim\rho^\beta} \left[  \nabla_\theta \pi_{\theta}(s) \nabla_a Q^\pi(s,a) \big|_{a=\pi_\theta(s)} \right]  \label{eq:dpg}
 \end{align}
 \begin{flushright}
-	\small There are two important things about this relation: first, it can be seen that the policy gradient does not depend on the gradient of the state distribution. Second, the approximation drops a term that depends on the action-value gradient, $\nabla_{\theta} Q^\pi(s,a)$. Since the position of the optima are however preserved, the term can be left  out, making the approximation no less useful. Both claims are shown in \cite{silver_deterministic_2014}.\\ \vspace{9px}
+	\small There are two important things about this relation: first, it can be seen that the policy gradient does not depend on the gradient of the state distribution. Second, the approximation drops a term that depends on the action-value gradient, $\nabla_{\theta} Q^\pi(s,a)$. Since the position of the optima are however preserved, the term can be left  out, making the approximation no less useful. Both claims are shown in \cite{silver_deterministic_2014}.\\ 
 \end{flushright}
 
 \noindent The practical implication of this relation is the following:\\
@@ -345,13 +345,13 @@ The \keyword{off-policy deterministic policy gradient theorem}, put forward in \
 	\theta_{i+1} = \theta_i + \alpha * \mathds{E}_{s\sim\rho^\beta} \big[ \nabla_{\theta}J(\pi_\theta) \big]
 \end{equation*}
 
-The deterministic policy gradient theorem (\ref{eq:policygradient}) shows that to improve the performance of the policy, it makes sense to move it into the direction of the gradient of Q -- where the gradient of Q can be decomposed into the gradient of the action-value with respect to the actions, and the gradient of the policy with respect to its parameters:
+The deterministic policy gradient theorem (\ref{eq:dpg}) shows that to improve the performance of the policy, it makes sense to move it into the direction of the gradient of Q -- where the gradient of Q can be decomposed into the gradient of the action-value with respect to the actions, and the gradient of the policy with respect to its parameters:
 \begin{equation*}
 	\theta_{i+1} = \theta_i + \alpha * \mathds{E}_{s \sim \rho^\beta} \left[ \nabla_\theta \pi_{\theta}(s) \nabla_a Q^{\pi_i}(s,a) \big|_{a=\pi_\theta(s)} \right]
 \end{equation*} 
 In other words, to maximize the performance of the policy, one can re-use the gradient of those actions leading to maximal Q-values. In practice, the true function $Q^\pi(s,a)$ is unknown and must be estimated.\\
 
-\noindent DPG algorithms use an actor-critic architecture: The critic estimates the Q-function using a differentiable function approximator. For that it using Q-learning as explained in the sections above, with the weights specified as $w$. The actor updates the \textit{policy} parameters $\theta$ in the direction of the gradient of Q (instead of maximizing it globally as in the sections above\footnote{\textit{``The critic estimates the action-value function while the actor ascends the gradient of the action-value-function''} (quote \cite{silver_deterministic_2014})}. Note that for the update of the policy parameters, only the gradient w.r.t. the weight of the actions as input of the Q-functions are relevant, not the trained weights of the approximator $Q^w$ itself. Figure~\ref{fig:actorcritic} visualizes the idea behind the algorithm graphically.
+\noindent The off-policy deterministic actor-critic algorithm learns a deterministic target policy $\pi_\theta(s)$ from trajectories generated by an arbitrary stochastic policy, $\beta(a|s) = \mathds{P}[a|s]$. For that, it uses an actor-critic arcitecture: The critic estimates the Q-function using a differentiable function approximator, using Q-learning as explained in the sections above, with the weights specified as $w$. The actor updates the \textit{policy} parameters $\theta$ in the direction of the gradient of Q (instead of maximizing it globally as in the sections above\footnote{\textit{``The critic estimates the action-value function while the actor ascends the gradient of the action-value-function''} (quote \cite{silver_deterministic_2014})}. Note that for the update of the policy parameters, only the gradient w.r.t. the weight of the actions as input of the Q-functions are relevant, not the trained weights of the approximator $Q^w$ itself. Figure~\ref{fig:actorcritic} visualizes the idea behind the algorithm graphically.
 \begin{figure}[h]
 	\includegraphics[width=.4\textwidth]{sutton-ac.png}
 	\centering
@@ -361,82 +361,44 @@ In other words, to maximize the performance of the policy, one can re-use the gr
 
 \noindent Using the above knowledge, one can derive the \keyword{off-policy deterministic actor critic} algorithm. In the first step of this algorithm, the critic calculates the temporal difference error to update its own parameters like in previous sections, and then the actor updates its parameters in the direction of the critic's action-value gradient:
 \begin{align}
-	TD_i    &= \mathds{E}_{s,a,r} \left[ \big( r_t + \gamma * Q^{w_i}(s_{t+1}, \pi_{\theta}(s_{t+1})) \big) - Q^{w_i}(s_t, a_t) \right]\\
-	w_{i+1} &= \mathds{E}_{s,a} \left[  w_i + \alpha_w * TD_i \nabla_w Q^w(s_t, a_t) \right] \\
-	\theta_{i+1} &= \mathds{E}_{s,a} \left[ \theta_i + \alpha_\theta * \nabla_\theta \pi_\theta(s_t) \nabla_a Q^w(s_t,a_t) \big|_{a=\pi_\theta(s)} \right]
+	TD_i    &= \mathds{E}_{s,a,r} \left[ \big( r_t + \gamma * Q^{w_i}(s_{t+1}, \pi_{\theta}(s_{t+1})) \big) - Q^{w_i}(s_t, a_t) \right] \label{eq:td_dpg}\\
+	w_{i+1} &= \mathds{E}_{s,a} \left[  w_i + \alpha_w * TD_i \nabla_w Q^w(s_t, a_t) \right] \label{eq:critic_dpg} \\
+	\theta_{i+1} &= \mathds{E}_{s,a} \left[ \theta_i + \alpha_\theta * \nabla_\theta \pi_\theta(s_t) \nabla_a Q^w(s_t,a_t) \big|_{a=\pi_\theta(s)} \right] \label{eq:actor_dpg}
 \end{align}
 \begin{flushright} \small With $\alpha_w$ and $\alpha_\theta$ as the learning-rates of the critic and the actor, respectively. \end{flushright}
 
-They say themselves that these algorithms may have convergence issues in practice, due both to bias introduced by the fucntion approximator, as well as instablilities caused by off-policy learning.
+As stated by \cite{silver_deterministic_2014}, these algorithm may have convergence issues in practice, due to a bias introduced by approximating $Q^\pi(s,a)$ with $Q^w(s,a)$. It is thus important, that the approximation $Q^w(s,a)$ is \keyword{compatible}, preserving the true gradient $\nabla_a Q^\pi(s,a) \approx \nabla_a Q^w(s,a)$. This is the case when the gradients are orthogonal, and $w$ minimizes $MSE(\theta,w)$. However, the necessary conditions are approximately fulfilled when using a differentiable critic that finds $Q^w(s,a) \approx Q^\pi(s,a)$.
 
-It is however important, that the the approximation $Q^w(s,a)$ is \keyword{compatible}, preserving the true gradient $\nabla_a Q^\pi(s,a) \approx \nabla_a Q^w(s,a)$. The necessary conditions are however approximately fulfilled when using a differentiable critic that finds $Q^w(s,a) \approx Q^\pi(s,a)$.\\
-
-
-
-
-Off-policy deterministic actor-critic now learns a deterministic target policy $\pi(s)$ from trajectories generated by an arbitrary stochastic policy, $\beta(a|s) = \mathds{P}[a|s]$.
-Now, the performance objective is the value function of the target policy %TODO also hab ich sie vorher ebendoch falsch definiert
-Now we re-define the performance objective again by the value function of the target policy, averaged over the state distribution of the behaviour policy: 
-\begin{align}
-	J_\beta(\pi_\theta) &= \mathds{E}_{s\sim\rho^\beta} \big[ V^\pi_(s)\\
-	  &= \mathds{E}_{s\sim\rho^\beta} \big[ Q^\pi(s,\pi(s)) \big]
-\end{align}
-
-OOOKAY; lets try this again.
-As before, we want to find a policy maximizing some measure of discounted future rewards, for which we will again consider the Value of a state, as defined in \ref{eq:valuedefinition}. A performance objective of our policy is now the value of the state, according to our policy. This performance objective depends however on the actual state distribution (which is, as defined, indeterministic), as well as the action distribution of our policy, which may well be stochastic. In the following, we will consider only deterministic policies. While that takes the necessity of finding the exptected value of that distribution, it only allows for off-policy algorithms, where the distribution of the states depends on another, stochastic, policy than the one we actually learn. To get the actual performance objective, we must thus average the known value function over the state distribution of our behaviour policy $\beta \neq \pi$:
-\begin{align}
-	J_\beta(\pi_\theta) &= \int_S \rho^\beta(s) V^\pi(s) ds\\
-	  &= \mathds{E}_{s\sim\rho^\beta} \big[ V^\pi(s) \big]\\
-	  &= \mathds{E}_{s\sim\rho^\beta} \big[ Q^\pi(s,\pi(s)) \big]	
-\end{align}
-The gradient of that is now 
-\begin{equation} \label{policygradient}
-	\nabla_{\theta}J_\beta(\pi_\theta) \approx	 \mathds{E}_{s\sim\rho^\beta } \Big[ \nabla_{\theta} \pi_\theta(s) \nabla_a Q^\pi(s,a) \big|_{a=\pi_\theta(s)} \Big]
-\end{equation}
-because of the deterministic policy gradient theorem put forward in \cite{silver_deterministic_2014}.
-What they then do is to develop an actor-critic algorithm that updates the policy in the direction of that. 
-Again, they replace $Q^\pi(s,a)$ by $Q^w(s,a)$. A critic estimates this value function, off-policy from trajectroeies generated by $\beta(a|s)$.
-Then, in the update, they calculate....
-\begin{align}
-	TD_i    &= r_t + \gamma Q^w(s_{t+1}, \pi_\theta(s_{t+1})) - Q^w(s_t, a_t)\\
-	w_{i+1} &= w_t + \alpha_w TD_i \nabla_w Q^w(s_t, a_t) \\
-	\theta_{i+1} &= \theta_i + \alpha_\theta \nabla_\theta \pi_\theta(s_t) \nabla_a Q^w(s_t, a_t) |_{a=\pi_\theta(s)}
-\end{align}
-
-However, it must hold that $\nabla_a Q^\pi(s,a)$ can be replaced by $\nabla_a Q^w(s,a)$ without affecting the policy gradient \ref{policygradient}. This is the case when the gradients are orthogonal, and $w$ minimizes $MSE(\theta,w)$. Silver et al \cite{silver_deterministic_2014} suggest to do that via linear regression, however of course we will use ANNs (that then minimize the Mean-squared projected Bellman error by stochatic gradient descent)
-
-What that results to is COPDAC-Q (compatible off-policy deterministic actor critic q learner)
-
-DPG is more data efficient than normal PG, as it doesnt need to take the integral of the actionspace of the policy
-
-WANN BAU ICH DAS BILD EIN????
-
-[analogous, in a policy gradient context, to Q-learnign: it learns a determinsitic greedy policy, off-policy, while exectuging a noisy version of that]
 
 \subsubsection*{Deep DPG}
 
-The \keyword{Deep DPG Algorithm} is an off-policy actor-critic, online, active, model-free, deterministic policy gradient algorithm for continous action-spaces. The basic idea behind \keyword{Deep DPG} (\textbf{DDPG}) is to combine the ideas of the DQN (section \ref{ch:DQN}) with the architecture put forward by Silver et al. \cite{silver_deterministic_2014} revolving around the deterministic policy gradient. As for that, they also use parameterized deterministic actor function $\pi(s) = a$ as well as critic function $Q(s,a)$.
+The \keyword{Deep DPG Algorithm} is an off-policy actor-critic, online, active, model-free, deterministic policy gradient algorithm for continous action-spaces. The basic idea behind \keyword{Deep DPG} (\textbf{DDPG})\cite{lillicrap_continuous_2015} is to combine the ideas of the DQN (section \ref{ch:DQN}) with the architecture and learning rule using the deterministic policy gradient. For that, they also use parameterized deterministic actor function $\pi_\theta(s) = a$, as well as a critic function $Q^w(s,a)$. As the algorithm is also off-policy, it will learn the policy $\pi_theta$, while following a trajectory arising through another, stochastic policy $\beta$. This policy will again be a \textit{soft} version of the learned policy $\pi$ that allows for adequate exploration: $\beta := soft(\pi)$.
 
-The update of the critic is performed analogous to the Q-value approximator in the Deep-Q-Network architecture. $\langle s_t, a_t, r_t, s_{t+1} \rangle$-samples are sampled from a replay memory of limited size, to then perform Q-learnig via temporal differences (see \ref{l2loss} and \ref{qloss_target}). For that, it is also required to use target networks with the previously mentioned soft updates. Target networks are necessary for both the policy approximator as well as the Q-value approximator [SEE ALGORITHM BELOW].
+The update of the critic is performed analogously to the Q-value approximator in the Deep-Q-Network architecture. A minibatch of $\langle s_t, a_t, r_t, s_{t+1}, t==t_t \rangle$-tuples are sampled from a replay memory of limited size, to then perform Q-learning via temporal differences (see \ref{l2loss} and \ref{qloss_target}). An obvious difference to the Q-learning in the above sections is however, that not the greedy $argmax_{a'}Q(s,a')$-policy is used in the determination of the targetvalue, but the agent's own parameterized policy $\pi_\theta(s)$. Just like in Deep-Q-Learning, it is necessary to use target networks to ensure convergence of Q -- in fact, Lillicrap et. al. \cite{lillicrap_continuous_2015} were the first to use the previously mentioned soft target updates.
 
-in combination, that leads to the following update step:
-The critic minimizes the loss
-\begin{equation}
-	Loss := \frac{1}{N} \sum_i \Big( \big( r_i + \gamma Q'(s_{i+1},\pi'(s_{i+1}|\theta^{\pi'})|\theta^{Q'} \big) - Q(s_i,a_i|\theta^Q)\Big)^2
+The update of the actor then follows the deterministic policy gradient theorem from equation~\ref{eq:dpg}: Its estimation of the policy gradient bases on the minibatch-samples used in the critic. For that, it calculates the expectation of the action-gradients it adopted from the critic network. This expectation is an approximation of its policy gradient, allowing the actor to perform a stochastic gradient ascent step to optimize its performance objective.
+
+In practice, it turned out that the usage of target networks for both actor and critic is necessary to ensure stability of the algorithm, such that in practice, there are four different networks: the actors $Q(s,a;\theta^Q)$ and $Q(s,a;\theta^{Q^-})$ as well as the critics $\pi(s;\theta^\pi)$ and $\pi(s;\theta^{\pi^-})$. Incorporating all those changes leads to the following pseudocode snipplet of the agent's learning step, adopted from \cite{lillicrap_continuous_2015}: \\
+
+\noindent Target-value of the critic:
+\begin{equation} \label{eq:y_ddpg}
+	y_t := \begin{cases} 
+	r_t & \text{if } t = t_t\\
+	r_t + \gamma * Q\big(s_{t+1}, \pi(s_{t+1};\theta^{\pi^-});\theta^{Q^-} \big)  & \text{otherwise} 
+	\end{cases} %  max_{a_{t+1}} \hat{Q}^\pi( s_{t+1}, a_{t+1})
 \end{equation}
-And the actor updates its plicy using the sampled policy gradient:
-\begin{equation}
-	\nabla_{\theta^\pi}J \approx \frac{1}{N} \sum_i \nabla_a Q(s_i,\pi(s_i)|\theta^Q) \nabla_{\theta^\pi} \pi(s_i|\theta^\pi)
+\noindent Loss the critic minimizes:
+\begin{equation} \label{eq:loss_ddpg}
+	L_i(\theta^\pi_i) := \mathds{E}_{\langle s_t,a_t,r_t,s_{t+1} \rangle \sim U(D)} \Big[\Big( y_t - Q(s_t,a_t;\theta^Q) \Big)^2\Big]
 \end{equation}
-How that looks in an actual Tensorflow implementation can be seen later in this thesis, the corresponding pseudocode is to be found in \cite{lillicrap_continuous_2015}.
+\noindent Sampled policy gradient the actor maximizes for:
+\begin{equation} \label{eq:actor_ddpg}
+	\nabla_{\theta^\pi}J_\beta(\pi_\theta) \approx \mathds{E}_{\langle s_t,a_t,r_t,s_{t+1} \rangle \sim U(D)} \Big[ \nabla_a Q(s_t,\pi(s_t);\theta^Q) \nabla_{\theta^\pi} \pi(s_t;\theta^\pi) \Big]
+\end{equation}
+The correspondences of this ANN implementation and the correspondences of the general definitions can easily be seen: Equations~\ref{eq:y_ddpg} and \ref{eq:loss_ddpg} correspond to definitions \ref{eq:td_dpg} and \ref{eq:critic_dpg}, whereas equation~\ref{eq:actor_ddpg} corresponds to equation~\ref{eq:actor_dpg}.\\
 
-Dabieschreiben dass das halt so macht wegen den minibatches? arrg
+For a complete code of the DDPG-implementation, I refer to appendix~\ref{ap:ddpg}. Analogously to the DQN-agent, an exemplary source code of the implementation of an agent with a DDPG-model can be found there, using python and tensorflow. The agent stands alone without an environment, and some crucial parts of it, like an implementation of its memory, are missing. On page \pageref{ap:ddpg_comparison}, there is again a comparison of the pseudocode (as provided in \cite{lillicrap_continuous_2015}) and the correspondences in actual-python code, where each line of the of the pseudocode (to the left) corresponds precisely to the respective line of the actual python-code (to the right).
 
-Using normal Q-learning for the actor leads to the same overfitting problems as it does in DQN, if not using DoubleQ. [Q-learning is prone to overestimatng values] -> it did so in ddpg, however they say it still performed well
-
-[hier schon auf wawrzynksi sowie wawrzynksi\&tanwani2013 eingehen]
-
-[WO im tatsächlichem Netz die actions bei actor und critic reingehen]
 
 %----------------------------------------------------------------------------------------
 %	SECTION 5

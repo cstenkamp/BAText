@@ -22,8 +22,8 @@ for episode = 1, M do
 		
 		Update critic by minimizing the loss: L = *($\frac{1}{N}\sum_i(y_i - Q(s_i, a_i|\theta^Q))^2$*)
 		Find the sampled policy gradient:
-				onlineActorActions = *($\pi(s_i|\theta^\pi) $*)
-				*($\nabla_{\theta^\pi}J \approx \frac{1}{N}\sum_i \nabla_a Q(s_i,$*)onlineActorActions*($|\theta^Q) \nabla_{\theta^\pi} \pi(s_i|\theta^\pi)$*)
+				a_i = *($\pi(s_i|\theta^\pi) $*)
+				*($\nabla_{\theta^\pi}J \approx \frac{1}{N}\sum_i \nabla_a Q(s_i,a_i|\theta^Q) \nabla_{\theta^\pi} \pi(s_i|\theta^\pi)$*)
 		Update the actor policy using the sampled policy gradient
 		Update the target networks: 
 				*($ \theta^{Q'} \leftarrow \tau * \theta^Q + (1-\tau) \theta^{Q'} $*)
