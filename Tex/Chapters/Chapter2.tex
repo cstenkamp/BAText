@@ -46,7 +46,7 @@ As the agent does not have supervised data on which actions are the ground truth
 \begin{equation} \label{eq:valuedefinition}
 	V^\pi(s_t) := \mathds{E}_{s\sim\rho^\pi} \left[ \sum_{t'=t}^{t_t} ( \gamma^{t'-t} * r^\pi_{t'} ) \right]
 \end{equation}
-As the future rewards depend on future states it can, as already mentioned, only be talked about the expected Value depending on the actual state distribution. This distribution depends on the agents policy, but may still be indeterministic\footnote{That is one of the reasons to discount future rewards: The agent cannot be fully sure if it actually reaches the states it strives for. Also, using the discounted reward hopefully helps making the agent perform good actions as quickly as possible.}. The discounted state visitation distribution for a policy $\pi$ is denoted $\rho^\pi$.
+As the future rewards depend on future states it can, as already mentioned, only be talked about the expected Value depending on the actual state distribution. This distribution depends on the agents policy, but may still be indeterministic\footnote{That is one of the reasons to discount future rewards: The agent cannot be fully sure if it actually reaches the states it strives for. Also, using the discounted reward hopefully helps making the agent perform good actions as quickly as possible.}. The discounted state visitation distribution, which assigns each state a probability of visiting it according to policy $\pi$, is denoted $\rho^\pi$. 
 
 The actual, underlying Value of a state $V^*(s)$ could accordingly be defined as the value of the state when using the best possible policy, which corresponds to the maximally archievable reward starting in state $s_t$:
 \begin{equation*} 
@@ -81,23 +81,23 @@ For the Q-value, the Bellman equation holds as well: If the correct Q-value unde
 \end{equation}
 
 As the Value of a state is defined as the maximally archievable reward from that state, the relation between $Q$ and $V$ can be expressed as
-\begin{equation} \label{eq:1.25}
+\begin{equation} \label{eq:QandV}
 V(s_t) = max_{a_t} Q(s_t, a_t)
 \end{equation}
 
 \subsubsection{Quality of a policy}
 
-Any agent's goal is to find a policy that can follow the trajectory of the state distribution with the highest expected reward. If the actual Q-value for each action of each state was known, then the optimal policy can be defined as the one taking the optimal action in each state:
+Any agent's goal is to find a policy that can follow the trajectory of the state distribution with the highest expected reward. If the actual Q-value for each action of each state is known, then the optimal policy can be defined as the one taking the optimal action in each state:
 \begin{equation}
 	\pi^* = argmax_aQ^*(s,a) \forall s,a \in \mathcal{S} \times \mathcal{A}
 \end{equation}
 This policy guarantees maximum future reward at every state. Note however, that finding $argmax_aQ(s,a)$ is only easily possible if $\mathcal{A}$ is discrete and finite (more on that later). 
 
-As for the actual performance of a policy, a useful measure is the \keyword{performance objective} $J$. It integrates over the whole state space $\mathcal{S}$ with each state $s$ weighted by its distribution due to policy $\pi$. As only non-stochastic policies are considered here, integration over the action space $\mathcal{A}$ is not necessary. The integral can, as shown by \cite{silver_deterministic_2014}, be expressed by the expectation of the Value of states following the distribution $s\sim\rho^\pi$:
+As for the actual performance of a policy, a useful measure is the \keyword{performance objective} $J(\pi)$, which stands for the cumulative discounted reward from the start state using the respective policy. To measure the performance objective, it is necessary to integrate over the whole state space $\mathcal{S}$ with each state $s$ weighted by its distribution due to $\pi$. As only non-stochastic policies are considered here, integration over the action space $\mathcal{A}$ is not necessary. The integral can, as shown by \cite{silver_deterministic_2014}, be expressed by the expectation of the Value of states following the distribution $s\sim\rho^\pi$:
 \begin{align}
-	J(\pi) &= \int_\mathcal{S} \rho^\pi(s) V^\pi(s) ds\\
-	       &= \mathds{E}_{s\sim\rho^\pi} \big[V^\pi(s)]\\
-	       &= \mathds{E}_{s\sim\rho^\pi} \big[Q^\pi(s, \pi(s))]
+	J(\pi) &= \int_\mathcal{S} \rho^\pi(s) V^\pi(s) ds \nonumber\\
+	       &= \mathds{E}_{s\sim\rho^\pi} \big[V^\pi(s)] \nonumber\\
+	       &= \mathds{E}_{s\sim\rho^\pi} \big[Q^\pi(s, \pi(s))] \label{eq:performance01}
 \end{align}
 %TODO dass das jetzt bei off-policy anders ist, da wir da differentiaten müssen zwischen policy der wir folgen und policy anhand derer wir evaluieren!!!!!!!
 
@@ -154,7 +154,7 @@ As the previous definition of Q-values was only correct in non-terminal states, 
 \begin{equation} \label{eq:ycases}
 	y_t^\pi = \begin{cases} 
 		r_t & \text{if } t = t_t\\
-		r_t + \gamma * max_{a_{t+1}} \hat{Q}^\pi( s_{t+1}, a_{t+1}) & \text{otherwise}
+		r_t + \gamma * max_{a'} \hat{Q}^\pi( s_{t+1}, a') & \text{otherwise}
 \end{cases}
 \end{equation}
 The temporal difference error for time $t$ is accordingly defined as 
@@ -173,10 +173,11 @@ converges to the optimal $Q^*$-function, making the greedy policy $\pi^*$ optima
 
 In contrast to \textsc{Sarsa}, Q-learning is an \keyword{off-policy} algorithm, meaning that the policy it uses in its evaluation of the Q-value is not necessarily the one it actually uses: When calculating the temporal difference error, the agent considers Q-values $\hat{Q}^{\pi_{greedy}}(s,a)$, based on $\pi_{greedy}(s) = argmax_{a'}\hat{Q}(s,a')$, as better approximation of the real action-value function $Q^\pi(s,a)$. Therefore, it learns about $\pi_{greedy}$, which is to always take the action promising maximum Value. Because following the deterministic $\pi_{greedy}$ does not allow for  \keyword{exploration}, this is not the policy the agent actually pursues. 
 
-When using off-policy algorithms with $\pi$ as the policy we learn about and $\beta$ as the policy we act upon, our performance objective $J(\pi)$ must change, as it must incorporate that while the value of a state is calculated using $\pi$, the distribution of states follows from policy $\beta$: 
-\begin{equation} \label{eq:performance}
-	J_\beta(\pi) = \mathds{E}_{s\sim\rho^\beta} \big[Q^\pi(s, \pi(s)) \big]
-\end{equation}\\
+When using off-policy algorithms with $\pi$ as the policy we learn about and $\beta$ as the policy we act upon, our performance objective $J(\pi)$ (equation~\ref{eq:performance01}) must change, as it must incorporate that while the value of a state is calculated using our deterministic $\pi$, the distribution of states follows from stoachastic policy $\beta$: 
+\begin{align} 
+	J_\beta(\pi) &= \int_{\mathcal{S}} \rho^\beta(s) V^\pi(s) ds \nonumber\\
+	&= \mathds{E}_{s\sim\rho^\beta} \big[Q^\pi(s, \pi(s)) \big] \label{eq:performance}
+\end{align}\\
 
 The process of reinforcement learning consists of two steps: \keyword{policy evaluation}, where the agent evaluates its current policy according to the knowledge gained from the environment, and based on that \keyword{policy improvement}. In the standard Q-learning considered here, those steps are interleaved, leading to a form of \keyword{generalized policy iteration}: the Q-learner learns its action value-function and its policy simultaneously. After updating its Q-function estimate via the temporal difference error, the agent updates its policy to be a \keyword{soft} version of the greedy policy $\pi_{i+1}(s) := argmax_{a'} Q^{\pi_i}(s,a') \forall s \in \mathcal{S}$, while keeping a mechanism allowing for exploration.  Learning with this approach is however generally limited: $argmax_{a'}Q(\cdot, a')$ can only easily be found in settings where the action space $\mathcal{A}$ is finite and discrete, as it requires a global maximization over all possible actions. In a later section, I will go into detail about another architecture which does circumvents those problems by splitting up policy evaluation and policy improvement explicitly.\\
 
@@ -263,16 +264,39 @@ It is not possible that Q-value-estimates are completely precise: estimation err
 
 The solution suggested by \cite{van_hasselt_deep_2015} is called \keyword{Double-Q-learning}. In its original definition without using Neural Networks as function approximators, a double-Q-learner learns two value functions in parallel, by letting each experience update only one of the two value functions at random. For each update then, one function is used to determine the greedy policy, while the other is used to determine the value of this policy\footnote{\textit{``In DoubleQ, we still use the greedy policy to select actions, however we evaluate how good it is with another set of weights''}. The intuition behind that is, that the probability of both value-functions always over-estimating the same actions is basically zero.}. The authors proved that the lower bound for the overestimation of action-value, $max_{a'}Q^\pi(s,a') - V^*(s)$, is $>0$ for the standard Q-learning update rule, whereas it is $0$ in the case of DoubleQ. Additionally they showed that these overestimations are indeed harmful by showing the superiority of a DoubleQ-learner in comparison with a normal Q-learner.\\
 
-\keyword{Deep-Double-Q-Learning} (\textbf{DDQN}) takes the Double-Q idea to the existing framework of Deep-Q-learning: Overerstimations are reduced by decomposing the $max$-operation into \keyword{action selection} and \keyword{action evaluation}. Instead of introducing a second value function, DDQN re-uses the target-network of the DQN architecture in place of the second value function. Although online network and target network are not fully decoupled, experiments showed that it provides a good candidate for independent action evaluation, without the need of additional functions. The technique of DDQN is thus to still use the online network to choose an action (evaluate the greedy policy according to the online network), but the target network to generate the target Q-value for that action (to estimate its value). As shown by \cite{van_hasselt_deep_2015}, DDQN improves over DQN both in terms of value accuracy and in terms of the actual quality of the policy. 
+\keyword{Deep-Double-Q-Learning} (\textbf{DDQN}) takes the Double-Q idea to the existing framework of Deep-Q-learning: Overerstimations are reduced by decomposing the $max$-operation into \keyword{action selection} and \keyword{action evaluation}. Instead of introducing a second value function, DDQN re-uses the target-network of the DQN architecture in place of the second value function. Although online network and target network are not fully decoupled, experiments showed that it provides a good candidate for independent action evaluation, without the need of additional functions. The technique of DDQN is thus to still use the online network to choose an action (evaluate the greedy policy according to the online network), but the target network to generate the target Q-value for that action (to estimate its value, instead of the max-operation in DQN). As shown by \cite{van_hasselt_deep_2015}, DDQN improves over DQN both in terms of value accuracy and in terms of the actual quality of the policy. 
+
+When using Double-Q-Learning, the target-value of the calculation of the temporal difference error ($y_t$ from equation~\ref{eq:ycases} must thus be re-defined as 
+\begin{equation}
+		y_t^\pi = \begin{cases} 
+	r_t & \text{if } t = t_t\\
+	r_t + \gamma * Q(s_{t+1}, argmax_{a'} Q($  $s_{t+1}, a'; \theta_i); \theta_i^-) & \text{otherwise} 
+	\end{cases} %  max_{a_{t+1}} \hat{Q}^\pi( s_{t+1}, a_{t+1})
+\end{equation}
 
 It can be seen in appendix~\ref{ap:dqn} how small the actual change to normal DQN is: The only difference is the usage of the target network in line~\ref{sourcecode_ddqn} (marked in blue).
 
 \subsection{Dueling Q-Learning}
 
-In many situations encountered during Q-learning, the value of all possible actions $a_t$ in a state $s_t$ is almost equal. Consider a simulated car, driving with full speed towards a wall
+In many situations encountered during Q-learning, the value of all possible actions $a_t$ in a state $s_t$ is almost equal. Consider a simulated car, driving with full speed towards a wall, already so close that breaking or steering can't stop the car from driving into the wall. As all actions will end in the episode ending by the car hitting the wall, all actions will have roughly the same Q-value. 
+
+The idea of the \keyword{dueling architecture}\cite{wang_dueling_2015} for DQN is to learn the action-state-value function more efficiently. For that, it splits up the Network into a \keyword{value stream} and separate \keyword{advantage streams}. As mentioned earlier, though the ANN resembles the $\hat{Q}(s,a)$-function, the actions are not input to the network, but instead it outputs $|\mathcal{A}|$ Q-values, one for each action. A \keyword{Dueling Double Deep-Q-Network} (\textbf{DDDQN}) works by splitting an early layer of its corresponding network in half. One of the resulting streams is the value-stream, which results in one value, intuitively corresponding to the Value ($\hat{V_{s_t}}$) of a state $s_t$, irrespective of the action that can be taken in this state. The other stream is  the advantage stream, which has as output $|\mathcal{A}|$ values, standing for the \keyword{Advantage} ($A$) of taking a certain action in this state -- it can be seen as a relative measure of the importance of each action. The relation between $Q$, $V$ and $A$ is the following:
+\begin{equation*}
+	Q(s,a) = V(s) + A(s,a)
+\end{equation*}
+In the very last layer of the ANN those two streams are combined again, such that a DDDQN also outputs one Q-value for each action. Thanks to this, any DDQN can be transformed into a DDDQN by simply changing the structure of the used ANN. It is important to mention however, that the last layer can't simply calculate $V(s) + A(s,a)$ -- If that was done, then the network could simply set the V-stream to a constant, negating any advantage gain in splitting them up in the first place. However, as explained in equation~\ref{eq:QandV}, it holds that $argmax_{a'}Q(s,a') = V(s)$ -- when using deterministic policies, than the value of the state corresponds to the Q-value of the best action that can be taken in this state. Therefore, it must be the case that the $argmax$-action has an advantage of zero. This can be used to calculate the $Q(s,a)$ using the value-stream and the advantage-stream according to the following equation (where $\theta$ corresponds to the shared weights, $\theta^A$ to the weights specific to the advantage-stream and $\theta^V$ to those specific to the Value-stream):
+\begin{equation*}
+	Q(s,a; \theta, \theta^A, \theta^V) = V(s; \theta, \theta^V) + \big( A(s,a; \theta, \theta^A) - max_{a'}A(s,a',\theta, \theta^A) \big)
+\end{equation*}
+Actually, during testing it turned out that normalizing the advantage not with respect to the best action, but with respect to the average of all actions, $\frac{1}{|\mathcal{A}|} \sum_{a'} A(s, a'; \theta, \theta^A)$ lead to better stability. By splitting up into separate advantage- and valuestream and combining the two streams in a fully-connected layer using the formula stated above, the authors archieved far better performance then their predecessor, DDQN, on the same dataset \cite{wang_dueling_2015}.\\
+
+The reason to split into two streams is obvious: In the learning step of a DQN, the derivative is taken with respect to difference in the expected Q-value of an action and the better estimate of that Q-value. In normal DQNs, the network can thus only update the parameters responsible for one of its outputs. A DDDQN learns more effectively, as it learns a shared value of multiple actions: A temporal difference in one Q-value likely changes the value-stream of the network, which also changes the Q-value of other actions. Thanks to this, learning generalizes better across actions, without any changes to the underlying reinforcement learning algorithm. As shown by the authors \cite{wang_dueling_2015}, the difference is especially drastic in situations where many actions have similar outcomes.\\
 
 
-\subsection{Using Recurrent Networks}
+In appendix~\ref{ap:dqn}, I listed an exemplary source code of the implementation of an agent using python and tensorflow. The agent stands alone without an environment, and some crucial parts of it, like an implementation of its memory, are missing. However, all aspects mentioned in the previous sections are found in it, which is the algorithm of the actual Q-learning as described above and in \cite{van_hasselt_deep_2015}, as well as the computation graph of the network using precisely the DDDQN-architecture as described above and in \cite{wang_dueling_2015}. The last page of it (page~\pageref{ap:dqn_comparison}) consists of a comparison of the Pseudocode of the DDDQN (as found in \cite{mnih_human-level_2015}, with the changes from \cite{van_hasselt_deep_2015} and \cite{lillicrap_continuous_2015} incorporated in and marked blue), where each line of the pseudocode (to the left) corresponds precisely to the respective line of the actual python-code (to the right).
+
+
+%\subsection{Using Recurrent Networks}
 
 %----------------------------------------------------------------------------------------
 %	SECTION 4
@@ -280,54 +304,75 @@ In many situations encountered during Q-learning, the value of all possible acti
 
 \section{Policy Gradient Techniques}
 
+\keyword{Policy Gradient} (\textbf{PG}) techniques are in principle a far more straight-forward approach to reinforcement learning than temporal difference-methods like Q-learning. The idea behind PG techniques is really simple: The policy $\pi_\theta(a|s) = \mathds{P}[a|s;\theta]$ of an agent is explicitly modeled using a differentiable function approximator, like a neural network with weights $\theta$. There is no need  to approximate the value-function of states or actions explicitly. The quality of the policy is again measured by its performance as in equation~\ref{eq:performance}. 
+
+Before continuing to explain PG techniques, it makes sense to define another measure of the quality of an action: The \keyword{advantage}. The advantage will be what PG methods optimize for, and it can be defined analogously to the value of a state in equation~\ref{eq:valuedefinition}, with the difference that this time, as we do not explicitly model the value of following states, we can only calculate it after having measured all of the respective rewards from the environment:
+\begin{equation}
+	 A_t := \sum_{t'=t}^{t_t} ( \gamma^{t'-t} * r_{t'} ) 
+\end{equation}
+To use the policy gradient, the agent must calculate the advantage of every state it visited so far, to then set this advantage as the gradient of the output of its policy function of the corresponding state, to then train the network using backpropagation with respect to this gradient. If the reward was positive, gradient \textit{ascent} will make the network more likely to produce this action in this state, and if the gradient was negative, it will lead to gradient \textit{descent}, discouraging the network to repeat this action in the given state. Thus, the network will learn to repeat actions giving high rewards and to avoid those with negative rewards.
+
+This may sound unintuitive at first, because there is no specific loss function the ANN can optimize for. However in fact, using the gradient with respect to the advantage corresponds to the loss $\sum_t A_t~log~p(a_i|s_i)$ -- If $A_t$ is positive, we want to increase the probability of action $a_t$ for state $s_i$, and decrease it otherwise.\\
+
+\noindent The main problem of purely using this approach is however the huge amount of exploration that is needed -- the agent does not have any knowledge about what states are good or bad, but only increases the probability of individual actions that turned out to have a good score. Because of this, it can find good policies only by chance, after millions of iterations. If the agent knew the value of a state, it could optimize its policy in the direction of actions that it knows produce a high-valued state. For that, the policy network must get the gradient information of the action from something estimating this value-function, giving rise to \keyword{actor-critic architectures}.
+
 \subsection{Actor-Critic architectures}
 
-The previously introduced technique, a direct adaptation of the Q-learning algorithm \cite{sutton_learning_1988}\cite{watkins_learning_1989}, is a kind of \keyword{generalised policy iteration}, where the policy evaluation and policy improvement happen in the same step. The algorithms learns via temporal differences the state-action value $Q^{\pi_{greedy}}(s,a)$ for the states it encountered with its current policy $\pi$. It then updates $\pi$ to a soft version of that greedy policy $\pi_{i+1}(s) := soft(argmax_a Q^{\pi_{greedy}}(s,a) \forall s \in \mathcal{S})$, where the $soft$-function ensures appropriate exploration. Learning the Q-function and the policy simulatenously is however generally limited: $argmax_aQ(\cdot, a)$ can only easily be found in settings where the action space $A$ is finite and discrete, as it requires a global maximization over all possible actions. While discretizing the action space is possible, it gives rise to the \keyword{curse of dimensionality}, especially when the discretization is fine grained. An iterative optimization process like the argmax-operation would thus likely be intractable.\\
+The technique introduced in the previous sections is a direct adaption of the Q-learning algorithm \cite{sutton_learning_1988}\cite{watkins_learning_1989}, adapted for higher-level function approximators. Standard Q-learning is a kind of \keyword{generalized policy iteration}, where the policy evaluation and policy improvement happen in the same step. The algorithms learns via temporal differences the state-action value $Q^{\pi_{greedy}}(s,a)$ for the states it encountered with its current policy $\pi$. It then updates $\pi$ to a soft version of that greedy policy: $\pi_{i+1}(s) := soft(argmax_a Q^{\pi_{greedy}}(s,a) \forall s \in \mathcal{S})$, where the $soft$-function ensures appropriate exploration. Learning the Q-function and the policy simultaneously is however generally limited: $argmax_aQ(\cdot, a)$ can only easily be found in settings where the action space $\mathcal{A}$ is finite and discrete, as it requires a global maximization over all possible actions. While discretizing the action space is possible, it gives rise to the \keyword{curse of dimensionality}, especially when the discretization is fine grained. An iterative optimization process like the $argmax$-operation would thus likely be intractable.\\
 
 
-\noindent However in a lot of scenarios, the action space is not discrete, but continuous: \mbox{$A \subseteq \mathds{R}^n$}. In such situations, the alternative is to move the policy into the \textit{direction of the gradient of Q}. For that, it is necessary to model the policy explicitly with another function approximator. This gives rise to \keyword{actor-critic} architectures, where both policy and Q-function are explicitly modeled: The \keyword{critic} uses temporal differences to estimate the Q-value of states $s \in \mathcal{S}$ and actions $a \in \mathcal{A}$. If the critic were perfect, it would return the true action-value function of the policy $\pi$, $Q^\pi(s,a)$. As that is not the case however, it is in fact similar to the Bellman-function-approximator from previous sections. In contrast to those however, the policy is now explicitly modeled by the \keyword{actor}. In the case of a stochastic policy, it would be represented by a parametric probability distribution $\pi_\theta(a|s) = \mathds{P}[a|s;\theta]$, however here we only consider the case of deterministic policies $a = \pi_\theta(s)$, which takes the necessity of averaging over all possible actions of our policy. Note however, that using deterministic policies will (again) lead to the necessesity of off-policy algorithms, as a purely deterministic policy does not allow for adequate exploration of state-space $\mathcal{S}$ or action-space $\mathcal{A}$. Thus, to measure the performance of our policy, we must use function \ref{eq:performance}, which averages over the state distribution of our behaviour policy $\beta \neq \pi$. 
+\noindent However in a lot of scenarios, the action space is not discrete, but continuous: \mbox{$A \subseteq \mathds{R}^n$}. In such situations, the alternative is to move the policy into the \textit{direction of the gradient of Q}. For that, it is necessary to model the policy explicitly with another function approximator. This gives rise to \keyword{actor-critic} architectures, where both policy and Q-function are explicitly modeled: The \keyword{critic} corresponds again to a Bellman-function-approximator, using temporal differences to estimate the action-value $Q^\pi(s,a)$\footnote{In that, it corresponds precisely to the model of the previous approach. However, as we now allow for a continuous action-space $\mathcal{A}$, it is not possible to use a network returning multiple Q-values at once, for each action $a \in \mathcal{A}$. Instead, the actions must also be inputs to the critic, which then outputs one $Q(s,a)$-value.}. In contrast to the previous approach however, the policy is now explicitly modeled by the \keyword{actor}. In the case of a stochastic policy, it would be represented by a parametric probability distribution $\pi_\theta(a|s) = \mathds{P}[a|s;\theta]$, however here we only consider the case of deterministic policies $a = \pi_\theta(s)$, which takes the necessity of averaging over all possible actions when calculating its performance objective according to equation~\ref{eq:performance01} or equation~\ref{eq:performance}. Note however, that using deterministic policies will (again) lead to the necessesity of off-policy algorithms, as a purely deterministic policy does not allow for adequate exploration of state-space $\mathcal{S}$ or action-space $\mathcal{A}$. Thus, to measure the performance of our policy, we must use function \ref{eq:performance}, which averages over the state distribution of our behaviour policy $\beta \neq \pi$. 
 
-To learn both actor and critic, actor-critic algorithms rely on a version of the \keyword{policy gradient theorem}, which states a relation between the gradient of the policy and the gradient of the performance function \ref{eq:performance}. The idea behind policy gradient algorithms is accordingly to adjust the parameters $\theta$ of the policy in the direction of the performance gradient $\nabla_{\theta}J(\pi_\theta)$, as moving uphill into the direction of the performance gradient corresponds to maximizing the global performance of the policy.
+To train both actor and critic, actor-critic algorithms rely on a version of the \keyword{policy gradient theorem}, which states a relation between the gradient of the policy and the gradient of its performance function. The idea behind actor-critic policy gradient algorithms is accordingly to adjust the parameters $\theta$ of the policy in the direction of the performance gradient $\nabla_{\theta}J(\pi_\theta)$, as moving uphill into the direction of the performance gradient corresponds to maximizing the global performance of the policy\footnote{The original policy gradient, introduced in \cite{sutton_policy_2000}, assumes on-policy learning with a stochastic policy. However, to derive the stochastic policy gradient, one must integrate over the whole action-space, making its usage less efficient and requiring more training than the DPG, introduced here.}.
 
 \subsubsection{Deterministic Policy Gradient}
 
-The idea in the \keyword{Deterministic Policy Gradient} (\textbf{DPG}) technique is to use a relation between the gradient of the (deterministic) policy (estimated by the actor), and the gradient of the action-value function Q. The critic estimates the Q-function using a differentiable function approximator, and then the actor updates the \textit{policy} parameters in the direction of the gradient of Q, rather than to maximize it globally.\footnote{\textit{``The critic estimates the action-value function while the actor ascends the gradient of the action-value-function''} (quote \cite{silver_deterministic_2014})}\\
+The idea in the \keyword{Deterministic Policy Gradient} (\textbf{DPG}) technique is to use a relation between the gradient of the (deterministic) policy (represented by the actor), and the gradient of the action-value function Q. The existance of a relation is easy to see, because as introduced in equation~\ref{eq:performance}, the performance of our policy $\pi$ is measured using Q. 
 
-\noindent The deterministic policy gradient theorem, put forward in \cite{silver_deterministic_2014}, uses the chain rule to state a relation between the gradient of the performance objective of a policy $J(\pi)$ (see equation \ref{eq:performance}) and the gradients of the policy-function $\pi$ and the Q-function $Q$. 
+The \keyword{off-policy deterministic policy gradient theorem}, put forward in \cite{silver_deterministic_2014}, states the following relation between the gradient of the performance objective of a policy $J(\pi)$ (see equation \ref{eq:performance}) and the gradients of the policy-function $\pi$ and the action-value function $Q$. 
 \begin{align} \label{eq:policygradient}
 	\nabla_{\theta}J_\beta(\pi_\theta) &\approx \int_{\mathcal{S}} \rho^\beta(s) \nabla_\theta \pi_{\theta}(a|s)Q^\pi(s,a) ds \nonumber \\
-	    &= \mathds{E}_{s\sim\rho^\beta} \Big[ \nabla_\theta \pi_\theta Q^\pi \big(s,\pi_\theta(s)\big)   \Big] \nonumber \\
+%	    &= \mathds{E}_{s\sim\rho^\beta} \Big[ \nabla_\theta \pi_\theta Q^\pi \big(s,\pi_\theta(s)\big)   \Big] \nonumber \\
 		&= \mathds{E}_{s\sim\rho^\beta} \left[  \nabla_\theta \pi_{\theta}(s) \nabla_a Q^\pi(s,a) \big|_{a=\pi_\theta(s)} \right] 
 \end{align}
+\begin{flushright}
+	\small There are two important things about this relation: first, it can be seen that the policy gradient does not depend on the gradient of the state distribution. Second, the approximation drops a term that depends on the action-value gradient, $\nabla_{\theta} Q^\pi(s,a)$. Since the position of the optima are however preserved, the term can be left  out, making the approximation no less useful. Both claims are shown in \cite{silver_deterministic_2014}.\\ \vspace{9px}
+\end{flushright}
 
-This shows, that the gradient of the performance-objective of the policy with respect to its parameters (this is what we want to maximize) corresponds oth the gradient of the policy with respect to its weights times the gradient of the Q-function w.r.t. the actions. 
+\noindent The practical implication of this relation is the following:\\
+\noindent When updating the policy, its parameters $\theta_{i+1}$ are updated in proportion to the gradient $\nabla_{\theta}J(\pi_\theta)$. In practice, each state suggests a different gradient, making it necessary to take the expectation w.r.t. the state distribution $\rho^\beta$: 
+\begin{equation*}
+	\theta_{i+1} = \theta_i + \alpha * \mathds{E}_{s\sim\rho^\beta} \big[ \nabla_{\theta}J(\pi_\theta) \big]
+\end{equation*}
 
-In practice, the true function $Q^\pi(s,a)$ is unkown and must be estimated. For that, the critic uses Q-learning as explained in the sections above. It is however important, that the the approximation $\hat{Q}\pi(s,a)$ is \keyword{compatible}, preserving the true gradient $\nabla_a Q^\pi(s,a) \approx \nabla_a \hat{Q}^\pi(s,a)$. This is the case when its gradient w.r.t. its weights is orthogonal to the gradient w.r.t. its actions, and the critic minimizes the mean-squared error between the gradient of $Q^\pi$ and $\hat{Q}^\pi$. Both conditions are however approximately fulfilled when using a critic that finds $Q^\pi(s,a) \approx \hat{Q}^\pi(s,a)$.
+The deterministic policy gradient theorem (\ref{eq:policygradient}) shows that to improve the performance of the policy, it makes sense to move it into the direction of the gradient of Q -- where the gradient of Q can be decomposed into the gradient of the action-value with respect to the actions, and the gradient of the policy with respect to its parameters:
+\begin{equation*}
+	\theta_{i+1} = \theta_i + \alpha * \mathds{E}_{s \sim \rho^\beta} \left[ \nabla_\theta \pi_{\theta}(s) \nabla_a Q^{\pi_i}(s,a) \big|_{a=\pi_\theta(s)} \right]
+\end{equation*} 
+In other words, to maximize the performance of the policy, one can re-use the gradient of those actions leading to maximal Q-values. In practice, the true function $Q^\pi(s,a)$ is unknown and must be estimated.\\
 
-What this results in, is a \keyword{compatible off-policy deterministic actor critic} algorithm. In the first step of this algorithm, the critic calculates the temporal difference error to update its own parameters like in previous sections, and then the actor updates its parameters in the direction of the critic's action-value gradient:
+\noindent DPG algorithms use an actor-critic architecture: The critic estimates the Q-function using a differentiable function approximator. For that it using Q-learning as explained in the sections above, with the weights specified as $w$. The actor updates the \textit{policy} parameters $\theta$ in the direction of the gradient of Q (instead of maximizing it globally as in the sections above\footnote{\textit{``The critic estimates the action-value function while the actor ascends the gradient of the action-value-function''} (quote \cite{silver_deterministic_2014})}. Note that for the update of the policy parameters, only the gradient w.r.t. the weight of the actions as input of the Q-functions are relevant, not the trained weights of the approximator $Q^w$ itself. Figure~\ref{fig:actorcritic} visualizes the idea behind the algorithm graphically.
+\begin{figure}[h]
+	\includegraphics[width=.4\textwidth]{sutton-ac.png}
+	\centering
+	\caption{The actor-critic architecture. Reprinted from \cite{richard_s._sutton_reinforcement_1998}.}
+	\label{fig:actorcritic}
+\end{figure}
+
+\noindent Using the above knowledge, one can derive the \keyword{off-policy deterministic actor critic} algorithm. In the first step of this algorithm, the critic calculates the temporal difference error to update its own parameters like in previous sections, and then the actor updates its parameters in the direction of the critic's action-value gradient:
 \begin{align}
-	TD_t    &= r_t + \gamma Q^w(s_{t+1}, \pi_{\theta}(s_{t+1})) - Q^w(s_t, a_t)\\
-	w_{t+1} &= w_t + \alpha_w * TD_t * \nabla_w Q^w(s_t, a_t) \\
-	\theta_{i+1} &= \theta_t + \alpha_\theta * \nabla_\theta \pi_\theta(s_t) \nabla_a Q^w(s_t,a_t) \big|_{a=\pi_\theta(s)}
+	TD_i    &= \mathds{E}_{s,a,r} \left[ \big( r_t + \gamma * Q^{w_i}(s_{t+1}, \pi_{\theta}(s_{t+1})) \big) - Q^{w_i}(s_t, a_t) \right]\\
+	w_{i+1} &= \mathds{E}_{s,a} \left[  w_i + \alpha_w * TD_i \nabla_w Q^w(s_t, a_t) \right] \\
+	\theta_{i+1} &= \mathds{E}_{s,a} \left[ \theta_i + \alpha_\theta * \nabla_\theta \pi_\theta(s_t) \nabla_a Q^w(s_t,a_t) \big|_{a=\pi_\theta(s)} \right]
 \end{align}
+\begin{flushright} \small With $\alpha_w$ and $\alpha_\theta$ as the learning-rates of the critic and the actor, respectively. \end{flushright}
 
-
-When updating the policy, its parameters $\theta_{i+1}$ are updated in proportion to the gradient $\nabla_{\theta}J(\pi_\theta)$. Because of the deterministic policy gradient theorem \ref{eq:policygradient}, this
-
-As however ach state suggests a different direciton, one must average by taking the expectation w.r.t. the state distribution $\rho^\pi(s)$: 
-\begin{equation}
-	\theta_{i+1} = \theta_i + \alpha * \mathds{E}_{s\sim\rho^{\pi_i}} \big[ \nabla_{\theta}J(\pi_\theta) \big]
-\end{equation}
-Using the chain rule, this can be decomposed into the gradient of the action-value w.r.t. the actions and the gradient of the policy w.r.t. the policy parameters:
-\begin{equation}
-	\theta_{i+1} = \theta_i + \alpha * \mathds{E}_{s\sim\rho^{\pi_i}} \left[  \nabla_{\theta} \pi_\theta(s) \nabla_a Q^{\pi_i}(s,a) \big|_{a=\pi_\theta(s)} \right] 
-\end{equation}
-Silver et al \cite{silver_deterministic_2014} proved that it is not necessary to compute the gradient of the state distribution, and that this [line above] update follows precisely the gradient of the performance objective:
-\begin{equation}
-	\nabla_{\theta}J(\pi_\theta) = \mathds{E}_{s\sim\rho^{\pi_i}} \left[  \nabla_{\theta} \pi_\theta(s) \nabla_a Q^\pi(s,a) \big|_{a=\pi_\theta(s)} \right] 
-\end{equation} 
-% \nabla_{\theta}J(\pi_\theta) IS THE DETEMRINISTIC POLICY GRADIENT
 They say themselves that these algorithms may have convergence issues in practice, due both to bias introduced by the fucntion approximator, as well as instablilities caused by off-policy learning.
+
+It is however important, that the the approximation $Q^w(s,a)$ is \keyword{compatible}, preserving the true gradient $\nabla_a Q^\pi(s,a) \approx \nabla_a Q^w(s,a)$. The necessary conditions are however approximately fulfilled when using a differentiable critic that finds $Q^w(s,a) \approx Q^\pi(s,a)$.\\
+
+
+
 
 Off-policy deterministic actor-critic now learns a deterministic target policy $\pi(s)$ from trajectories generated by an arbitrary stochastic policy, $\beta(a|s) = \mathds{P}[a|s]$.
 Now, the performance objective is the value function of the target policy %TODO also hab ich sie vorher ebendoch falsch definiert
