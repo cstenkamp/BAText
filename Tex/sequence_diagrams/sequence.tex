@@ -20,8 +20,8 @@
 		
 		\tikzstyle{inststyle}+=[top color=gray!80, bottom color=yellow!255, rounded corners=0mm] 
 		
-		\newthread[blue][1]{recthread}{:recThread}{-6}
-		\newinst{recsoc}{clt:MySocket}{6}
+		\newthread[blue][1]{recthread}{:recThread}{-8}
+		\newinst{recsoc}{clt:MySocket}{8}
 		\newthread[red]{reclist}{:RecListThread}{0}
 		\newinst{recwaitsoc}{recportsock:MySocket}{0}
 		\newthread[white]{main}{main:Thread}{0}
@@ -38,6 +38,7 @@
 			\begin{call}{reclist}{init}{recsoc}{}
 			\end{call}			
 		\end{call}		
+		\mess{reclist}{start}{recthread}
 
 		
 		

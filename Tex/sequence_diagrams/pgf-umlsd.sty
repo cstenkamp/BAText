@@ -41,6 +41,8 @@ Sequence Diagrams.]
 
 \RequirePackage{tikz}
 \usetikzlibrary{arrows,shadows}
+\usetikzlibrary{calc}
+\usetikzlibrary{positioning}
 
 \RequirePackage{ifthen}
 
@@ -313,12 +315,13 @@ Sequence Diagrams.]
   \begin{pgfonlayer}{umlsd@background}
     \ifnum\c@instnum > 0
     \foreach \t [evaluate=\t] in {1,...,\theinstnum}{
-      \draw[dotted] (inst\t) -- ++(0,-\theseqlevel*\unitfactor-2.2*\unitfactor);
+   	  \path let \p1 = (inst\t) in node  at (\x1,-\theseqlevel*\unitfactor-2.2*\unitfactor) (B) {};
+      \draw[dotted] (inst\t) -- (B);
     }
     \fi
     \ifnum\c@threadnum > 0
     \foreach \t [evaluate=\t] in {1,...,\thethreadnum}{
-      \path (thread\t)+(0,-\theseqlevel*\unitfactor-0.1*\unitfactor) node (threadend) {};
+      \path let \p1 = (thread\t) in node at (\x1,-\theseqlevel*\unitfactor-1.2*\unitfactor) (threadend) {};	      
       \tikzstyle{threadstyle}+=[threadcolor\t]
       \drawthread{thread\t}{threadend}
     }
