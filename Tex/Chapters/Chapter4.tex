@@ -5,9 +5,28 @@
 The program was written by the author of this work and is licensed under the GNU General Public License (GNU GPLv3). Its source code is attached in the appendix of this work and additionally can be found digitally on the enclosed CD-ROM. The machine learning part was written in \textsc{Python}, using the \textsc{Tensorflow}-library \parencite{abadi_tensorflow:_2015}.
 %TODO: TF-version, dann noch was zu Unity!!!
 
+\footnote{I will rely heavily on UML to explain my code and stuff. Version UML 2.0. to get an overview of how that look like, I refer the reader to https://www.ibm.com/developerworks/rational/library/3101.html and https://www.ibm.com/developerworks/rational/library/content/RationalEdge/sep04/bell/index.html for sequence diagrams and class diagrams, respectively.}
+
 [tf gibt automatic differentiation, multi-gpu support, python interface]
 
 \section{Design choices}
+
+
+\begin{sequencediagram}
+	\newthread{t}{:Thread}
+	\newinst{a}{:A}
+	\newinst{b}{:B}
+	
+	\begin{call}{t}{funcA()}{a}{return}
+		\begin{call}{a}{funcA()}{b}{return}
+		\end{call}
+	\end{call}
+\end{sequencediagram}
+
+\includegraphics[width=\textwidth]{uml_diagrams/class_diagram.1}\\
+\newpage
+\includegraphics[height=\textheight]{uml_diagrams/class_diagramtwo.1}  
+
 %\begin{algorithm}[H]
 %	\KwData{this text}
 %	\KwResult{how to write algorithm with \LaTeX2e }

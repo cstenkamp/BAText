@@ -406,17 +406,15 @@ For a complete code of the DDPG-implementation, I refer to appendix~\ref{ap:ddpg
 
 \section{Exploration techniques}
 
-As mentioned in the beginning of this chapter, I only considered deterministic policies so far: $\pi(s) = a$. In practice however, using purely deterministic policies leads to a complete lack of \keyword{exploration} of the state space $S$ of the MDP. Once the agent found a path to a terminal state, it will continue \keyword{exploiting} this path. In order to explore the full state space, in fact a stochastic policy is necessary.
+There is one main difference between supervised learning and reinforcement learning, which I mentioned right at the beginning of this chapter: in RL, the only way to collect information about the environment is by interacting with it. In supervised learning it is no problem to shuffle the dataset beforehand, giving the learner i.i.d. samples, which are sure to be representatitive about the dataset. In RL however, this is not possible: Consider the situation where the agent drives a car around a track -- as long as the agent doesn't drive the car well enough, it will probably not reach high speeds, and will thus learn nothing about situations in which it drives at high speeds. Another problem which was also mentioned before is that so far, only deterministic policies $\pi(s) = a$ were considered. It is obvious that in practice, purely using deterministic policies leads to a complete lack of \keyword{exploration} of the state space $\mathcal{S}$ of the MDP: Once the agent found one path to a terminal state, it will continue \keyword{exploiting} this path, which almost gurantees a suboptimal solution. In order to explore the full state space instead of sticking with the first local optimum found, a stochastic, non-greedy policy is necessary.
 
-Blablabla, dass das der Grund ist warum alle unsere algorithmen bisher off-policy waren - in DQN steht "wir lernen über die greedy argmax policy while performing epsilon-greedy", und in DPG steht auch "the basic idea is to choose actions according to a stochastic behaviour policy (to ensure adequate exploration), but to learn about a deterministic target policy"
+The two algorithms considered here were both variants of Q-learning, which is an off-policy algorithm. In practice that means that the agent learned about some greedy, deterministic policy while following another policy, which I said was a \keyword{noisy} version of that greedy policy. A noisy version helps ensuring adequate exploration. The big advantage of off-policy algorithms is thus, that the problem of exploration can be treated independently of the learning algorithm -- whatever the mechanism for exploration will be, it is easy to incorporate it in both of the explained algorithms by letting it implement the previously mentioned $soft(\pi)$ method, which takes as input a greedy, deterministic policy and yields a version of it that accounts for adequate state space exploration.
 
-von DDPG: "An advantage of off-policy algorithms such das DDPG is that we can trat the problem of exploration independently from the learning algorithm" [VIELLEICHT AM ANFANG SCHON???]
-
-% TODO: HIER jetzt zwei pseudocodes, einmal von DQN, einmal von DDPG, mit entsprechenden exploration techniques
 % TODO letzten 2 absätze von chaper 3 vom ddpg-paper ist über exploration und den orntstien-uhlenbeck prozess
+In the following subsection, I will start with exploration techniques for discrete actions, before then explaining methods that can be used in the case of continous action spaces $\mathcal{A}$.
+
+% TODO [GORILA ist 10x so schnell!!]
 
 
-[halt, nachdem ich auf Double, Dueling und DDPG eingegangen bin unbedingt safe auf den Anhang verweisen mit nem vergleich der sourcecodes!]
-[if Q-learning is off-policy then it does directly approximate Q*]
-[dass bei DQN nicht mehr state\&action->network->Q-value, sondern state->network->qval1,qval2,...]
-[GORILA ist 10x so schnell!!]
+\subsection{Exploration for discrete action-spaces}
+

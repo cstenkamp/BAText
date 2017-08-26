@@ -31,6 +31,7 @@ headsepline, % Uncomment to get a line under the header
 \hypersetup{colorlinks=false} % hides the links in the PDF but not in printed text
 %others would be: \hypersetup{...  urlcolor= .. citecolor = .. allcolor = .. hidelinks }
 \usepackage{pifont,calc,xcolor}
+\usepackage[underline=true,rounded corners=false]{pgf-umlsd}
 
 %\usepackage[backend=bibtex,style=authoryear,natbib=true]{biblatex} 
 \usepackage[backend=biber,natbib=true, minbibnames=5, maxbibnames=8]{biblatex} 
@@ -41,6 +42,14 @@ headsepline, % Uncomment to get a line under the header
 
 
 \usepackage[autostyle=true]{csquotes} 
+
+%to include .1 files as metapost
+\DeclareGraphicsRule{.1}{mps}{*}{}
+\DeclareGraphicsRule{.2}{mps}{*}{}
+\DeclareGraphicsRule{.3}{mps}{*}{}
+\DeclareGraphicsRule{.4}{mps}{*}{}
+\DeclareGraphicsRule{.5}{mps}{*}{}
+\DeclareGraphicsRule{.6}{mps}{*}{}
 
 %----------------------------------------------------------------------------------------
 %	MARGIN SETTINGS
@@ -76,7 +85,8 @@ headsepline, % Uncomment to get a line under the header
 	sensitive=false,
 	morecomment=[l]{#},
 	morestring=[b]",
-}
+}
+
 \lstset{language=Python,
 	commentstyle=\color{gray},
 }
