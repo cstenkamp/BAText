@@ -29,16 +29,27 @@
 		\begin{messcall}{main}{init()}{recwaitsoc}{}		
 		\end{messcall}		
 		\mess{main}{start}{reclist}
-		\begin{sdblock}{loop}{result=false}
-			\begin{call}{reclist}{accept()}{recwaitsoc}{result}
+		\begin{sdblock}{loop}{client==None}
+			\begin{call}{reclist}{accept()}{recwaitsoc}{client}
 			\end{call}
 		\end{sdblock}
-		\begin{call}{reclist}{accept()}{recwaitsoc}{result}
-			\mess[0]{unity}{connect}{recwaitsoc}
-			\begin{call}{reclist}{init}{recsoc}{}
-			\end{call}			
+		\begin{call}{reclist}{accept()}{recwaitsoc}{client}
+			\mess[1]{unity}{connect}{recwaitsoc}
 		\end{call}		
+		\begin{messcall}{reclist}{init(client)}{recsoc}{}
+		\end{messcall}			
 		\mess{reclist}{start}{recthread}
+		\begin{sdblock}[green!20]{Run Loop}{The main loop}
+			\begin{sdblock}{loop}{data==""}
+				\begin{call}{recthread}{myreceive()}{recsoc}{data}
+				\end{call}		
+			\end{sdblock}	
+			\begin{call}{recthread}{myreceive()}{recsoc}{data}
+				\mess[1]{unity}{send}{recsoc}
+			\end{call}					
+			\begin{call}{recthread}{myreceive()}{recthread}{data}
+			\end{call}
+		\end{sdblock}		
 
 		
 		

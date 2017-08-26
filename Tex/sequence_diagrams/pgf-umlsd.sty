@@ -132,9 +132,9 @@ Sequence Diagrams.]
 \newenvironment*{callanother}[5][1]{
   \stepcounter{seqlevel}
   \stepcounter{callevel} % push
-  \path
-  (#2)+(0,-\theseqlevel*\unitfactor-0.7*\unitfactor) node (cf\thecallevel) {}
-  (#4.\threadbias)+(0,-\theseqlevel*\unitfactor-0.7*\unitfactor) node (ct\thecallevel) {};
+  
+  \path let \p1 = (#2) in node  at (\x1,-\theseqlevel*\unitfactor-1.2*\unitfactor) (cf\thecallevel) {}; 
+  \path let \p2 = (#4.\threadbias) in node  at (\x2,-\theseqlevel*\unitfactor-1.2*\unitfactor) (ct\thecallevel) {};
   
   \draw[->,>=triangle 60] ({cf\thecallevel}) -- (ct\thecallevel)
   node[midway, above] {#3};
@@ -146,9 +146,10 @@ Sequence Diagrams.]
 }
 {
   \addtocounter{seqlevel}{\l\thecallevel}
+   
   \path
-  (\f\thecallevel)+(0,-\theseqlevel*\unitfactor-0.7*\unitfactor) node (rf\thecallevel) {}
-  (\t\thecallevel.\threadbias)+(0,-\theseqlevel*\unitfactor-0.7*\unitfactor) node (rt\thecallevel) {};
+  let \p1 = (\f\thecallevel) in node at (\x1,-\theseqlevel*\unitfactor-1.2*\unitfactor) (rf\thecallevel) {} let \p2 = (\t\thecallevel.\threadbias) in node at (\x2,-\theseqlevel*\unitfactor-1.2*\unitfactor) (rt\thecallevel) {};    
+  
   \draw[dashed,->,>=angle 60] ({rt\thecallevel}) -- (rf\thecallevel)
   node[midway, above]{\returnvalue};
   \drawthread{ct\thecallevel}{rt\thecallevel}
@@ -164,11 +165,8 @@ Sequence Diagrams.]
   \stepcounter{seqlevel}
   \stepcounter{callevel} % push
   \stepcounter{callselflevel}
-
-  \path
-  (#2)+(\thecallselflevel*0.1-0.1,-\theseqlevel*\unitfactor-0.7*\unitfactor) node (sc\thecallevel) {}
-  ({sc\thecallevel}.east)+(0,-0.33*\unitfactor) node (scb\thecallevel) {};
-
+  \path let \p1 = (#2) in node at (\x1, 0) (tmp) {};
+  \path (tmp)+(\thecallselflevel*0.1-0.1, -\theseqlevel*\unitfactor-1.2*\unitfactor) node (sc\thecallevel) {} ({sc\thecallevel}.east)+(0,-0.33*\unitfactor) node (scb\thecallevel) {};
   \draw[->,>=triangle 60] ({sc\thecallevel}.east) -- ++(0.8,0)
   node[near start, above right] {#3} -- ++(0,-0.33*\unitfactor)
   -- (scb\thecallevel); 
@@ -179,8 +177,10 @@ Sequence Diagrams.]
   \tikzstyle{threadstyle}+=[instcolor#2]
 }{
   \addtocounter{seqlevel}{\l\thecallevel}
-  \path (\f\thecallevel)+(\thecallselflevel*0.1-0.1,-\theseqlevel*\unitfactor-0.33*\unitfactor) node
-  (sct\thecallevel) {};
+  
+  \path let \p1 = (\f\thecallevel) in node at (\x1, 0) (tmp) {};
+  
+  \path (tmp)+(\thecallselflevel*0.1-0.1,-\theseqlevel*\unitfactor-0.83*\unitfactor) node  (sct\thecallevel) {};
 
   \draw[dashed,->,>=angle 60] ({sct\thecallevel}.east) node
   (sce\thecallevel) {} -- ++(0.8,0) -- node[midway, right]{\returnvalue} ++(0,-0.33*\unitfactor) -- ++(-0.8,0);
@@ -211,9 +211,13 @@ Sequence Diagrams.]
 \newenvironment{messcall}[4][1]{
   \stepcounter{seqlevel}
   \stepcounter{callevel} % push
-  \path
-  (#2)+(0,-\theseqlevel*\unitfactor-0.7*\unitfactor) node (cf\thecallevel) {}
-  (#4.\threadbias)+(0,-\theseqlevel*\unitfactor-0.7*\unitfactor) node (ct\thecallevel) {};
+  
+  \path let \p1 = (#2) in node  at (\x1,-\theseqlevel*\unitfactor-1.2*\unitfactor) (cf\thecallevel) {}
+  let \p1 = (#4.\threadbias) in node  at (\x1,-\theseqlevel*\unitfactor-1.2*\unitfactor) (ct\thecallevel) {};
+  
+%  \path
+%  (#2)+(0,-\theseqlevel*\unitfactor-0.7*\unitfactor) node (cf\thecallevel) {}
+%  (#4.\threadbias)+(0,-\theseqlevel*\unitfactor-0.7*\unitfactor) node (ct\thecallevel) {};
   
   \draw[->,>=angle 60] ({cf\thecallevel}) -- (ct\thecallevel)
   node[midway, above] {#3};
