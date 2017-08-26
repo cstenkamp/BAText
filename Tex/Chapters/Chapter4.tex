@@ -9,6 +9,8 @@ The program was written by the author of this work and is licensed under the GNU
 
 [tf gibt automatic differentiation, multi-gpu support, python interface]
 
+Important to know in sequence diagrams: There are both threads and object-instances. Threads are recognized by the block starting at their top. Threads call methods OF the instances. Which thread called something from the instance in a specific case is recognizable by the color, as colors correspond to threads. Simultaneous things are horizontally aligned. Messages from thread to thread are without parantheses.
+
 \section{Design choices}
 
 

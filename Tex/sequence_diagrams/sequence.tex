@@ -9,127 +9,94 @@
 \usepgflibrary{arrows} % for pgf-umlsd
 \begin{document}
 	
-	\begin{figure}
-		\centering
 		
-		\begin{sequencediagram}
-			\newthread{ss}{:SimulationServer}{SimulationServer}
-			\newinst{ctr}{:SimControlNode}{SimControlNode}
-			\newinst{ps}{:PhysicsServer}{PhysicsServer}
-			\newinst[1]{sense}{:SenseServer}{SenseServer}
-			
-			\begin{call}{ss}{Initialize()}{sense}{}
+\begin{figure}
+	\centering
+	
+	
+	\begin{sequencediagram}[.9]
+		\tikzstyle{inststyle}+=[top color=gray!10, bottom color=blue!50, rounded corners=4mm]
+		\newthread{unity}{:Unity.Client}{0}
+		
+		\tikzstyle{inststyle}+=[top color=gray!80, bottom color=yellow!255, rounded corners=0mm] 
+		
+		\newthread[blue][1]{recthread}{:recThread}{-6}
+		\newinst{recsoc}{clt:MySocket}{6}
+		\newthread[red]{reclist}{:RecListThread}{0}
+		\newinst{recwaitsoc}{recportsock:MySocket}{0}
+		\newthread[white]{main}{main:Thread}{0}
+		
+		\begin{messcall}{main}{init()}{recwaitsoc}{}		
+		\end{messcall}		
+		\mess{main}{start}{reclist}
+		\begin{sdblock}{loop}{result=false}
+			\begin{call}{reclist}{accept()}{recwaitsoc}{result}
 			\end{call}
-			\begin{sdblock}{Run Loop}{}
-				\begin{call}{ss}{StartCycle()}{ctr}{}
-					\begin{call}{ctr}{ActAgent()}{sense}{}
-					\end{call}
-				\end{call}
-				\begin{call}{ss}{Update()}{ps}{}
-					\begin{call}{ps}{PrePhysicsUpdate()}{sense}{state}
-					\end{call}
-					\begin{callself}{ps}{PhysicsUpdate()}{}
-					\end{callself}
-					\begin{call}{ps}{PostPhysicsUpdate()}{sense}{}
-					\end{call}
-				\end{call}
-				\begin{call}{ss}{EndCycle()}{ctr}{}
-					\begin{call}{ctr}{SenseAgent()}{sense}{}
-					\end{call}
-				\end{call}
-			\end{sdblock}
-		\end{sequencediagram}
+		\end{sdblock}
+		\begin{call}{reclist}{accept()}{recwaitsoc}{result}
+			\mess[0]{unity}{connect}{recwaitsoc}
+			\begin{call}{reclist}{init}{recsoc}{}
+			\end{call}			
+		\end{call}		
+
 		
-		\caption{UML sequence diagram demo.}
-	\end{figure}
-	
-	
-	
-	
-	\begin{figure}
-		\centering
-	
-		\begin{sequencediagram}
-			\tikzstyle{inststyle}+=[bottom color=yellow] % custom the style
-			\newthread[blue]{ss}{:SimulationServer}
-			\newinst{ps}{:PhysicsServer}
-			\newinst[2]{sense}{:SenseServer}
-			\newthread[red]{ctr}{:SimControlNode}
-			
-			\begin{sdblock}[green!20]{Run Loop}{The main loop}
-				\mess{ctr}{StartCycle}{ss}
-				\begin{call}{ss}{Update()}{ps}{}
-					\prelevel
-					\begin{call}{ctr}{SenseAgent()}{ctr}{}
-						\begin{call}[3]{ctr}{Read}{sense}{}
-						\end{call}
-					\end{call}
-					\prelevel\prelevel\prelevel\prelevel
-					\setthreadbias{west}
-					\begin{call}{ps}{PrePhysicsUpdate()}{sense}{}
-					\end{call}
-					\setthreadbias{center}
-					\begin{call}{ps}{Update()}{ps}{}
-						\begin{call}{ps}{\small CollisionDetection()}{ps}{}
-						\end{call}
-						\begin{call}{ps}{Dynamics()}{ps}{}
-						\end{call}
-					\end{call}
-					\begin{call}{ps}{PostPhysicsUpdate()}{sense}{}
-					\end{call}
-				\end{call}
-				\mess{ss}{EndCycle}{ctr}
-				\begin{call}{ctr}{ActAgent()}{ctr}{}
-					\begin{call}{ctr}{Write}{sense}{}
-					\end{call}
-				\end{call}
-			\end{sdblock}
-			
-		\end{sequencediagram}	
-	
 		
-		\caption{Example of a sequence with parallel activities.}
-	\end{figure}
+		
+%		\newthread[red]{sendlist}{:SendListThread}
+%		\newinst{sendsoc}{sendportsock:MySocket}
 
+	\end{sequencediagram}
 
+\end{figure}	
+	
+\newpage
+\clearpage
 
-	\begin{figure}
+\begin{figure}
 	\centering
 	
 	\begin{sequencediagram}
-		\newthread{ss}{:SimulationServer}{SimulationServer}
-		\newinst{ps}{:PhysicsServer}{PhysicsServer}
-		\newinst[1]{sense}{:SenseServer}{SenseServer}
-		\newthread[red]{ctr}{:SimControlNode}{SimControlNode}
+		\tikzstyle{inststyle}+=[bottom color=yellow] % custom the style
+		\newthread[blue]{ss}{:SimulationServer}{0}
+		\newinst{ps}{:PhysicsServer}{0}
+		\newinst[2]{sense}{:SenseServer}{0}
+		\newthread[red]{ctr}{:SimControlNode}{0}
 		
-		\begin{sdblock}[green!20]{Run Loop}{}
+		\begin{sdblock}[green!20]{Run Loop}{The main loop}
 			\mess{ctr}{StartCycle}{ss}
 			\begin{call}{ss}{Update()}{ps}{}
 				\prelevel
-				\begin{callself}{ctr}{SenseAgent()}{}
+				\begin{call}{ctr}{SenseAgent()}{ctr}{}
 					\begin{call}[3]{ctr}{Read}{sense}{}
 					\end{call}
-				\end{callself}
+				\end{call}
 				\prelevel\prelevel\prelevel\prelevel
 				\setthreadbias{west}
 				\begin{call}{ps}{PrePhysicsUpdate()}{sense}{}
 				\end{call}
 				\setthreadbias{center}
-				\begin{callself}{ps}{Update()}{}
-				\end{callself}
+				\begin{call}{ps}{Update()}{ps}{}
+					\begin{call}{ps}{\small CollisionDetection()}{ps}{}
+					\end{call}
+					\begin{call}{ps}{Dynamics()}{ps}{}
+					\end{call}
+				\end{call}
 				\begin{call}{ps}{PostPhysicsUpdate()}{sense}{}
 				\end{call}
 			\end{call}
 			\mess{ss}{EndCycle}{ctr}
-			\begin{callself}{ctr}{ActAgent()}{}
+			\begin{call}{ctr}{ActAgent()}{ctr}{}
 				\begin{call}{ctr}{Write}{sense}{}
 				\end{call}
-			\end{callself}
+			\end{call}
 		\end{sdblock}
-		
-	\end{sequencediagram}
 	
+	\end{sequencediagram}	
+	
+		
 	\caption{Example of a sequence with parallel activities.}
 \end{figure}
+
+
 	
 \end{document}

@@ -44,6 +44,8 @@ Sequence Diagrams.]
 
 \RequirePackage{ifthen}
 
+\usepackage{twoopt}
+
 % Options
 % ? the instance name under line ?
 \newif\ifpgfumlsdunderline\pgfumlsdunderlinetrue
@@ -69,9 +71,9 @@ Sequence Diagrams.]
 % new an instance
 % Example:
 % \newinst[edge distance]{var}{name:class}
-\newcommand{\newinst}[3][0.2]{
+\newcommand{\newinst}[4][0.2]{
   \stepcounter{instnum}
-  \path (inst\thepreinst.east)+(#1,0) node[inststyle] (inst\theinstnum)
+  \path (inst\thepreinst.east)+(#1,#4) node[inststyle] (inst\theinstnum)
   {\ifpgfumlsdunderline
     \underline{#3}
   \else
@@ -84,13 +86,13 @@ Sequence Diagrams.]
 
 % new an instance thread
 % Example:
-% \newinst[color]{var}{name}{class}
-\newcommand{\newthread}[3][gray!30]{
-  \newinst{#2}{#3}
+% \newinst[color][distance]{var}{name}{class}
+\newcommandtwoopt{\newthread}[5][gray!30][0.2]{
+  \newinst[#2]{#3}{#4}{#5}
   \stepcounter{threadnum}
   \node[below of=inst\theinstnum,node distance=0.8cm] (thread\thethreadnum) {};
   \tikzstyle{threadcolor\thethreadnum}=[fill=#1]
-  \tikzstyle{instcolor#2}=[fill=#1]
+  \tikzstyle{instcolor#3}=[fill=#1]
 }
 
 % draw running (thick) line, should not call directly
@@ -275,20 +277,20 @@ Sequence Diagrams.]
 }
 
 % the environment of sequence diagram
-\newenvironment{sequencediagram}{
+\newenvironment{sequencediagram}[1][1]{
   % declare layers
   \pgfdeclarelayer{umlsd@background}
   \pgfdeclarelayer{umlsd@threadlayer}
   \pgfsetlayers{umlsd@background,umlsd@threadlayer,main}
 
-  \begin{tikzpicture}
+  \begin{tikzpicture}[scale=#1, every node/.style={scale=#1}]
     \setlength{\unitlength}{1cm}
     \tikzstyle{sequence}=[coordinate]
     \tikzstyle{inststyle}=[rectangle, draw, anchor=west, minimum
     height=0.8cm, minimum width=1.6cm, fill=white, 
     drop shadow={opacity=0.8,fill=black}]
     \ifpgfumlsdroundedcorners
-    \tikzstyle{inststyle}+=[rounded corners=3mm]
+    \tikzstyle{inststyle}+=[rounded corners=3*#1mm]
     \fi
     \tikzstyle{blockstyle}=[anchor=north west]
     \tikzstyle{blockcommentstyle}=[anchor=north west, font=\small]
