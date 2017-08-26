@@ -194,11 +194,13 @@ Sequence Diagrams.]
 % \mess[delay]{sender}{message content}{receiver}
 \newcommand{\mess}[4][0]{
   \stepcounter{seqlevel}
-  \path
-  (#2)+(0,-\theseqlevel*\unitfactor-0.7*\unitfactor) node (mess from) {};
+  \path let \p1 = (#2) in node  at (\x1,-\theseqlevel*\unitfactor-1.2*\unitfactor) (mess from) {};  
   \addtocounter{seqlevel}{#1}
-  \path
-  (#4)+(0,-\theseqlevel*\unitfactor-0.7*\unitfactor) node (mess to) {};
+%  \path (#4)+(0,-\theseqlevel*\unitfactor-0.7*\unitfactor) node (mess to) {};
+
+  \path let \p1 = (#4) in node  at (\x1,-\theseqlevel*\unitfactor-1.2*\unitfactor) (mess to) {};  
+  
+
   \draw[->,>=angle 60] (mess from) -- (mess to) node[midway, above]
   {#3};
 

@@ -22,8 +22,8 @@
 		
 		\newthread[blue][1]{recthread}{:recThread}{-8}
 		\newinst{recsoc}{clt:MySocket}{8}
-		\newthread[red]{reclist}{:RecListThread}{0}
-		\newinst{recwaitsoc}{recportsock:MySocket}{0}
+		\newthread[red]{reclist}{:RecListThread}{-1}
+		\newinst{recwaitsoc}{recportsock:MySocket}{1}
 		\newthread[white]{main}{main:Thread}{0}
 		
 		\begin{messcall}{main}{init()}{recwaitsoc}{}		
