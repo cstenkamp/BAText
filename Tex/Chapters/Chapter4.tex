@@ -11,7 +11,11 @@ The program was written by the author of this work and is licensed under the GNU
 
 Important to know in sequence diagrams: There are both threads and object-instances. Threads are recognized by the block starting at their top. Threads call methods OF the instances. Which thread called something from the instance in a specific case is recognizable by the color, as colors correspond to threads. Simultaneous things are horizontally aligned. Messages from thread to thread are without parantheses.
 
+Why I have inputval and outputval: INPUTval damit der immer nur die letzte action hinzügen muss und der die history DADRIN hat, und OUTPUTval damit das multithreading schneller geht. BEIDES hat  seinen sinn!!
+[multiple threads deshalb weil das geschwindigkeit optimiert - beim inputval können mehrere agents multi-threaded unabhängig/gleichzeitig lesen und performen (dann gäbs nen weiteren thread, der wäre dann nicht blau und würde auf inputval zugreifen), und beim outputvall können senderthread und receiverthread einfach gleichzeitig so schnell wie möglich arbeiten]
+
 \section{Design choices}
+
 
 
 \begin{sequencediagram}
@@ -68,6 +72,24 @@ https://forum.unity3d.com/threads/is-unity-physics-is-deterministic.429778/
 \subsubsection{What Leon did already}
 
 \subsubsection{Communication}
+
+
+\begin{figure}
+%	\begin{sequencediagram}[.6]
+%		%	\tikzstyle{inststyle}+=[top color=gray!10, bottom color=blue!50, rounded corners=3mm]
+%		\tikzstyle{inststyle}+=[top color=blue!50, bottom color=blue!50, rounded corners=2mm]
+%		\newthread{unity}{:Unity.Client}{0}
+%		
+%		%	\tikzstyle{inststyle}+=[top color=gray!80, bottom color=yellow, rounded corners=0mm] 
+%		\tikzstyle{inststyle}+=[top color=yellow, bottom color=yellow, rounded corners=0mm] 
+%		
+%		\newinst{agent}{:Agent}{0}
+%		
+%		\begin{messcall}{main}{init()}{agent}{}		
+%		\end{messcall}		
+%		
+%	\end{sequencediagram}
+\end{figure}
 
 -den sockets post
 -das von leon gemalte ablaufdiagramm

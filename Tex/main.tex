@@ -31,7 +31,11 @@ headsepline, % Uncomment to get a line under the header
 \hypersetup{colorlinks=false} % hides the links in the PDF but not in printed text
 %others would be: \hypersetup{...  urlcolor= .. citecolor = .. allcolor = .. hidelinks }
 \usepackage{pifont,calc,xcolor}
-\usepackage[underline=true,rounded corners=false]{pgf-umlsd}
+
+\usepackage{tikz}
+\usepackage{sequence_diagrams/pgf-umlsd}
+\usepgflibrary{arrows} % for pgf-umlsd
+
 
 %\usepackage[backend=bibtex,style=authoryear,natbib=true]{biblatex} 
 \usepackage[backend=biber,natbib=true, minbibnames=5, maxbibnames=8]{biblatex} 

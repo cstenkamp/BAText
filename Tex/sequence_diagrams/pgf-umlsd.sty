@@ -78,7 +78,7 @@ Sequence Diagrams.]
   \path
   let \p1 = (inst\thepreinst.east) in node at (\x1,0) (tmp) {};
   \ifthenelse{#4 > 0}{
-	  \path (tmp)+(#1,-#4-0.3) node[inststyle] (inst\theinstnum)
+	  \path (tmp)+(#1,-#4-0.5) node[inststyle] (inst\theinstnum)
   }{
 	  \path (tmp)+(#1,0) node[inststyle] (inst\theinstnum)  
   }
@@ -299,9 +299,13 @@ Sequence Diagrams.]
   \coordinate (se) at (tmp2);
   \end{pgfinterruptboundingbox}
 
-  
-  \draw[fill=yellow, fill opacity=0.2] (se) rectangle (nw);
-	
+  \ifthenelse{\equal{\blockcolor\theblocklevel}{white}}
+  {
+	\draw (se) rectangle (nw);
+  }{
+	\draw[fill=\blockcolor\theblocklevel, fill opacity=0.2] (se) rectangle (nw);
+  }
+
 
   \addtocounter{blocklevel}{-1} % pop
   \stepcounter{seqlevel}

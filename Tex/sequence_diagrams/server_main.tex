@@ -1,0 +1,114 @@
+\begin{sequencediagram}[.6]
+%	\tikzstyle{inststyle}+=[top color=gray!10, bottom color=blue!50, rounded corners=3mm]
+	\tikzstyle{inststyle}+=[top color=blue!50, bottom color=blue!50, rounded corners=2mm]
+	\newthread{unity}{:Unity.Client}{0}
+	
+%	\tikzstyle{inststyle}+=[top color=gray!80, bottom color=yellow, rounded corners=0mm] 
+	\tikzstyle{inststyle}+=[top color=yellow, bottom color=yellow, rounded corners=0mm] 
+	
+	\newthread[blue!60][.5]{recthread}{:receiverThread}{15}
+	\newinst{recsoc}{rec:MySocket}{0}
+	\newinst{inputval}{:InputVal}{0}
+	\newinst{agent}{:Agent}{0}
+	\newinst{outputval}{:OutputVal}{0}
+	\newinst{sendsoc}{send:MySocket}{0}
+	\newthread[yellow]{sendthread}{:senderThread}{14}
+	\newthread[red]{reclist}{:RecListenThread}{5}
+	\newinst{recwaitsoc}{:MySocket}{0}
+	\newthread[white]{main}{main:Thread}{0}
+	\newinst{sendwaitsoc}{:MySocket}{0}
+	\newthread[green]{sendlist}{:SendListenThread}{6}
+	
+	\begin{messcall}{main}{init()}{agent}{}		
+	\end{messcall}		
+	\begin{messcall}{main}{init()}{inputval}
+	\end{messcall}	
+	\begin{messcall}{main}{init()}{outputval}{}		
+	\end{messcall}
+	\begin{messcall}{main}{init()}{recwaitsoc}{}		
+	\end{messcall}		
+	\begin{messcall}{main}{init()}{sendwaitsoc}{}		
+	\end{messcall}		
+	\mess{main}{start}{reclist}
+	\mess{main}{start}{sendlist}
+	\begin{sdblock}{loop}{client==None}
+		\begin{call}[2]{reclist}{accept()}{recwaitsoc}{client}
+		\end{call}
+	\end{sdblock}
+	\prelevel\prelevel\prelevel\prelevel
+	\mess[1]{unity}{connect}{recwaitsoc}
+	
+	\prelevel\prelevel\prelevel\prelevel
+	\begin{sdblock}{loop}{client==None}
+		\begin{call}[2]{sendlist}{accept()}{sendwaitsoc}{client}
+		\end{call}
+	\end{sdblock}
+	\prelevel\prelevel\prelevel\prelevel
+	\mess[1]{unity}{connect}{sendwaitsoc}
+	\postlevel\postlevel
+	
+	\begin{call}{reclist}{init(client)}{recsoc}{recsocket}
+	\end{call}			
+	\begin{call}{sendlist}{init(client)}{sendsoc}{sendsocket}
+	\end{call}				
+	\postlevel\postlevel
+	\mess[0][sendsocket]{sendlist}{start}{sendthread}
+	\mess[0][recsocket]{reclist}{start}{recthread}
+	\begin{sdblock}[green!20]{loop}{mainthread does not send stop-message}
+		\begin{sdblock}{loop}{data==""}
+			\begin{call}[2]{recthread}{myreceive()}{recsoc}{data}
+			\end{call}		
+		\end{sdblock}	
+		\prelevel\prelevel\prelevel\prelevel
+		\mess[1]{unity}{send}{recsoc}				
+		\postlevel\postlevel
+		\begin{call}{recthread}{\small handle\_special\_commands(data)}{recthread}{}
+			\begin{sdblock}{opt}{data == \textit{special command}}
+				\begin{call}{recthread}{read()}{inputval}{result}
+				\end{call}
+				\begin{messcall}[0]{recthread}{\small endEpisode(result)}{agent}
+					\begin{messcall}{agent}{reset()}{inputval}{}
+					\end{messcall}
+					\begin{messcall}{agent}{reset()}{outputval}{}
+					\end{messcall}								
+					\begin{messcall}[0]{agent}{send\_via\_thread("reset")}{outputval}{}
+						\mess[1]{outputval}{reset}{unity}					
+					\end{messcall}						
+				\end{messcall}
+				\prelevel
+			\end{sdblock}
+		\end{call}
+		\begin{messcall}{recthread}{update(data)}{inputval}{}
+			\begin{call}{inputval}{\scriptsize append(data)}{inputval}{}
+			\end{call}				
+		\end{messcall}
+		\begin{call}{recthread}{read()}{inputval}{content}
+		\end{call}
+		\begin{messcall}[0]{recthread}{performAction(content)}{agent}{}
+			\begin{messcall}{agent}{\small update(action)}{outputval}{}
+				\begin{call}{outputval}{\small send\_via\_thread(action)}{outputval}{}
+					\mess{outputval}{send}{sendthread}					
+				\end{call}					
+			\end{messcall}
+		\end{messcall}
+		\prelevel
+		\begin{call}{sendthread}{read()}{outputval}{content}
+		\end{call}			
+		\begin{messcall}[0]{sendthread}{mysend(content)}{sendsoc}{}		
+			\mess[1][content]{sendsoc}{send}{unity}
+		\end{messcall}		
+		
+	\end{sdblock}
+	
+	\prelevel\prelevel\prelevel\prelevel\prelevel
+	\begin{sdblock}{loop}{user does not interfere}
+		\begin{call}{main}{updateGUI()}{main}{}
+		\end{call}
+	\end{sdblock}
+	
+	\mess{main}{stop}{recthread}
+	\mess{main}{stop}{sendthread}
+	\mess{main}{stop}{reclist}
+	\mess{main}{stop}{sendlist}
+
+\end{sequencediagram}
