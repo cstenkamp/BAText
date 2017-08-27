@@ -6,6 +6,8 @@
 
 \usepackage{tikz}
 \usepackage{pgf-umlsd}
+\usepackage{geometry}
+\geometry{left=0mm, right=0mm, top=0mm, bottom=0mm}
 \usepgflibrary{arrows} % for pgf-umlsd
 \begin{document}
 	
@@ -20,12 +22,18 @@
 		
 		\tikzstyle{inststyle}+=[top color=gray!80, bottom color=yellow!255, rounded corners=0mm] 
 		
-		\newthread[blue][1]{recthread}{:recThread}{-8}
-		\newinst{recsoc}{clt:MySocket}{8}
-		\newthread[red]{reclist}{:RecListThread}{-1}
-		\newinst{recwaitsoc}{recportsock:MySocket}{1}
+		\newthread[blue!60][.5]{recthread}{:recThread}{10}
+		\newinst{recsoc}{clt:MySocket}{0}
+		\newinst{agent}{myAgent:Agent}{0}
+		\newinst{inputval}{inp:InputValCont}{0}
+		\newthread[red]{reclist}{:RecListThread}{3}
+		\newinst{recwaitsoc}{recportsock:MySocket}{0}
 		\newthread[white]{main}{main:Thread}{0}
 		
+		\begin{messcall}{main}{init()}{agent}{}		
+		\end{messcall}		
+		\begin{messcall}{main}{init()}{inputval}
+		\end{messcall}
 		\begin{messcall}{main}{init()}{recwaitsoc}{}		
 		\end{messcall}		
 		\mess{main}{start}{reclist}
@@ -39,7 +47,7 @@
 		\begin{messcall}{reclist}{init(client)}{recsoc}{}
 		\end{messcall}			
 		\mess{reclist}{start}{recthread}
-		\begin{sdblock}[green!20]{Run Loop}{The main loop}
+		\begin{sdblock}[green!20]{Run Loop}{}
 			\begin{sdblock}{loop}{data==""}
 				\begin{call}{recthread}{myreceive()}{recsoc}{data}
 				\end{call}		
@@ -47,9 +55,23 @@
 			\begin{call}{recthread}{myreceive()}{recsoc}{data}
 				\mess[1]{unity}{send}{recsoc}
 			\end{call}					
-			\begin{call}{recthread}{myreceive()}{recthread}{data}
+			\begin{call}{recthread}{\small h\_s\_c(data)}{recthread}{}
+				\begin{sdblock}{opt}{data}
+					\begin{call}{recthread}{read()}{inputval}{result}
+					\end{call}
+					\begin{messcall}{recthread}{\small endEpisode(result)}{agent}
+					\end{messcall}
+				\end{sdblock}
 			\end{call}
-		\end{sdblock}		
+			\begin{messcall}{recthread}{update(data)}{inputval}{}
+				\begin{call}{inputval}{\scriptsize append(data)}{inputval}{}
+				\end{call}				
+			\end{messcall}
+			\begin{call}{recthread}{read()}{inputval}{content}
+			\end{call}
+			\begin{messcall}{recthread}{performAction(content)}{agent}{}
+			\end{messcall}
+		\end{sdblock}
 
 		
 		

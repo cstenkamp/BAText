@@ -75,7 +75,13 @@ Sequence Diagrams.]
 % \newinst[edge distance]{var}{name:class}
 \newcommand{\newinst}[4][0.2]{
   \stepcounter{instnum}
-  \path (inst\thepreinst.east)+(#1,#4) node[inststyle] (inst\theinstnum)
+  \path
+  let \p1 = (inst\thepreinst.east) in node at (\x1,0) (tmp) {};
+  \ifthenelse{#4 > 0}{
+	  \path (tmp)+(#1,-#4-0.5) node[inststyle] (inst\theinstnum)
+  }{
+	  \path (tmp)+(#1,0) node[inststyle] (inst\theinstnum)  
+  }
   {\ifpgfumlsdunderline
     \underline{#3}
   \else
@@ -137,7 +143,7 @@ Sequence Diagrams.]
   \path let \p2 = (#4.\threadbias) in node  at (\x2,-\theseqlevel*\unitfactor-1.2*\unitfactor) (ct\thecallevel) {};
   
   \draw[->,>=triangle 60] ({cf\thecallevel}) -- (ct\thecallevel)
-  node[midway, above] {#3};
+  node[midway, above, yshift=-3pt] {#3};
   \def\l\thecallevel{#1}
   \def\f\thecallevel{#2}
   \def\t\thecallevel{#4}
@@ -151,7 +157,7 @@ Sequence Diagrams.]
   let \p1 = (\f\thecallevel) in node at (\x1,-\theseqlevel*\unitfactor-1.2*\unitfactor) (rf\thecallevel) {} let \p2 = (\t\thecallevel.\threadbias) in node at (\x2,-\theseqlevel*\unitfactor-1.2*\unitfactor) (rt\thecallevel) {};    
   
   \draw[dashed,->,>=angle 60] ({rt\thecallevel}) -- (rf\thecallevel)
-  node[midway, above]{\returnvalue};
+  node[midway, above, yshift=-2pt]{\returnvalue};
   \drawthread{ct\thecallevel}{rt\thecallevel}
   \addtocounter{callevel}{-1} % pop
 }
@@ -168,7 +174,7 @@ Sequence Diagrams.]
   \path let \p1 = (#2) in node at (\x1, 0) (tmp) {};
   \path (tmp)+(\thecallselflevel*0.1-0.1, -\theseqlevel*\unitfactor-1.2*\unitfactor) node (sc\thecallevel) {} ({sc\thecallevel}.east)+(0,-0.33*\unitfactor) node (scb\thecallevel) {};
   \draw[->,>=triangle 60] ({sc\thecallevel}.east) -- ++(0.8,0)
-  node[near start, above right] {#3} -- ++(0,-0.33*\unitfactor)
+  node[near start, above right, yshift=-4pt] {#3} -- ++(0,-0.33*\unitfactor)
   -- (scb\thecallevel); 
   \def\l\thecallevel{#1}
   \def\f\thecallevel{#2}
@@ -201,7 +207,7 @@ Sequence Diagrams.]
   \path let \p1 = (#4) in node  at (\x1,-\theseqlevel*\unitfactor-1.2*\unitfactor) (mess to) {};  
   
 
-  \draw[->,>=angle 60] (mess from) -- (mess to) node[midway, above]
+  \draw[->,>=angle 60] (mess from) -- (mess to) node[midway, above, yshift=-2pt]
   {#3};
 
   \node (#3 from) at (mess from) {};
@@ -220,7 +226,7 @@ Sequence Diagrams.]
 %  (#4.\threadbias)+(0,-\theseqlevel*\unitfactor-0.7*\unitfactor) node (ct\thecallevel) {};
   
   \draw[->,>=angle 60] ({cf\thecallevel}) -- (ct\thecallevel)
-  node[midway, above] {#3};
+  node[midway, above, yshift=-4pt] {#3};
   \def\l\thecallevel{#1}
   \def\f\thecallevel{#2}
   \def\t\thecallevel{#4}
@@ -228,9 +234,15 @@ Sequence Diagrams.]
 }
 {
   \addtocounter{seqlevel}{\l\thecallevel}
-  \path
-  (\f\thecallevel)+(0,-\theseqlevel*\unitfactor-0.7*\unitfactor) node (rf\thecallevel) {}
-  (\t\thecallevel.\threadbias)+(0,-\theseqlevel*\unitfactor-0.3*\unitfactor) node (rt\thecallevel) {};
+  
+%  \path
+%  (\f\thecallevel)+(0,-\theseqlevel*\unitfactor-0.7*\unitfactor) node (rf\thecallevel) {}
+%  (\t\thecallevel.\threadbias)+(0,-\theseqlevel*\unitfactor-0.3*\unitfactor) node (rt\thecallevel) {};
+
+	\path let \p1 = (\f\thecallevel) in node  at 
+	(\x1,-\theseqlevel*\unitfactor-0.7*\unitfactor) (rf\thecallevel) {} (\t\thecallevel.\threadbias)+(0,-\theseqlevel*\unitfactor-0.3*\unitfactor) node (rt\thecallevel) {};
+  
+  
   \drawthread{ct\thecallevel}{rt\thecallevel}
   \addtocounter{callevel}{-1} % pop
 }
@@ -260,9 +272,11 @@ Sequence Diagrams.]
   \begin{pgfinterruptboundingbox}
 }{
   \coordinate (blockend) at (0,-\theseqlevel*\unitfactor-2*\unitfactor);
-  \path (current bounding box.east)+(0.2,0) node (boxeast) {}
-  (current bounding box.west |- {blockbeg\theblocklevel}) + (-0.2,0)
-  node (nw) {};
+  
+  \path let \p1 = (current bounding box.east) in node  at (\x1,0) (tmp) {};
+  \path let \p1 = (current bounding box.west) in node  at (\x1,0) (tmp2) {};
+  \path (tmp)+(0.2,0) node (boxeast) {}
+  (tmp2 |- {blockbeg\theblocklevel}) + (-0.2,0)  node (nw) {};
   \path (boxeast |- blockend) node (se) {};
 
   % % title
@@ -275,7 +289,8 @@ Sequence Diagrams.]
   \node[blockstyle] (blocktitle) at (nw) {\blockname\theblocklevel};
   \node[blockcommentstyle] (blockcomment) at (comm) {\blockcomm\theblocklevel};
 
-  \coordinate (se) at (current bounding box.south east);
+  \path let \p1 = (current bounding box.south east) in node  at (\x1,\y1) (tmp2) {};
+  \coordinate (se) at (tmp2);
   \end{pgfinterruptboundingbox}
 
   \draw (se) rectangle (nw);
