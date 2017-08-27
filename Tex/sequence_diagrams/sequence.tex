@@ -16,6 +16,109 @@
 	\centering
 	
 	
+	\begin{sequencediagram}[.65]
+		\tikzstyle{inststyle}+=[top color=gray!10, bottom color=blue!50, rounded corners=3mm]
+		\newthread{unity}{:Unity.Client}{0}
+		
+		\tikzstyle{inststyle}+=[top color=gray!80, bottom color=yellow!255, rounded corners=0mm] 
+		
+		\newthread[blue!60][.5]{recthread}{:receiverThread}{17}
+		\newinst{recsoc}{rec:MySocket}{0}
+		\newinst{inputval}{:InputVal}{0}
+		\newinst{agent}{:Agent}{0}
+		\newinst{outputval}{:OutputVal}{0}
+		\newinst{sendsoc}{send:MySocket}{0}
+		\newthread[yellow]{sendthread}{:senderThread}{16}
+		\newthread[red]{reclist}{:RecListenThread}{5}
+		\newinst{recwaitsoc}{:MySocket}{0}
+		\newthread[white]{main}{main:Thread}{0}
+		\newinst{sendwaitsoc}{:MySocket}{0}
+		\newthread[green]{sendlist}{:SendListenThread}{6}
+		
+		\begin{messcall}{main}{init()}{agent}{}		
+		\end{messcall}		
+		\begin{messcall}{main}{init()}{inputval}
+		\end{messcall}	
+		\begin{messcall}{main}{init()}{outputval}{}		
+		\end{messcall}
+		\begin{messcall}{main}{init()}{recwaitsoc}{}		
+		\end{messcall}		
+		\begin{messcall}{main}{init()}{sendwaitsoc}{}		
+		\end{messcall}		
+		\mess{main}{start}{reclist}
+		\mess{main}{start}{sendlist}
+		\begin{sdblock}{loop}{client==None}
+			\begin{call}{reclist}{accept()}{recwaitsoc}{client}
+			\end{call}
+		\end{sdblock}
+		\begin{call}{reclist}{accept()}{recwaitsoc}{client}
+			\mess[1]{unity}{connect}{recwaitsoc}
+		\end{call}	
+		
+		\prelevel\prelevel\prelevel\prelevel\prelevel\prelevel\prelevel\prelevel
+		\begin{sdblock}{loop}{client==None}
+			\begin{call}{sendlist}{accept()}{sendwaitsoc}{client}
+			\end{call}
+		\end{sdblock}
+		\begin{call}{sendlist}{accept()}{sendwaitsoc}{client}
+			\prelevel
+			\mess[1]{unity}{connect}{sendwaitsoc}
+		\end{call}		
+		
+		\begin{call}{reclist}{init(client)}{recsoc}{recsocket}
+		\end{call}			
+		\begin{call}{sendlist}{init(client)}{sendsoc}{sendsocket}
+		\end{call}				
+		\postlevel\postlevel
+		\mess[0][sendsocket]{sendlist}{start}{sendthread}
+		\mess[0][recsocket]{reclist}{start}{recthread}
+		\begin{sdblock}[green!20]{Run Loop}{}
+			\begin{sdblock}{loop}{data==""}
+				\begin{call}{recthread}{myreceive()}{recsoc}{data}
+				\end{call}		
+			\end{sdblock}	
+			\begin{call}{recthread}{myreceive()}{recsoc}{data}
+				\mess[1]{unity}{send}{recsoc}
+			\end{call}					
+			\begin{call}{recthread}{\small h\_s\_c(data)}{recthread}{}
+				\begin{sdblock}{opt}{data}
+					\begin{call}{recthread}{read()}{inputval}{result}
+					\end{call}
+					\begin{messcall}{recthread}{\small endEpisode(result)}{agent}
+					\end{messcall}
+				\end{sdblock}
+			\end{call}
+			\begin{messcall}{recthread}{update(data)}{inputval}{}
+				\begin{call}{inputval}{\scriptsize append(data)}{inputval}{}
+				\end{call}				
+			\end{messcall}
+			\begin{call}{recthread}{read()}{inputval}{content}
+			\end{call}
+			\begin{messcall}{recthread}{performAction(content)}{agent}{}
+			\end{messcall}
+		\end{sdblock}
+		
+		
+		
+		
+		
+		\mess{main}{stop}{recthread}
+		\mess{main}{stop}{sendthread}
+		\mess{main}{stop}{reclist}
+		\mess{main}{stop}{sendlist}
+
+	\end{sequencediagram}
+
+\end{figure}	
+	
+\newpage
+\clearpage
+
+
+\begin{figure}
+	\centering
+	
+	
 	\begin{sequencediagram}[.9]
 		\tikzstyle{inststyle}+=[top color=gray!10, bottom color=blue!50, rounded corners=4mm]
 		\newthread{unity}{:Unity.Client}{0}
@@ -72,19 +175,23 @@
 			\begin{messcall}{recthread}{performAction(content)}{agent}{}
 			\end{messcall}
 		\end{sdblock}
-
 		
+		%		\newthread[red]{sendlist}{:SendListThread}
+		%		\newinst{sendsoc}{sendportsock:MySocket}
 		
-		
-%		\newthread[red]{sendlist}{:SendListThread}
-%		\newinst{sendsoc}{sendportsock:MySocket}
-
 	\end{sequencediagram}
-
-\end{figure}	
 	
+\end{figure}	
+
 \newpage
 \clearpage
+
+
+
+
+
+
+
 
 \begin{figure}
 	\centering

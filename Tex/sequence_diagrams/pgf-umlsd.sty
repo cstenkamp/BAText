@@ -78,7 +78,7 @@ Sequence Diagrams.]
   \path
   let \p1 = (inst\thepreinst.east) in node at (\x1,0) (tmp) {};
   \ifthenelse{#4 > 0}{
-	  \path (tmp)+(#1,-#4-0.5) node[inststyle] (inst\theinstnum)
+	  \path (tmp)+(#1,-#4-0.3) node[inststyle] (inst\theinstnum)
   }{
 	  \path (tmp)+(#1,0) node[inststyle] (inst\theinstnum)  
   }
@@ -197,21 +197,22 @@ Sequence Diagrams.]
 
 % message between threads
 % Example:
-% \mess[delay]{sender}{message content}{receiver}
-\newcommand{\mess}[4][0]{
+% \mess[delay][stuff in parantheses]{sender}{message content}{receiver}
+\newcommandtwoopt{\mess}[5][0][""]{  
   \stepcounter{seqlevel}
-  \path let \p1 = (#2) in node  at (\x1,-\theseqlevel*\unitfactor-1.2*\unitfactor) (mess from) {};  
+  \path let \p1 = (#3) in node  at (\x1,-\theseqlevel*\unitfactor-1.2*\unitfactor) (mess from) {};  
   \addtocounter{seqlevel}{#1}
 %  \path (#4)+(0,-\theseqlevel*\unitfactor-0.7*\unitfactor) node (mess to) {};
 
-  \path let \p1 = (#4) in node  at (\x1,-\theseqlevel*\unitfactor-1.2*\unitfactor) (mess to) {};  
+  \path let \p1 = (#5) in node  at (\x1,-\theseqlevel*\unitfactor-1.2*\unitfactor) (mess to) {};  
   
-
+  \ifthenelse{\equal{#2}{""}}{
   \draw[->,>=angle 60] (mess from) -- (mess to) node[midway, above, yshift=-2pt]
-  {#3};
+  {#4};}{  \draw[->,>=angle 60] (mess from) -- (mess to) node[midway, above, yshift=-2pt]
+  {#4(#2)};}
 
-  \node (#3 from) at (mess from) {};
-  \node (#3 to) at (mess to) {};
+  \node (#4 from) at (mess from) {};
+  \node (#4 to) at (mess to) {};
 }
 
 \newenvironment{messcall}[4][1]{
@@ -258,6 +259,11 @@ Sequence Diagrams.]
 % This function makes the call later.
 \newcommand{\postlevel}{\addtocounter{seqlevel}{+1}}
 
+
+
+
+
+
 % a block box with caption
 % \begin{sdblock}[caption background color]{caption}{comments}
 % \end{sdblock}
@@ -293,7 +299,9 @@ Sequence Diagrams.]
   \coordinate (se) at (tmp2);
   \end{pgfinterruptboundingbox}
 
-  \draw (se) rectangle (nw);
+  
+  \draw[fill=yellow, fill opacity=0.2] (se) rectangle (nw);
+	
 
   \addtocounter{blocklevel}{-1} % pop
   \stepcounter{seqlevel}
