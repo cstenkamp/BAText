@@ -4,15 +4,20 @@
 
 \newcommand{\term}[1]{{\large \texttt{#1}}}
 
-As stated in chapter~\ref{ch:rlframeworks}, the usual framework for solving reinforcement learning tasks is fairly rigid. However, the task of this work differed in some respects from the usual implementation of a reinforcement learning agent, which led to the necessity of differing from the usual framework in numerous situations. In the following chapters, I will provide an overview of the difference between this project and other work in the reinforcement learning domain. Furthermore, I will discuss some of the design decisions that found their way into the final version of the program as well as challenges that occured during its implementation and their respective solution. For that, I will explain general principles in the first section of this chapter, and go into detail about some of the specific details about the implementation in the second section.
+[irgendwas von wegen "general to specific"] 
 
-\section{Design decisions}
 
-\subsection{Characteristics of this project}
+\section{Characteristics and design decisions}
+
+As stated in chapter~\ref{ch:rlframeworks}, the usual framework for solving reinforcement learning tasks is fairly rigid. However, the task of this work differed in some respects from the usual implementation of a reinforcement learning agent, which led to the necessity of differing from the usual framework in numerous situations. In the following sections, I will provide an overview of the difference between this project and other work in the reinforcement learning domain. Furthermore, I will discuss some of the design decisions that found their way into the final version of the program as well as challenges that occured during its implementation and their respective solution. For that, I will explain general principles in the first section of this subchapter, and go into detail about some of the specific details about the implementation in the subsequent section.
+
+\subsection{Characteristics of this project} \label{ch:projectcharacteristics}
 
 There are several differences in this project than in known literature in the reinforcement learning community. The most important difference to the agents presented in chapter~\ref{ch:RL} is, that those are developed as general-purpose problem solvers, with the intention to solve any arbitrary task given to them. In this approach, that is not the case -- the goal is to solve the specific, given game. This allows in principle to incorporate expert knowledge of the task domain, to for example forbid certain combinations of the output or to use specific types of exploration, which are specifically useful in this scenario. Specifically, the game which is supposed to be played is a racing game, which has implications in several domains, for example making the standard $\epsilon$-greedy approach for exploration much worse as in many other domains. Next to that, the game which is supposed to be played is, in contrast to games solved in openAI's gym-environment (\ref{ch:rlframeworks}), live. While the game could in theory be manually paused for every RL step, it is worth trying to let the agent run ``live'', such it runs fluently and its progress can manually be inspected. Another challenge was the fact, that the game is coded in a programming language for which no efficient deep learning architectures exist, which led to the necessity of a propietary communication between the environment and its agent.
 
-The fact that there is only one game, which is supposed to be learned, also extended the entire problem domain: While usually the focus of developing RL agents can lie purely on the agent, assuming that the environment and consequently its definition of state/observation and reward is fixed, the focus of this work was to learn this one game as well as possible -- in other words it is also necessary to test what a useful definition of observation or reward looks like. Many of the subsequent design decisions are made with the idea in mind, that it must be as easy as possible to compare different agents using a unique combination of state-definition, reward-definition, model and exploration technique.
+The fact that there is only one game, which is supposed to be learned, also extended the entire problem domain: While usually the focus of developing RL agents can lie purely on the agent, assuming that the environment and consequently its definition of state/observation and reward is fixed, the focus of this work was to learn this one game as well as possible -- in other words it is also necessary to test what a useful definition of observation or reward looks like. Many of the subsequent design decisions are made with the idea in mind, that it must be as easy as possible to compare different agents using a unique combination of state-definition, reward-definition, model and exploration technique. 
+
+Furthermore, the question of how important supervised pretraining is addressed in this thesis. For that, the game must provide a way of recording manual actions and their corresponding state and to record that in a way, that a learner can read it and train on this data. The natural questions arising are how good an agent relying purely on supervised training is in comparison to others, as well as if there is a way to combine pre-training with reinforcement training.
 
 %differences from mine to others with their implications
 %-geht nur um 1 spiel 
@@ -43,8 +48,9 @@ The fact that there is only one game, which is supposed to be learned, also exte
 %	-reward
 %	-inputs
 %	-model
-%	-ob wallhit reset ist
+%	-was den state beendet
 %	-exploration techniques
+%	-pretraining ja/nein
 
 
 \subsection{Characteristics of the game}
@@ -62,93 +68,125 @@ The fact that there is only one game, which is supposed to be learned, also exte
 %-of course, at best, contiuous action space
 %-goal is to finish 1 round in as short time as possible, while staying on track
 %-der agent ended mit den actions - das auto ist teil der environment
+%-track consists of track, off-track and curb with different friction properties
 
 The given game is a simple but realistic racing simulation. As of now, it consists of one car driving one track. While it is certainly necessary to implement additional AI drivers or different tracks, no such thing is considered in the current implementation. The main focus of the given simulation lies on realistics physics. There are important differences to simpler racing games, like many of those implemented for the \term{Atari}-console, on which the original \term{DQN} was tested.
 
-The input expected from an agent consists of three continuous actions: The \keyword{throttle} increases the simulated motor-torque, which leads faster rotation of the tires and thus applying forward force to the car, which then accelerates general case. The \keyword{brake} simulates a continuous brake force slowing down the rotation of the tires. It is important to note that slip and spin is also handled in the game: While the rotation of the tires can be accelerated or decelerated fairly abrupt due to their small mass, the car itself has a higher mass and thus more intertia, with forbids abrupt changes in movement. As the cars are rigidly attached to the car, they lose grip on the street, which lessens the impact of consequent forces applied to the tires. The last command an agent must output is the \keyword{steering}, which turns the front tires of the car, leading the car applying force to the respective side the tires steered towards.
+The input expected from an agent consists of three continuous actions: The \keyword{throttle} increases the simulated motor-torque, which leads faster rotation of the tires and thus applying forward force to the car, which then accelerates general case. The \keyword{brake} simulates a continuous brake force slowing down the rotation of the tires. It is not possible to finish a while constantly accelearing as much as possible without breaking. It is important to note that slip and spin is also handled in the game: While the rotation of the tires can be accelerated or decelerated fairly abrupt due to their small mass, the car itself has a higher mass and thus more intertia, with forbids abrupt changes in movement. As the cars are rigidly attached to the car, they lose grip on the street, which lessens the impact of consequent forces applied to the tires. The last command an agent must output is the \keyword{steering}, which turns the front tires of the car, leading the car applying force to the respective side the tires steered towards.
 
 It is the task of an agent to provide commands for the values of throttle, brake and steering, which are continous in their respective domains: $throttle \in [0,1]$, $brake \in [0,1]$ and $steer \in[-1,1]$. Of course, as is the general case in reinforcement learning problems, the agent does not know the implications of its actions in advance but must learn them via trial and error. It should however also be kept in mind that the agent provides those actions \textit{to the car}, and that the car must be seen as part of the environment as well, as the actions do not have a reliable impact on its behaviour. For instance, if the car is moving at fast paces, hitting the brake will not lead to an abrupt stop, as the car's inertia still applies a forward force. Also, the impact of the steering changes with the movement of the car. For example, the turning circle of the car has a much slower radius in smaller speeds. Another consequence of the realism of the physics implemented in this simulation is the fact that simultaneous braking and steering at high velocities has almost no effect: Because of the high speed, the car has a strong forward force. That leads in combination with the braking to the front tires slipping a lot, which reduces the impact on forces applied to them on the actual car -- it will not follow the direction of the steering but continue its forward pace determined by the stronger force, namely the inertia.
 
+The track itself is a circular course with a combination of unique curves, requiring the car to steer left as well as right. Along every point of the course, there are three different surfaces with different frictions -- the street itself provides the most grip, while the off-track surface is far more slippery. Between the track-surface and the off-track-surface there the curb of the track which manifests as a small bump with separate friction properties. At a distinct distance from the middle of the track there is a wall which cannot be traversed.
+
 \subsubsection{The game as a reinforcement learning problem}
 
-As thoroughly 
+As detailed in chapter~\ref{ch:RL}, reinforcement learning agents are solvers for (possibly only Partially Observable) Markov Decision Processes with unkown transition relations. In other words, for the agent to successfully learn how to operate in an unknown environment, this environment must correspond precisely to a tuple of $\langle S, A, P, R, \gamma \rangle$ (details explained in section \ref{ch:mdps}). Because in this simulation only the case of a single agent without any other cars on the track is considered, the racing problem can be formalized as a Markov Decision Processes with a similar reasoning than \citet[chapter 4]{wymann_torcs_2000} put forward for \term{TORCS}. As is the general case in simulations, while every update-step of the physics aims to simulate a continous process, those updates must be discretized in the temporal domain. As however both agent and environment run live, the temporal discretization of the agent can not always correspond to that of the environment if an update-step in the agent takes longer than in the environment. To put that into numbers, the fixed timestep for the environment's physics is at 500 updates per second, while the agent discretizes to maximally 20 actions per second.
 
-%-3 actions as input (and braking is necessary)
-%-no opponents
-%-indeterministic
-%-partially observable
-%-huge, non-tabular solvable, continuous state space
-%-of course, at best, contiuous action space
-%-goal is to finish 1 round in as short time as possible, while staying on track
+As mentioned in the previous section, the action space required by the agent is continuous with $\mathcal{A} \subset \mathds{R}^3$. 
+
+The environment's state is a linear combination of different factors, as for example the car's speed, absolute position, current slip-values and much more. While certainly finite, it consists of many high-dimensional values $\mathcal{S}_e \subset \mathds{R}^\mathds{N}$. Because of certain factors in the implementation of the environment itself, the environment is indeterministic\footnote{The game is programmed in Unity, which has non-predictable physics. As discussed for example in \url{https://forum.unity3d.com/threads/is-unity-physics-is-deterministic.429778/}, this is because of the fact that any random-number-generator depends on the current system time, which is never fully equal in subsequent trials. Because the calculation of some states can be more complicated than others, this effect can snowball even more -- longer calculation in one step leads to later timing of a subsequent update step, which can lead to a whole other trajectory along the state space, even though the start state was equal.}. As can in principle be argued that the environment's state corresponds to all information stored in the game's section of the computer's RAM, the game trivially fulfills the markov property. As the environment is only a single-agent system, the transition function of the environments follows directly from state and action: $\mathcal{S}_e \times \mathcal{A} \rightarrow \mathcal{S}_e$.
+
+In the basic definition of the game, there is no formal definition of a reward returned by the enviroment. While it could in theory be argued, that the inverse of the time needed to complete a lap could be taken as the reward, it is obvious that it is infeasible due to many reasons: Finishing one lap takes several seconds, which means there are easily hundreds of iterations between the start state and this final state. Next to the obviously arising \keyword{credit assignment problem}, the chance of an agent even getting to such a final state, without all intermediate rewards equal to zero, is practically zero. Instead, it makes sense to give more dense rewards. As mentioned in section~\ref{ch:projectcharacteristics}, the reward also is subject of experiments in the scope of this thesis. For the game to correspond to a proper environment, this reward must be a scalar value, depending on state and action.
+
+Though it is in theory possible to implement an agent that takes the entire underlying state of the environment as its input, an approach like that is far from feasible, as this state also contains much information only necessary for rendering the game. Instead, in the chosen approach the agent only receives an $observation$ of the environment's state. 
+
+Summarizing all those factors, it becomes obvious that the given game can clearly be defined in terms of a \keyword{Partially Observable Indeterministic Markov Decision Process}.
+
+It is worth noting, that while the dimensionality of the observation is likely much smaller than the dimensionality of the state, any feasible observation will be high-dimensional or real-valued. The chance for any particular combination of parameters to appear multiple times vanishingly low, which makes the use of function approximation necessary.
+
+While the notion of \keyword{POMDP}s itself contains no definition of final states, it is necessary to have final as a hard limit of the horizon in the calculation of state-values. Another design decision in the course of the implementation of this project was, that the agent itself can define what it wants to see as the end of an episode. It is a matter of testing after how many seconds the agent shall give up on a trial, or if steering into a wall should be seen as the end of a training episode. Because of that, the environment provides only candidates of what could terminate an episode to the agent, such that the agent can decide to reset the environment or not. 
+
+\subsection{Characteristics of the agent}
+
+As stated above, it was a design decision to leave as many options open to the agent as possible, such that several agent can each have their own respective definitions of certain features. To summarize from the above chapters, the features unique to every agent are:
+\begin{itemize}
+	\item The definition of the agent's \keyword{observation-function}, providing its internal state $s = o(s_e)$
+	\item Definition of the \keyword{reward-function}, returning a scalar from state, action and subsequent state: $\mathcal{S}_e \times \mathcal{A} \times \mathcal{S}_e \rightarrow \mathds{R}$
+	\item Definition of its internal \keyword{model}, basing on which it calculates its policy
+	\item Under which conditions an episode is considered to be terminated 
+	\item Definition of the agent's \textit{exploration technique}
+	\item If and how the agent relies on pretraining with supervised data	
+\end{itemize}
+
+It is due to this design decision that the program flow of this project cannot follow the exact same structure than the one put forward in algorithm~\ref{alg:gym}. One big structural difference is for example that the outer loop (line~\ref{algline:gym_episode}) becomes obsolete, as the agent decides under what conditions the environment must be reset. In the following section, I will provide some detail of what those things look like blablabla
+
+\section{Implemented features/functions/vectors to pick from}
+
+\subsection{The vectors}
+
+\subsection{Exploration}
+
+\subsection{Reward}
+
+\subsection{Performance measure}
 
 
-An important feature is, that both state space as well as action space must be handled continuous. I
-
--continous state und action space!
+\section{Implementation}
 
 
-As mentioned in \colorbox{red}{CHAPTER},  
+The associated programs are, as long as not explicitly stated otherwise, written by the author of this work and are licensed under the GNU General Public License (GNU GPLv3). Their source codes are attached in the appendix of this work and can additionally be found digitally on the enclosed CD-ROM as well as online. Version control of this project relied on \term{GitHub}\footnote{\url{https://github.com/}}, and was split into three repositories: The source code of the actual game written with the game engine \term{Unity 3D} (\textit{BA-rAIce}\footnote{\url{https://github.com/cstenkamp/BA-rAIce}}), the source code of the implementation, written in \term{Python} (\textit{Ba-rAIce-ANN}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN}}), as well as the present text, written in \LaTeX ~ (\textit{BAText}\footnote{\url{https://github.com/cstenkamp/BAText}}). To ease connections between the following descriptions and their correspondenced in the actual source code, the footnotes will refer as a hyperlink to the files on GitHub, using their relative path (every Python-file belongs to the agent, all other files to the game). In order to ensure that no work after the deadline is considered, it is referred to the signed commits \colorbox{red}{THE, SIGNED, COMMITS}.
+%TODO: signed github commit!
+
+The game is programmed using Unity Personal with a free license for students\footnote{\url{https://store.unity.com/products/unity-personal}}. It is tested under version \term{2017.1.0f3}\footnote{As of now, \today, there is a bug in Unity that causes it to crash due to a memory leak if UI components are updated too often (which happens after a few hours of running). Because of that, in the current release of this project, all updates of the Unity UI are disabled in AI-Mode. A bug report to Unity was filed (case \href{https://fogbugz.unity3d.com/default.asp?935432_h1bir10rkmbc658k}{935432}) on \formatdate{27}{7}{2017}, and it was promised that this issue will soon be fixed. Once that is the case, the variable \inlinecode{DEBUG_DISABLEGUI_AIMODE} in \href{https://github.com/cstenkamp/BA-rAIce/blob/ef2dc018f36cd9ad65df90e65d8ab840c822567e/Assets/Scripts/AiInterface.cs\#L12-L13}{AiInterface.cs} can be set to \inlinecode{false}.}.
+Scripts belonging to the game are coded using the programming language \term{C\#}. The agent was programmed with \term{Python 3.5}, relying on the open-source machine learning library \term{TensorFlow}\cite{abadi_tensorflow:_2015}\footnote{\url{https://www.tensorflow.org/}} in version \term{1.3}. For a listing of all further used python-packages and their versions, it is referred to the \href{https://github.com/cstenkamp/BA-rAIce-ANN/blob/master/requirements.txt}{requirements.txt}-file in the respective repository. 
+
+While the author of this work contributed most of the work to change the given game such that it can be learned and played by a machine, the original version of the game was given in advance, coded by \leon of this work. While it will be explicitly stated what was already given later in this chapter, it is also referred to the respective branch on Github (\textit{Ba-rAIce -- LeonsVersion}\footnote{\url{https://github.com/cstenkamp/BA-rAIce/tree/LeonsVersion}}). The implementation of the agent was however not influenced by any other people than the author of this work.
 
 
---> Because we only consider the case of a  single car on the track it definitely is a POMDP! seeee next chapter yay
 
 
--ungefähres UML-diagramm
--das spiel itself ist ein partially observable MDP, und es ist (as tested) surprisingly indeterministic
 
-[Ah. Should have googled first before posting. Differences in FPU calculations on different processors. Differences in timing affecting things like the number of times a random number generator is called. These can cause the physics to get out of sync]
-https://forum.unity3d.com/threads/is-unity-physics-is-deterministic.429778/
-
-
-RL. normalerweise env und agent. Normalerweise ist env klasse, wie in gym. Geht bei mir nicht. closest pendant ist server 
-
-pseudocode machen, wie die kommunikation mit openAI gym: environment erzeugen, for episodes blablabla, dann macht [im gymcode farbig markiert] der agent dann dasunddass, dann environment, ..
-design choice gemacht das pyhton bspw für resetten verantwortlich ist [schneller ändern, nach zeit decreasen, soll eh nur das spiel lernen, ...] (nimmt done und outer loop vom gym pseudocode]. Deswegen ist auch reward nicht fixed. wir wollen das spiel möglichst gut lernen und wollen dafür u.a. verschiedene rewards vergleichen.
-
-
-Server life, kann eingreifen [selber fahren, qwerte plotten]
-nach initialisieren ist receiverthread durchgehend mit unity verbunden
-..und schreibt neue sachen in den inputval. Warum? closest what you get to environment, contains the maximal information an agent COULD know (because you know agents make o(s)), und da ich verschiedene agents teste ... [eines der wichtigsten dinge, agents gegeneinander testen! wodrin unterscheiden die sich alle] (aktuell letzten 4, in config lässt sich einstellen ob mehr (macht sinn dass in config, denn: unabhängig von agents!).
-zum thema special commands: unity sendet bspw ob wallhit, und python entscheided ob das nen reset ist. [gegen wand, umgedreht, runde geschafft, zeit ende, connection failed]
-
-könnte mehrere unity-instanzen haben die sich am reclistenport anmelden, an nen eigenen receiverthread weitergeleitet werden, eigenen inputval haben
-inputval ist stabil blabla
-receiver ruft performaction VOM agent auf. Könnte wenn geschwindigkeit es verlangt in nem extra thread sein [in performaction/im agent steckt halt alles]
-[ursprünglich wars so das receiver in inputval schreibt, agent (andere farbe wäre das) würde inputvla lesen und outputval schreiben, sender outputval lesen --> ist aber in practice LANGSAMER gewesen 
-inputval ist ne intra-threaded class damit es daten akkumuliert, outputval ist intra-thread  damit schneller mit 2 threads die gleichzeitig drauf zugreifen
-
-[man sieht - nur die 3 threads in grün hinterlegt sind relevant, die beiden listenthreads sind noch an falls verbindung abkackt, main für gui weil wegen tkinter
-
-speed ist wichtig, weil: in gym steht die environment zwischen send und receive still, bei mir eben ncith.
-
-wollen dieses spiel lernen, blabla, deswegen ist reward und welche vektoren er kriegt und welches model RELATIV, ERSETZBAR (\#design decision)
-
-im gegensatz zu anderen kriegt der agent hier bei aufruf erstmal den ENVIRONMENTS-state statt agentstate was sinnvoll ist, weil er halt selbst entscheided was er wissen soll
-
-bei UML-diagrammen im anhang vollständige diagramme haben und im fließtext die mit nur wichtigen/erwähnten funktionen(!!)
-[dass abstractRLagent noch memory hat]
-[jede funktion aus dem Diagramm mit grund erklären warum sie da ist, die die ich ncith erklär auch nur im Diagramm im Anhang haben!]
-
-[dann die einzelnen un-abstrakten agents... novision_agent ist halt dqn-basiert, hat daher nen dddqn-model, ist novision, hat also keine conv, muss also getAgentstate übershcreiben (kann auch ruhig inefficientmemroy nutzen da die daten klein sind, ...)
-
-[EIGENTLICH sollte abstractRLAgent klappen mit pur random actions... und mit einem param vielleicht als evaluate\_humans agent fungieren??]
-
-[dass die alle plotter HABEN und die serverkompomenten über containers KENNen etc]
-[warum haben dqnbasierte agents nochmal randomaction drin? übernehmen sie nicht die vom abstractRLagent?]
-
-[dass dddqn auch supervisedly lernen kann ist superpraktisch, weil so kann man mit dem dqn\_sv\_agent mit der pretrian methode gucken ob das dataset überhaupt seperable ist!
-
-wie die othervecs in den agent reingehen, als namedtuple, und wie man sich dann aussuchen kann was man davon nehmen möchte
-
-überhaupt pretrianen und dass man die exportieren kann!
-
-[die architektur von meinem duelDQN muss nochmal inen eigenen graphen yay]
-
-[DDDQN\_model braucht update-target-network methode im UML]
-[wird evaluator vom standard-agent gecallt?]
-[wennde testen wilslt ob dataset seperable ist, guckste in sv\_agent, wennde wissen willst ob das model funktioniert, guckste in gym\_text]
-
-[unity exportiert halt die pretraindata, gneauso wie es die python senden würde, als human-readable xml]
+%
+%
+%RL. normalerweise env und agent. Normalerweise ist env klasse, wie in gym. Geht bei mir nicht. closest pendant ist server 
+%
+%pseudocode machen, wie die kommunikation mit openAI gym: environment erzeugen, for episodes blablabla, dann macht [im gymcode farbig markiert] der agent dann dasunddass, dann environment, ..
+%design choice gemacht das pyhton bspw für resetten verantwortlich ist [schneller ändern, nach zeit decreasen, soll eh nur das spiel lernen, ...] (nimmt done und outer loop vom gym pseudocode]. Deswegen ist auch reward nicht fixed. wir wollen das spiel möglichst gut lernen und wollen dafür u.a. verschiedene rewards vergleichen.
+%
+%
+%Server life, kann eingreifen [selber fahren, qwerte plotten]
+%nach initialisieren ist receiverthread durchgehend mit unity verbunden
+%..und schreibt neue sachen in den inputval. Warum? closest what you get to environment, contains the maximal information an agent COULD know (because you know agents make o(s)), und da ich verschiedene agents teste ... [eines der wichtigsten dinge, agents gegeneinander testen! wodrin unterscheiden die sich alle] (aktuell letzten 4, in config lässt sich einstellen ob mehr (macht sinn dass in config, denn: unabhängig von agents!).
+%zum thema special commands: unity sendet bspw ob wallhit, und python entscheided ob das nen reset ist. [gegen wand, umgedreht, runde geschafft, zeit ende, connection failed]
+%
+%könnte mehrere unity-instanzen haben die sich am reclistenport anmelden, an nen eigenen receiverthread weitergeleitet werden, eigenen inputval haben
+%inputval ist stabil blabla
+%receiver ruft performaction VOM agent auf. Könnte wenn geschwindigkeit es verlangt in nem extra thread sein [in performaction/im agent steckt halt alles]
+%[ursprünglich wars so das receiver in inputval schreibt, agent (andere farbe wäre das) würde inputvla lesen und outputval schreiben, sender outputval lesen --> ist aber in practice LANGSAMER gewesen 
+%inputval ist ne intra-threaded class damit es daten akkumuliert, outputval ist intra-thread  damit schneller mit 2 threads die gleichzeitig drauf zugreifen
+%
+%[man sieht - nur die 3 threads in grün hinterlegt sind relevant, die beiden listenthreads sind noch an falls verbindung abkackt, main für gui weil wegen tkinter
+%
+%speed ist wichtig, weil: in gym steht die environment zwischen send und receive still, bei mir eben ncith.
+%
+%wollen dieses spiel lernen, blabla, deswegen ist reward und welche vektoren er kriegt und welches model RELATIV, ERSETZBAR (\#design decision)
+%
+%im gegensatz zu anderen kriegt der agent hier bei aufruf erstmal den ENVIRONMENTS-state statt agentstate was sinnvoll ist, weil er halt selbst entscheided was er wissen soll
+%
+%bei UML-diagrammen im anhang vollständige diagramme haben und im fließtext die mit nur wichtigen/erwähnten funktionen(!!)
+%[dass abstractRLagent noch memory hat]
+%[jede funktion aus dem Diagramm mit grund erklären warum sie da ist, die die ich ncith erklär auch nur im Diagramm im Anhang haben!]
+%
+%[dann die einzelnen un-abstrakten agents... novision_agent ist halt dqn-basiert, hat daher nen dddqn-model, ist novision, hat also keine conv, muss also getAgentstate übershcreiben (kann auch ruhig inefficientmemroy nutzen da die daten klein sind, ...)
+%
+%[EIGENTLICH sollte abstractRLAgent klappen mit pur random actions... und mit einem param vielleicht als evaluate\_humans agent fungieren??]
+%
+%[dass die alle plotter HABEN und die serverkompomenten über containers KENNen etc]
+%[warum haben dqnbasierte agents nochmal randomaction drin? übernehmen sie nicht die vom abstractRLagent?]
+%
+%[dass dddqn auch supervisedly lernen kann ist superpraktisch, weil so kann man mit dem dqn\_sv\_agent mit der pretrian methode gucken ob das dataset überhaupt seperable ist!
+%
+%wie die othervecs in den agent reingehen, als namedtuple, und wie man sich dann aussuchen kann was man davon nehmen möchte
+%
+%überhaupt pretrianen und dass man die exportieren kann!
+%
+%[die architektur von meinem duelDQN muss nochmal inen eigenen graphen yay]
+%
+%[DDDQN\_model braucht update-target-network methode im UML]
+%[wird evaluator vom standard-agent gecallt?]
+%[wennde testen wilslt ob dataset seperable ist, guckste in sv\_agent, wennde wissen willst ob das model funktioniert, guckste in gym\_text]
+%
+%[unity exportiert halt die pretraindata, gneauso wie es die python senden würde, als human-readable xml]
 
 %
 %
@@ -221,22 +259,21 @@ wie die othervecs in den agent reingehen, als namedtuple, und wie man sich dann 
 
 
 
+%
+%
+%[Dass man mit supervised training super gucken kann ob dieseundjene state-definition sinnvoll ist, und dass man mit der gym_test super gucken kann ob man das model verbuggt hat]
+%
+%
+%\footnote{I will rely heavily on UML to explain my code and stuff. Version UML 2.0. to get an overview of how that look like, I refer the reader to https://www.ibm.com/developerworks/rational/library/3101.html and https://www.ibm.com/developerworks/rational/library/content/RationalEdge/sep04/bell/index.html for sequence diagrams and class diagrams, respectively.}
+%
+%[tf gibt automatic differentiation, multi-gpu support, python interface]
+%
+%Important to know in sequence diagrams: There are both threads and object-instances. Threads are recognized by the block starting at their top. Threads call methods OF the instances. Which thread called something from the instance in a specific case is recognizable by the color, as colors correspond to threads. Simultaneous things are horizontally aligned. Messages from thread to thread are without parantheses.
+%
+%Why I have inputval and outputval: INPUTval damit der immer nur die letzte action hinzügen muss und der die history DADRIN hat, und OUTPUTval damit das multithreading schneller geht. BEIDES hat  seinen sinn!!
+%[multiple threads deshalb weil das geschwindigkeit optimiert - beim inputval können mehrere agents multi-threaded unabhängig/gleichzeitig lesen und performen (dann gäbs nen weiteren thread, der wäre dann nicht blau und würde auf inputval zugreifen), und beim outputvall können senderthread und receiverthread einfach gleichzeitig so schnell wie möglich arbeiten]
 
-
-
-
-
-\footnote{I will rely heavily on UML to explain my code and stuff. Version UML 2.0. to get an overview of how that look like, I refer the reader to https://www.ibm.com/developerworks/rational/library/3101.html and https://www.ibm.com/developerworks/rational/library/content/RationalEdge/sep04/bell/index.html for sequence diagrams and class diagrams, respectively.}
-
-[tf gibt automatic differentiation, multi-gpu support, python interface]
-
-Important to know in sequence diagrams: There are both threads and object-instances. Threads are recognized by the block starting at their top. Threads call methods OF the instances. Which thread called something from the instance in a specific case is recognizable by the color, as colors correspond to threads. Simultaneous things are horizontally aligned. Messages from thread to thread are without parantheses.
-
-Why I have inputval and outputval: INPUTval damit der immer nur die letzte action hinzügen muss und der die history DADRIN hat, und OUTPUTval damit das multithreading schneller geht. BEIDES hat  seinen sinn!!
-[multiple threads deshalb weil das geschwindigkeit optimiert - beim inputval können mehrere agents multi-threaded unabhängig/gleichzeitig lesen und performen (dann gäbs nen weiteren thread, der wäre dann nicht blau und würde auf inputval zugreifen), und beim outputvall können senderthread und receiverthread einfach gleichzeitig so schnell wie möglich arbeiten]
-
-\section{Design choices}
-
+%Das was ich beim Iris-erklären bezüglich der Sequence Diagramme aufgeschrieben hab
 
 \includegraphics[width=\textwidth]{uml_diagrams/class_diagram.1}\\
 \newpage
@@ -258,30 +295,20 @@ Why I have inputval and outputval: INPUTval damit der immer nur die letzte actio
 %\caption{How to write algorithms}
 %\end{algorithm}
 
-\subsection{The vectors}
-
-\subsection{Exploration}
-
-\subsection{Reward}
-
-\subsection{Performance measure}
-
-\section{Implementation}
-
-
-The associated programs are, as long as not explicitly stated otherwise, written by the author of this work and are licensed under the GNU General Public License (GNU GPLv3). Their source codes are attached in the appendix of this work and can additionally be found digitally on the enclosed CD-ROM as well as online. Version control of this project relied on \term{GitHub}\footnote{\url{https://github.com/}}, and was split into three repositories: The source code of the actual game written with the game engine \term{Unity 3D} (\textit{BA-rAIce}\footnote{\url{https://github.com/cstenkamp/BA-rAIce}}), the source code of the implementation, written in \term{Python} (\textit{Ba-rAIce-ANN}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN}}), as well as the present text, written in \LaTeX ~ (\textit{BAText}\footnote{\url{https://github.com/cstenkamp/BAText}}). To ease connections between the following descriptions and their correspondenced in the actual source code, the footnotes will refer as a hyperlink to the files on GitHub, using their relative path (every Python-file belongs to the agent, all other files to the game). In order to ensure that no work after the deadline is considered, it is referred to the signed commits \colorbox{red}{THE, SIGNED, COMMITS}.
-%TODO: signed github commit!
-
-The game is programmed using Unity Personal with a free license for students\footnote{\url{https://store.unity.com/products/unity-personal}}. It is tested under version \term{2017.1.0f3}\footnote{As of now, \today, there is a bug in Unity that causes it to crash due to a memory leak if UI components are updated too often (which happens after a few hours of running). Because of that, in the current release of this project, all updates of the Unity UI are disabled in AI-Mode. A bug report to Unity was filed (case \href{https://fogbugz.unity3d.com/default.asp?935432_h1bir10rkmbc658k}{935432}) on \formatdate{27}{7}{2017}, and it was promised that this issue will soon be fixed. Once that is the case, the variable \inlinecode{DEBUG_DISABLEGUI_AIMODE} in \href{https://github.com/cstenkamp/BA-rAIce/blob/ef2dc018f36cd9ad65df90e65d8ab840c822567e/Assets/Scripts/AiInterface.cs#L12-L13}{AiInterface.cs} can be set to \inlinecode{false}.}. Scripts belonging to the game are coded using the programming language \term{C\#}. The agent was programmed with \term{Python 3.5}, relying on the open-source machine learning library \term{TensorFlow}\cite{abadi_tensorflow:_2015}\footnote{\url{https://www.tensorflow.org/}} in version \term{1.3}. For a listing of all further used python-packages and their versions, it is referred to the \href{https://github.com/cstenkamp/BA-rAIce-ANN/blob/master/requirements.txt}{requirements.txt}-file in the respective repository. 
-
-While the author of this work contributed most of the work to change the given game such that it can be learned and played by a machine, the original version of the game was given in advance, coded by \leon of this work. While it will be explicitly stated what was already given later in this chapter, it is also referred to the respective branch on Github (\textit{Ba-rAIce -- LeonsVersion}\footnote{\url{https://github.com/cstenkamp/BA-rAIce/tree/LeonsVersion}}). The implementation of the agent was however not influenced by any other people than the author of this work.
 
 \subsection{The game}
+
+%TODO - ungefähres UML-diagramm DES SPIELS!!
+-screenshot von der GUI
+
 
 \subsubsection{What Leon did already}
 
 \subsubsection{Communication}
 
+-nochmal drauf eingehen dass das spiel live ist
+-den sockets post
+-das von leon gemalte ablaufdiagramm
 
 \begin{figure}
 	\centering
@@ -290,24 +317,20 @@ While the author of this work contributed most of the work to change the given g
 	}
 \end{figure}
 
-
-
--den sockets post
--das von leon gemalte ablaufdiagramm
-
 \subsection{The agent}
 
-Unbedingt auf jeden Fall UML-diagramm
+-Unbedingt auf jeden Fall UML-diagramm
+-Hier im Fließtext nur kleine Versionen der UML-Diagramme, und im Anhang dann die vollständingen versionen!
 
 \subsubsection{Challenges and Solutions}
 
-DQN vs DDPG, sehend vs nicht-sehend, ...
+
 
 \subsubsection{Pretraining}
 
 \subsubsection{The different agents}
 
-sehend vs nicht sehend, ...
+DQN vs DDPG, sehend vs nicht-sehend, ...  
 
 \subsubsection{Network architecture}
 

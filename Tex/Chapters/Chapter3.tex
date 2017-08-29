@@ -47,11 +47,12 @@ The goal of openAI gym is to be as convenient and accessible as possible. For th
 	,tabsize=1%
 	,showstringspaces=false%
 	,postbreak=\ding{229}\space%
+	,escapeinside={*(}{*)}
 }
 \begin{lstlisting}[language=Python,frame=none]
 import gym
 env = gym.make('CartPole-v0')
-for i_episode in range(20):
+for i_episode in range(20): *($\label{algline:gym_episode}$*)
 	observation = env.reset()
 	for t in range(100):
 		env.render()
@@ -86,9 +87,29 @@ https://arxiv.org/pdf/1704.03952.pdf
 
 \subsection{games}
 
+Leon wollte hier ne Tabelle von verschiedenen games und den respective inputs die sie nutzen...!
+
+
+\begin{table}
+\resizebox{\textwidth}{!}{
+	 \begin{tabular}{c c c c c c}
+		Name & Paper/Link & Trained on Game & Used as inputs & Used as reward & Furhter distinctivenesses \\ 
+		\hline
+		Tensorkart & Link & Mariokart & Y & Z & only pretraining\\
+		original DDPG  & \cite{lillicrap_continuous_2015} & Torcs & vision & bla & ne\\
+		original DDPG  & \cite{lillicrap_continuous_2015} & Torcs & lowdim & bla & ne\\
+		Thatguy & irgendowonmedium & Torcs & vision & besser & ne\\
+		NVIDIA & paperlink & real data & vision & bla & ne\\
+	\end{tabular}
+}
+\end{table}
+
 Tensorkart
 hier in den fußnoten die ganzen non-scientific quellen wie tensorkart undso
 
 Das Aufteilen von autonomous driving into the subcomponents, wie bei der vorlesung von Julian... oder, as quoted by TORCS-Paper: "The racing problem could be split into a number of different components, including robust control of the vehicle, dynamic and static trajectory planning, car setup, inference and vision, tactical decisions (such as overtaking) and finally overall racing strategy"
 
 DDPG auf torc hat übrigens im pixel-case nen sehrsehr ählnichen punktestand wie im low-dimensional case (1840 vs 1876 im best case, -393 vs -401 im average case).
+
+
+TORCS!!!!!UNBEDINGT ERWÄHNEN DASS die geschreiben haben dass TORCS ein POMDP ist!!

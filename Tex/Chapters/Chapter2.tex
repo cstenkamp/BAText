@@ -18,7 +18,7 @@ As the task at hand was not only to provide a reinforcement learning agent, but 
 Machine Learning can mainly be subdivided into three main categories: Supervised Learning, Unsupervised Learning, and Semi-supervised learning. The first deals with direct classification or regression using labelled data which consists of pairs of datapoints with their corresponding category or value. In unsupervised learning, no such label exists, and the data must be clustered into meaningful parts without any knowledge, for example by grouping objects by similarity in their properties.\\
 What will be mainly considered in this thesis will be a certain kind of semi-supervised learning: \keyword{Reinforcement learning} (\textbf{RL}). In RL, instead of labels for the data, there is a \textit{weak teacher}, which provides feedback on actions performed by the learner.
 
-\subsubsection{Markov Decision Processes}
+\subsubsection{Markov Decision Processes} \label{ch:mdps}
 
 RL can be understood by means of a decision maker (\keyword{agent}) performing in an \keyword{environment}. The agent makes observations in the environment (its input), takes actions (output) and receives rewards. In contrast to the classical ML approaches, in RL the agent is also responsible for exploration, as he has to acquire his knowledge actively. Thus, a reinforcement learning problem is given if the only way to collect information about the \keyword{underlying model} (the environment) is by interacting with it. As the environment does not explicitly provide actions the agent has to perform, its goal is to figure out the actions maximizing its cumulative reward until a training episode ends.
 %"put very simply, the agent wants to repeat the actions that give the highest reward
