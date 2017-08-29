@@ -1,4 +1,4 @@
-\begin{sequencediagram}[.6]
+\begin{sequencediagram}[1]
 %	\tikzstyle{inststyle}+=[top color=gray!10, bottom color=blue!50, rounded corners=3mm]
 	\tikzstyle{inststyle}+=[top color=blue!50, bottom color=blue!50, rounded corners=2mm]
 	\newthread{unity}{:Unity.Client}{0}
@@ -44,7 +44,7 @@
 		\end{call}
 	\end{sdblock}
 	\prelevel\prelevel\prelevel\prelevel
-	\mess[1]{unity}{connect}{sendwaitsoc}
+	\mess[1][data]{unity}{connect}{sendwaitsoc}
 	\postlevel\postlevel
 	
 	\begin{call}{reclist}{init(client)}{recsoc}{recsocket}
@@ -60,7 +60,7 @@
 			\end{call}		
 		\end{sdblock}	
 		\prelevel\prelevel\prelevel\prelevel
-		\mess[1]{unity}{send}{recsoc}				
+		\mess[1][data]{unity}{send}{recsoc}				
 		\postlevel\postlevel
 		\begin{call}{recthread}{\small handle\_special\_commands(data)}{recthread}{}
 			\begin{sdblock}{opt}{data == \textit{special command}}
@@ -71,10 +71,13 @@
 					\end{messcall}
 					\begin{messcall}{agent}{reset()}{outputval}{}
 					\end{messcall}								
-					\begin{messcall}[0]{agent}{send\_via\_thread("reset")}{outputval}{}
-						\mess[1]{outputval}{reset}{unity}					
+					\begin{messcall}{agent}{send\_via\_thread("reset")}{outputval}{}
+						\mess{outputval}{reset}{sendthread}					
 					\end{messcall}						
 				\end{messcall}
+				\begin{messcall}[0]{sendthread}{mysend(content)}{sendsoc}{}		
+					\mess[1]{sendsoc}{reset}{unity}
+				\end{messcall}				
 				\prelevel
 			\end{sdblock}
 		\end{call}

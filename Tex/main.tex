@@ -28,6 +28,7 @@ headsepline, % Uncomment to get a line under the header
 \usepackage{amsmath}
 \usepackage{dsfont}
 \usepackage{hyperref}
+\usepackage[nodayofweek,level]{datetime}
 \hypersetup{colorlinks=false} % hides the links in the PDF but not in printed text
 %others would be: \hypersetup{...  urlcolor= .. citecolor = .. allcolor = .. hidelinks }
 \usepackage{pifont,calc,xcolor}
@@ -82,7 +83,7 @@ headsepline, % Uncomment to get a line under the header
 \newlength\lstnumberwidth
 \setlength\lstnumberwidth{\widthof{\lstnumberstyle00}+\lstnumbersep+\lsthorizontalpadding}
 
-
+\newcommand{\leon}{the first supervisor}
 	
 \lstdefinelanguage{Pseudo}{
 	morekeywords={for, do, end},
@@ -125,7 +126,7 @@ headsepline, % Uncomment to get a line under the header
 
 \thesistitle{Controlling Self-Driving Race Cars with Deep Neural Networks} %print with \ttitle
 
-\supervisor{Prof. Dr. Gordon Pipa \\ Leon Sütfeld} %print with \supname
+\supervisor{Leon Sütfeld \\ Prof. Dr. Gordon Pipa} %print with \supname
 \examiner{}
 \degree{Bachelor of Science} %print with \degreename
 \author{Christoph Stenkamp} %print with \authorname

@@ -1,0 +1,69 @@
+reasons for gym: 
+-better benchmarks, pendant to labeled datasets like ImageNet (diverse collection of environments, easy to set up)
+-lack of standardiation of environments uded in publications (definition of reward function o.ä.)
+
+gym contains
+-classic control-tasks like classic cart-pole or pendulum swing-up as well as MuJoCo physics tasks (as in the DDPG-paper), but also more complex ones like humanoid walkers (2D and 3D robots)
+-the complete ALE, aka ATARI games (ALE-Paper, doubleDQN, indirekt DQN)
+-boardgames such as GO
+-Box2D games continuous/control tasks
+-but also DOOM
+
+OpenAI Gym is a toolkit for developing and comparing reinforcement learning algorithms
+
+part of it: collection of test problems — environments — that you can use to work out your reinforcement learning algorithms. These environments have a shared interface, allowing you to write general algorithms.
+
+
+import gym
+env = gym.make('CartPole-v0')
+for i_episode in range(20):
+    observation = env.reset()
+    for t in range(100):
+        env.render()
+        print(observation)
+        action = env.action_space.sample()
+        observation, reward, done, info = env.step(action)
+        if done:
+            print("Episode finished after {} timesteps".format(t+1))
+            break
+----Observations----
+-step returns...
+	observation (environment-specific - pixels,jointangles)
+	reward (float, varies between env)
+	done (boolean, whether its time to reset)
+	info (debug stuff)
+-"the classic 'agent-environment loop'"
+
+reset starts the loop and also returns initial observation
+
+---spaces---
+print(env.action_space)
+#> Discrete(2) --> valid sind 0&1
+print(env.observation_space)
+#> Box(4,)     --> array of 4 numbers
+
+
+
+
+
+Universe:
+With Universe, any program can be turned into a Gym environment. Universe works by automatically launching the program behind a VNC remote desktop — it doesn’t need special access to program internals, source code, or bot APIs.
+->includes flash games, browser tasks, and even GTAV into gym
+
+
+Universe exposes a wide range of environments through a common interface: the agent operates a remote desktop by observing pixels of a screen and producing keyboard and mouse commands. The environment exposes a VNC server and the universe library turns the agent into a VNC client.
+
+with the right settings, our client can coax GTA V to run at 20 frames per second over the public internet.
+
+has a CNN-based OCR module running inside it, at runs inside the Docker container’s Python controller, parses the score (from a screen buffer maintained via a VNC self-loop), and communicates it over the WebSocket channel to the agent.
+
+
+Writing your own agent. You can write your own agent quite easily, using your favorite framework such as TensorFlow or Theano. (We’ve provided a starter TensorFlow agent.) At each time step, the agent’s observation includes a NumPy pixel array, and the agent must emit a list of VNC events (mouse/keyboard actions). F
+
+Universe agents must deal with real-world griminess that traditional RL agents are shielded from: agents must run in real-time and account for fluctuating action and observation lag. While the full complexity of Universe is designed to be out of reach of current techniques, we also have ensured it’s possible to make progress today.
+
+
+Our agent’s “reaction time” averages around 150ms over the public internet: 110ms for an observation to arrive, 10ms to compute the action, and 30ms for the action to take effect. (For comparison, human reaction time averages around 250ms.) Reaction times drop to 80ms over a local network, and 40ms within a single machine.
+
+
+[more about transfer learning]
