@@ -2,7 +2,9 @@
 
 \label{ch:program}
 
-\newcommand{\term}[1]{{\large \texttt{#1}}}
+\newcommand{\term}[1] {{\spaceskip=.75\fontdimen2\font minus \fontdimen4\font
+	\xspaceskip=0pt\relax \large\texttt{#1}}}
+
 
 [irgendwas von wegen "general to specific"] 
 
@@ -90,7 +92,7 @@ In the basic definition of the game, there is no formal definition of a reward r
 
 Though it is in theory possible to implement an agent that takes the entire underlying state of the environment as its input, an approach like that is far from feasible, as this state also contains much information only necessary for rendering the game. Instead, in the chosen approach the agent only receives an $observation$ of the environment's state. 
 
-Summarizing all those factors, it becomes obvious that the given game can clearly be defined in terms of a \keyword{Partially Observable Indeterministic Markov Decision Process}.
+Summarizing all those factors, it becomes obvious that the given game can clearly be defined in terms of a \keyword{Partially Observed Indeterministic Markov Decision Process}.
 
 It is worth noting, that while the dimensionality of the observation is likely much smaller than the dimensionality of the state, any feasible observation will be high-dimensional or real-valued. The chance for any particular combination of parameters to appear multiple times vanishingly low, which makes the use of function approximation necessary.
 
@@ -107,22 +109,17 @@ As stated above, it was a design decision to leave as many options open to the a
 	\item Definition of the agent's \textit{exploration technique}
 	\item If and how the agent relies on pretraining with supervised data	
 \end{itemize}
+\begin{flushright}
+	\scriptsize
+	In the following sections, I will refer to the definitions of these functions/options as the \keyword{features} of the agent. In the implementation, there are many possible features, not all of which are actually used by an agent. I will refer to those as \keyword{possible features}. When I talk specifically about the possible observations influencing the observation-function, I refer to those as \keyword{(possible) vectors}.
+\end{flushright}
 
-It is due to this design decision that the program flow of this project cannot follow the exact same structure than the one put forward in algorithm~\ref{alg:gym}. One big structural difference is for example that the outer loop (line~\ref{algline:gym_episode}) becomes obsolete, as the agent decides under what conditions the environment must be reset. In the following section, I will provide some detail of what those things look like blablabla
+It is due to this design decision that the program flow of this project cannot follow the exact same structure than the one put forward in algorithm~\ref{alg:gym}. One big structural difference is for example that the outer loop (line~\ref{algline:gym_episode}) becomes obsolete, as the agent decides under what conditions the environment must be reset.\\
 
-\section{Implemented features/functions/vectors to pick from}
-
-\subsection{The vectors}
-
-\subsection{Exploration}
-
-\subsection{Reward}
-
-\subsection{Performance measure}
+\noindent I will go into detail about the implemented features and vectors in a later section after describing the specific implementation of agent and environment, as it is easier explained with that in mind.
 
 
 \section{Implementation}
-
 
 The associated programs are, as long as not explicitly stated otherwise, written by the author of this work and are licensed under the GNU General Public License (GNU GPLv3). Their source codes are attached in the appendix of this work and can additionally be found digitally on the enclosed CD-ROM as well as online. Version control of this project relied on \term{GitHub}\footnote{\url{https://github.com/}}, and was split into three repositories: The source code of the actual game written with the game engine \term{Unity 3D} (\textit{BA-rAIce}\footnote{\url{https://github.com/cstenkamp/BA-rAIce}}), the source code of the implementation, written in \term{Python} (\textit{Ba-rAIce-ANN}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN}}), as well as the present text, written in \LaTeX ~ (\textit{BAText}\footnote{\url{https://github.com/cstenkamp/BAText}}). To ease connections between the following descriptions and their correspondenced in the actual source code, the footnotes will refer as a hyperlink to the files on GitHub, using their relative path (every Python-file belongs to the agent, all other files to the game). In order to ensure that no work after the deadline is considered, it is referred to the signed commits \colorbox{red}{THE, SIGNED, COMMITS}.
 %TODO: signed github commit!
@@ -130,10 +127,45 @@ The associated programs are, as long as not explicitly stated otherwise, written
 The game is programmed using Unity Personal with a free license for students\footnote{\url{https://store.unity.com/products/unity-personal}}. It is tested under version \term{2017.1.0f3}\footnote{As of now, \today, there is a bug in Unity that causes it to crash due to a memory leak if UI components are updated too often (which happens after a few hours of running). Because of that, in the current release of this project, all updates of the Unity UI are disabled in AI-Mode. A bug report to Unity was filed (case \href{https://fogbugz.unity3d.com/default.asp?935432_h1bir10rkmbc658k}{935432}) on \formatdate{27}{7}{2017}, and it was promised that this issue will soon be fixed. Once that is the case, the variable \inlinecode{DEBUG_DISABLEGUI_AIMODE} in \href{https://github.com/cstenkamp/BA-rAIce/blob/ef2dc018f36cd9ad65df90e65d8ab840c822567e/Assets/Scripts/AiInterface.cs\#L12-L13}{AiInterface.cs} can be set to \inlinecode{false}.}.
 Scripts belonging to the game are coded using the programming language \term{C\#}. The agent was programmed with \term{Python 3.5}, relying on the open-source machine learning library \term{TensorFlow}\cite{abadi_tensorflow:_2015}\footnote{\url{https://www.tensorflow.org/}} in version \term{1.3}. For a listing of all further used python-packages and their versions, it is referred to the \href{https://github.com/cstenkamp/BA-rAIce-ANN/blob/master/requirements.txt}{requirements.txt}-file in the respective repository. 
 
-While the author of this work contributed most of the work to change the given game such that it can be learned and played by a machine, the original version of the game was given in advance, coded by \leon of this work. While it will be explicitly stated what was already given later in this chapter, it is also referred to the respective branch on Github (\textit{Ba-rAIce -- LeonsVersion}\footnote{\url{https://github.com/cstenkamp/BA-rAIce/tree/LeonsVersion}}). The implementation of the agent was however not influenced by any other people than the author of this work.
+While the author of this work contributed most of the work to change the given game such that it can be learned and played by a machine, the original version of the game was given in advance, coded by \leon of this work. While it will be explicitly stated what was already given later in this chapter, it is also referred to the respective branch on Github (\textit{Ba-rAIce -- LeonsVersion}\footnote{\url{https://github.com/cstenkamp/BA-rAIce/tree/LeonsVersion}}). The implementation of the agent was however not influenced by any other people than the author of this work.\\
+
+\noindent As already hinted at, the program flow of the implementation differs from that of other implementations. The game, making up the environment, is completely independent of the agent and runs as a separate \keyword{process} on the machine. The agent is written in another programming language and must thus make up a distinct process as well. Because of that, it is necessary that agent and environment communicate over a protocoll that allows inter-process-communication. In this work, it was decided to use \keyword{Sockets} as means of communication. While explained in following section, it is for now important to know that sockets are best implemented as running in a separate \keyword{thread}, where they can send textual information to another socket running in another process.
+
+\subsection{The game}
+\label{ch:gamedescription}
+
+The program flow of the game is encapsuled by the framework that the game engine \term{Unity 3D} provides. Unity eases the implementation of games a lot, as it provides numerous \term{game objects} with pre-implemented properties like friction or gravity, as well as drag-and-drop functionality to add 3D components or cameras to the Graphical User Interface (\textbf{GUI}). Another advantage of Unity is, that it targets many graphics APIs, which takes a lot of work from the programmer to implement an efficient graphics pipeline.
+
+To implement additional behaviour or features not predefined by Unity, it allows for scripts, written in object-oriented \keyword{C\#}. Scripts that are supposed to be used by Unity must provide a class that extends\footnote{In the following sections, I will use the terms \term{extends}, \term{implements}, \term{knows} and \term{has}. When I use those, I mean them in the strict sense in the context of programming languages (and the concepts inheritance, interfaces, and references).} \inlinecode{MonoBehaviour} or be used by such a one. 
+For the file to be instanciated during runtime, it must be specified in Unity's \term{Object Hierarchy}. After staring the program, Unity will create all objects specified in the hierarchy. To enable the possibility of instanciations \term{knowing} each other during runtime, they must provide public variables of the type of the respective subclass of \inlinecode{MonoBehaviour}, which can via drag-and-drop be assigned to the respective future instance specified in the Object Hierachy. \inlinecode{MonoBehaviour} provides a number of functions that are automatically called by Unity at different times during runtime. The most important ones are \inlinecode{void Start()}, called when first instanciating the respective object, as well as \inlinecode{void Update()} and \inlinecode{void FixedUpdate()}, called every Update-step or Physics-update-step, respectively\footnote{Concerning the difference between Update and Fixedupdate: \textbf{Update} is called once per frame, in other words as often as possible. It is generally not used to update physics, as its call frequency depends on the current \textbf{FPS} -- if calculations here take to long, the FPS of the game will decrease. \textbf{FixedUpdate} is called precisely in a fixed interval of game-internal time. If calculations in FixedUpdate are too slow, the progress of the game-internal time is delayed until FixedUpdate catches up. The update-interval of FixedUpdate can be freely chosen and is $0.002$ seconds in the current implementation. If Unity's \term{Time scale} is set to zero, FixedUpdate() will not be called at all.}. If a subclass of \inlinecode{MonoBehaviour} is attached to a game object, it can provide specific additional functions that are called when specific events occur during runtime -- an example would be \inlinecode{OnCollisionEnter(Collision)}.\\
 
 
 
+
+%TODO - ungefähres UML-diagramm DES SPIELS!!
+-screenshot von der GUI
+-UML-diagramm des spiels
+-ablaufdiagramm vom server-zeug dass zu dem von python passt
+-welche tasten was machen (fake-speed undso)
+-Aufbau des exportierten XMLs (dabieschreiben dass action und speed 2 mal drin sind weil die von fake_speed affektiert sein könnten)
+-beschreibung der optionen-konstanten
+-
+
+
+\subsubsection{What Leon did already}
+
+\subsubsection{Communication}
+
+-nochmal drauf eingehen dass das spiel live ist
+-den sockets post
+-das von leon gemalte ablaufdiagramm
+
+\begin{figure}
+	\centering
+	\resizebox{1.1\textwidth}{!}{
+		\input{sequence_diagrams/server_main}
+	}
+\end{figure}
 
 
 %
@@ -296,26 +328,8 @@ While the author of this work contributed most of the work to change the given g
 %\end{algorithm}
 
 
-\subsection{The game}
-
-%TODO - ungefähres UML-diagramm DES SPIELS!!
--screenshot von der GUI
 
 
-\subsubsection{What Leon did already}
-
-\subsubsection{Communication}
-
--nochmal drauf eingehen dass das spiel live ist
--den sockets post
--das von leon gemalte ablaufdiagramm
-
-\begin{figure}
-	\centering
-	\resizebox{1.1\textwidth}{!}{
-		\input{sequence_diagrams/server_main}
-	}
-\end{figure}
 
 \subsection{The agent}
 
@@ -349,4 +363,24 @@ DQN vs DDPG, sehend vs nicht-sehend, ...
 
 
 In the original DDPG-algorithm \cite{lillicrap_continuous_2015}, the authors used \keyword{batch normalization} \cite{ioffe_batch_2015} to have the possibility of using the same network hyperparameters for differently scaled input-values. In the learning step when using minibatches, \batchnorm normalizes each dimension across the samples in a batch to have unit mean and variance, whilst keeping a running mean and variance to normalize in non-learning steps. In Tensorflow, batchnorm can be added with an additional layer and an additional input, specifying the phase (learning step/non-learning step)\footnote{cf. \url{https://www.tensorflow.org/api\_docs/python/tf/contrib/layers/batch_norm}}. Though Lillicrap et al. seemed to have success on using \batchnorm, in practice it lead to unstability, even on simple physics tasks in openAI's gym. As I am not the only one having this issue \footnote{redditlink}, I left out batch normalization for good.
+
+
+
+
+
+\section{Possible features}
+
+\subsection{The vectors}
+
+\label{ch:thevectors}
+-die mit * oder so markieren die von leon kommen!!
+
+
+\subsection{Exploration}
+
+\subsection{Reward}
+
+\subsection{Pre-training}
+
+\subsection{Performance measure}
 

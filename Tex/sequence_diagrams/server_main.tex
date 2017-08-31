@@ -44,7 +44,7 @@
 		\end{call}
 	\end{sdblock}
 	\prelevel\prelevel\prelevel\prelevel
-	\mess[1][data]{unity}{connect}{sendwaitsoc}
+	\mess[1]{unity}{connect}{sendwaitsoc}
 	\postlevel\postlevel
 	
 	\begin{call}{reclist}{init(client)}{recsoc}{recsocket}
@@ -75,7 +75,7 @@
 						\mess{outputval}{reset}{sendthread}					
 					\end{messcall}						
 				\end{messcall}
-				\begin{messcall}[0]{sendthread}{mysend(content)}{sendsoc}{}		
+				\begin{messcall}[0]{sendthread}{mysend("reset")}{sendsoc}{}		
 					\mess[1]{sendsoc}{reset}{unity}
 				\end{messcall}				
 				\prelevel
