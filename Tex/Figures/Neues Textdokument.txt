@@ -1,0 +1,7 @@
+black:   direction car faces
+magenta: direction car steers
+red:     direction car moves
+white:   direction street goes (shortsighted, from car)
+yellow:   direction street goes (shortsighted, from streetmiddle)
+blue:   direction street goes (longsighted, from car)
+gray:   direction street goes (longsighted, from streetmiddle)

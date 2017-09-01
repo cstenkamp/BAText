@@ -28,6 +28,7 @@ headsepline, % Uncomment to get a line under the header
 \usepackage{amsmath}
 \usepackage{dsfont}
 \usepackage{hyperref}
+\usepackage{graphicx}
 \usepackage[nodayofweek,level]{datetime}
 \hypersetup{colorlinks=false} % hides the links in the PDF but not in printed text
 %others would be: \hypersetup{...  urlcolor= .. citecolor = .. allcolor = .. hidelinks }
@@ -83,7 +84,11 @@ headsepline, % Uncomment to get a line under the header
 \newlength\lstnumberwidth
 \setlength\lstnumberwidth{\widthof{\lstnumberstyle00}+\lstnumbersep+\lsthorizontalpadding}
 
-\newcommand{\leon}{the first supervisor}
+\newcommand{\leon}{the first supervisor~}
+
+\makeatletter
+\newcommand\footnoteref[1]{\protected@xdef\@thefnmark{\ref{#1}}\@footnotemark}
+\makeatother
 	
 \lstdefinelanguage{Pseudo}{
 	morekeywords={for, do, end},
@@ -117,6 +122,25 @@ headsepline, % Uncomment to get a line under the header
 		text width=6.5em,
 		minimum height=2em,
 		text centered}
+}
+
+\usetikzlibrary{shadows}
+
+\newcommand*\keystroke[1]{%
+	\raisebox{1px}{%
+		\tikz[baseline=(key.base)]
+		\node[%
+		draw,
+		fill=white,
+		drop shadow={shadow xshift=0.25ex,shadow yshift=-0.25ex,fill=black,opacity=0.75},
+		rectangle,
+		rounded corners=2pt,
+		inner sep=2pt,
+		line width=0.5pt,
+		font=\scriptsize\sffamily
+		](key) {#1{\tiny\strut}}%  %originally #1\strut
+		;
+	}\hspace*{-0.37em}
 }
 
 %----------------------------------------------------------------------------------------
@@ -331,6 +355,7 @@ headsepline, % Uncomment to get a line under the header
 	\include{Appendices/AppendixA}
 	\restoregeometry
 	\include{Appendices/AppendixB}
+	\restoregeometry
 	%\include{Appendices/AppendixC}
 		
 
