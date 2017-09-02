@@ -84,7 +84,7 @@ headsepline, % Uncomment to get a line under the header
 \newlength\lstnumberwidth
 \setlength\lstnumberwidth{\widthof{\lstnumberstyle00}+\lstnumbersep+\lsthorizontalpadding}
 
-\newcommand{\leon}{the first supervisor~}
+\newcommand{\leon}{the first supervisor{ }}
 
 \makeatletter
 \newcommand\footnoteref[1]{\protected@xdef\@thefnmark{\ref{#1}}\@footnotemark}
@@ -100,6 +100,28 @@ headsepline, % Uncomment to get a line under the header
 \lstset{language=Python,
 	commentstyle=\color{gray},
 }
+
+\lstset{language=C#,
+	numberblanklines=false
+	,basicstyle=\ttfamily%
+	,breaklines=true%
+	,tabsize=1%
+	,showstringspaces=false%
+	,numbers=left%
+	,numbersep=\lstnumbersep%
+	,numberstyle=\lstnumberstyle%
+	,framesep=0pt%
+	,xleftmargin=\lstnumberwidth%
+	,framexleftmargin=\lsthorizontalpadding%
+	,xrightmargin=\lsthorizontalpadding%
+	,framexrightmargin=\lsthorizontalpadding%
+	,backgroundcolor=\color{verylightgray}%
+	,postbreak=\ding{229}\space%
+	,escapeinside={*(}{*)}
+	\linespread{1.0}
+}
+
+
 
 %------------- for code inline in the text-----------------------------------------------
 \definecolor{evenmorelightgray}{gray}{0.95}
@@ -168,6 +190,8 @@ headsepline, % Uncomment to get a line under the header
 	\hypersetup{pdfkeywords=\keywordnames} 
 }
 
+\newlength{\ucht}
+\AtBeginDocument{\settoheight{\ucht}{A}}
 
 \begin{document}
 	
@@ -356,7 +380,8 @@ headsepline, % Uncomment to get a line under the header
 	\restoregeometry
 	\include{Appendices/AppendixB}
 	\restoregeometry
-	%\include{Appendices/AppendixC}
+	\include{Appendices/AppendixC}
+	\restoregeometry
 		
 
 	%----------------------------------------------------------------------------------------
