@@ -58,7 +58,7 @@ for i_episode in range(20): *($\label{algline:gym_episode}$*)
 		env.render()
 		print(observation)
 		action = env.action_space.sample()
-		observation, reward, done, info = env.step(action)
+		observation, reward, done, info = env.step(action) *($\label{algline:gym_envstep}$*)
 		if done:
 			print("Episode finished after {} timesteps".format(t+1))
 			break
