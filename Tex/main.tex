@@ -34,6 +34,8 @@ headsepline, % Uncomment to get a line under the header
 %others would be: \hypersetup{...  urlcolor= .. citecolor = .. allcolor = .. hidelinks }
 \usepackage{pifont,calc,xcolor}
 
+\usepackage[stable]{footmisc}
+
 \usepackage{tikz}
 \usepackage{sequence_diagrams/pgf-umlsd}
 \usepgflibrary{arrows} % for pgf-umlsd
@@ -84,7 +86,8 @@ headsepline, % Uncomment to get a line under the header
 \newlength\lstnumberwidth
 \setlength\lstnumberwidth{\widthof{\lstnumberstyle00}+\lstnumbersep+\lsthorizontalpadding}
 
-\newcommand{\leon}{the first supervisor{ }}
+\newcommand{\leon}{the \leonbase{ }}
+\newcommand{\leonbase}{first supervisor}
 
 \makeatletter
 \newcommand\footnoteref[1]{\protected@xdef\@thefnmark{\ref{#1}}\@footnotemark}
@@ -121,6 +124,8 @@ headsepline, % Uncomment to get a line under the header
 	\linespread{1.0}
 }
 
+%for multi-line-tables
+\newcommand{\blap}[1]{\smash[b]{{\def\arraystretch{1}\tabcolsep=0pt \begin{tabular}[t]{@{}l@{}}#1\end{tabular}}}}
 
 
 %------------- for code inline in the text-----------------------------------------------
@@ -278,12 +283,12 @@ headsepline, % Uncomment to get a line under the header
 	%	QUOTATION PAGE
 	%----------------------------------------------------------------------------------------
 	
-	\newpage
-	\vspace*{0.2\textheight}
-	
-	\noindent\enquote{\itshape There are no surprising facts, only models that are surprised by facts; and if a model is surprised by the facts, it is no credit to that model.}\bigbreak
-	
-	\hfill Eliezer Yudkowsky
+%	\newpage
+%	\vspace*{0.2\textheight}
+%	
+%	\noindent\enquote{\itshape There are no surprising facts, only models that are surprised by facts; and if a model is surprised by the facts, it is no credit to that model.}\bigbreak
+%	
+%	\hfill Eliezer Yudkowsky
 
 
 	%----------------------------------------------------------------------------------------

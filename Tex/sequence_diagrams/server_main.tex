@@ -64,17 +64,20 @@
 		\postlevel\postlevel
 		\begin{call}{recthread}{\small handle\_special\_commands(data)}{recthread}{}
 			\begin{sdblock}{opt}{data == \textit{special command}}
-				\begin{call}{recthread}{read()}{inputval}{result}
-				\end{call}
-				\begin{messcall}[0]{recthread}{\small endEpisode(result)}{agent}
-					\begin{messcall}{agent}{reset()}{inputval}{}
-					\end{messcall}
-					\begin{messcall}{agent}{reset()}{outputval}{}
-					\end{messcall}								
-					\begin{messcall}{agent}{send\_via\_thread("reset")}{outputval}{}
-						\mess{outputval}{reset}{sendthread}					
-					\end{messcall}						
-				\end{messcall}
+				\begin{messcall}{recthread}{\small handle\_special\_commands(\textit{command})}{agent}
+					\begin{call}{agent}{read()}{inputval}{result}
+					\end{call}
+					\begin{call}[0]{agent}{endEpisode(result)}{agent}{}
+						\begin{messcall}{agent}{reset()}{inputval}{}
+						\end{messcall}
+						\begin{messcall}{agent}{reset()}{outputval}{}
+						\end{messcall}								
+						\begin{messcall}{agent}{send\_via\_thread("reset")}{outputval}{}
+							\mess{outputval}{reset}{sendthread}					
+						\end{messcall}		
+					\end{call}				
+				\end{messcall}		
+				\prelevel
 				\begin{messcall}[0]{sendthread}{mysend("reset")}{sendsoc}{}		
 					\mess[1]{sendsoc}{reset}{unity}
 				\end{messcall}				
@@ -87,16 +90,19 @@
 		\end{messcall}
 		\begin{call}{recthread}{read()}{inputval}{content}
 		\end{call}
-		\begin{messcall}[0]{recthread}{performAction(content)}{agent}{}
+		\begin{messcall}[2]{recthread}{performAction(content)}{agent}{}
 			\begin{messcall}{agent}{\small update(action)}{outputval}{}
 				\begin{call}{outputval}{\small send\_via\_thread(action)}{outputval}{}
 					\mess{outputval}{send}{sendthread}					
 				\end{call}					
 			\end{messcall}
+			\prelevel
+%			\begin{call}{agent}{\scriptsize learnANN()}{agent}{}
+%			\end{call}
 		\end{messcall}
-		\prelevel
+		\prelevel \prelevel 
 		\begin{call}{sendthread}{read()}{outputval}{content}
-		\end{call}			
+		\end{call}	
 		\begin{messcall}[0]{sendthread}{mysend(content)}{sendsoc}{}		
 			\mess[1][content]{sendsoc}{send}{unity}
 		\end{messcall}		
