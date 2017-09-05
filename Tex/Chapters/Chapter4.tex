@@ -5,7 +5,7 @@
 \newcommand{\term}[1] {{\spaceskip=.95\fontdimen2\font minus \fontdimen4\font
 	\xspaceskip=0pt\relax \large\texttt{#1}}}
 
-As explained in the introduction (\ref{ch:intro}), the aim of this thesis was to convert a given racing game into an environment that can be played by reinforcement learning agents, and to analyze the performance of different agents. In this chapter, I will explain the implementation that was develeopt throughout this process. I will start by explaining the design decisions that shaped this implementation in section~\ref{ch:projectcharacteristicschap}. In the following section (\ref{ch:implementation}) I will explain the particular source code. I will start with the game as it was given as starting point, most parts of which are not implemented by the author of this thesis. Then the implemented extensions of the game are explained, before leading over to the agent. In the last section of this chapter (section~\ref{ch:possiblefeatures}), I will explain what kind of data the game provides, that can be used by an agent.
+As explained in the introduction (\ref{ch:intro}), the aim of this thesis is to convert a given racing game into an environment that can be played by reinforcement learning agents and to analyze the performance of different agents. In this chapter, I will explain the implementation that was developed throughout this process. I will start by explaining the design decisions that shaped this implementation in section~\ref{ch:projectcharacteristicschap}. In the following section (\ref{ch:implementation}) I will explain the particular source code. I will start with the game as it was given as starting point, most parts of which are not implemented by the author of this thesis. Then the implemented extensions of the game are explained, before leading over to the agent. In the last section of this chapter (section~\ref{ch:possiblefeatures}), I will explain what kind of data the game provides that can be used by an agent.
 
 \section{Characteristics and design decisions}
 
@@ -118,9 +118,11 @@ As stated above, it was a design decision to leave as many options open to the a
 	In the following sections, I will refer to the definitions of these functions/options as the \keyword{features} of the agent. In the implementation, there are many possible features, not all of which are actually used by an agent. I will refer to those as \keyword{possible features}. When I talk specifically about the possible observations influencing the observation-function, I refer to those as \keyword{(possible) vectors}.
 \end{flushright}
 
-It is due to this design decision that the program flow of this project cannot follow the exact same structure than the one put forward in algorithm~\ref{alg:gym}. One big structural difference is for example that the outer loop (line~\ref{algline:gym_episode}) becomes obsolete, as the agent decides under what conditions the environment must be reset. A further advantage of an implementation like this is also, that it can be experimented with rewards that change over time, such that an agent can for example first learn how to move forward, and only later to always stay on track.\\
+It is due to this design decision that the program flow of this project cannot follow the exact same structure than the one put forward in algorithm~\ref{alg:gym}. One big structural difference is for example that the outer loop (line~\ref{algline:gym_episode}) becomes obsolete, as the agent decides under what conditions the environment must be reset. A further advantage of an implementation like this is also, that it can be experimented with rewards that change over time, such that an agent can for example first learn how to move forward, and only later to always stay on track.
 
-\noindent I will go into detail about the implemented features and vectors in a later section after describing the implementation of agent and environment, as the data relies on functions and data specific to this implementation.
+Because there are many features in which agents can differ, it makes sense to use the object-oriented programming concept of \term{inheritance} for the different agents. In such an implementation, the main methods common to every agent as well as basic definitions of the features are implemented in a superclass. Particular agents inherit from this class, while overwriting the attributes/functions for the feature in which they differ.\\
+
+\noindent I will go into detail about the implemented features and vectors in a later section after describing the implementation of agent and environment, as the data relies on functions and data specific to this implementation. 
 
 
 \section{Implementation}
@@ -330,19 +332,17 @@ When talking about the \inlinecode{inputval}, it was mentioned that it contains 
 
 Until it gets to the agent, neither the observation nor the reward is set. Thus, the agent needs to specify its own functions for its observation (given environment-state) and reward (given state and action). Furthermore, the server notifies the agent of specific events that happened in the game, to which the agent could react by resetting the environment and starting a new episode. These methods, next to the obvious ones of performing an action or conducting a learning-step, must thus be specified by an agent. When describing the agent in this section, only those functions are relevant, as the inner workings of the server are hidden to the agent.
 
-To ease the implementation of agents, they all inherit from a superclass called \inlinecode{AbstractAgent} as well as a class termed \inlinecode{AbstractRLAgent}, both of which defined in \term{agent.py}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN/blob/master/agent.py}}. The key idea is, that all functions and features mutural to all agents are set in these classes, such that any spcific agent must only implement/overwrite the functions in which it differs from its superclasses. Because not all agents use reinforcement learning, it was decided to use two superclasses instead of only one. The class \inlinecode{AbstractAgent} does for example not specify a memory, as a purely pre-trained agent does not need it.
+To ease the implementation of agents, they all inherit from a superclass called \inlinecode{AbstractAgent} as well as a class termed \inlinecode{AbstractRLAgent}, both of which are defined in \term{agent.py}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN/blob/master/agent.py}}. The key idea is, that all functions and features mutural to all agents are set in these classes, such that any specific agent must only implement/overwrite the functions in which it differs from its superclasses. Because not all agents use reinforcement learning, it was decided to use two superclasses instead of only one -- the class \inlinecode{AbstractAgent} does for example not specify a memory, as a purely pre-trained agent does not need it.
 
-In the scope of this thesis, multiple agents where developed, using different models, vectors and approaches. In the final version of the implementation there are five different agents left, which can all be found in the folder \term{agents}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN/tree/master/agents}}:
- \\[1em]
-\begin{tabular}{l l l l}
-	filename & uses model & uses visionvector & performs RL\\
-	\hline
-	\textbf{ddpg\_novision\_rl\_agent}.py & DDPG & no & yes\\	
-	\textbf{ddpg\_rl\_agent}.py & DDPG & yes & yes\\
-	\textbf{dqn\_novision\_rl\_agent}.py & DQN & no & yes\\
-	\textbf{dqn\_rl\_agent}.py & DQN & yes & yes\\
-	\textbf{dqn\_sv\_agent}.py & \blap{supervised network\\ with DQN-structure} & yes & no\\[2em]
-\end{tabular}
+In the scope of this thesis, multiple agents where developed, using different models, vectors and approaches. In the final version of the implementation there are five exemplary agents left, which can all be found in the folder \term{agents}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN/tree/master/agents}}. These agents differ in the model they use, if they use the vision-vector and if they rely on supervised pretraining, as will be detailed in chapter \ref{ch:analysis}. %TODO SATZ weg
+Figure~\ref{fig:agentMINI} depicts the inheritance-relation of an agent and its super-classes using an UML-diagram.
+\begin{figure}[h]
+	\centering 
+	\includegraphics[width=\textwidth]{uml_diagrams/agent_inText.1}  
+	\caption{incomplete UML-diagram of an agent and its superclasses}
+	\label{fig:agentMINI}
+\end{figure}
+
 
 
 
@@ -467,9 +467,7 @@ In the scope of this thesis, multiple agents where developed, using different mo
 
 %Das was ich beim Iris-erklären bezüglich der Sequence Diagramme aufgeschrieben hab
 
-\includegraphics[width=\textwidth]{uml_diagrams/models_inText.1}\\
-\newpage
-\includegraphics[width=\textwidth]{uml_diagrams/agent_inText.1}  
+
 
 %\begin{algorithm}[H]
 %	\KwData{this text}

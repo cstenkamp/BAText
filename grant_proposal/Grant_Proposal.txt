@@ -1,0 +1,26 @@
+libraries to use: CuDNN
+research domain: Machine Learning/AI
+Programming Interfaces: Anaconda
+Equipment requested: Nvidia (Titan)
+
+Statement of Proposed Research (2000 words):
+- a short description of your research project(s)
+- how you and/or your team will use the GPU
+
+-Cognitive Science, Neuroinformatics/Machine Learning Department
+-Currently no Profs doing actual ANNs yet, but its coming, and there is a huge general need from students
+-Tensorflow
+
+[NUR PROJEKTBEZOGEN, nicht unbedingt department in general]
+
+The GPU will have a big impact on our department in general, as there are many projects, especially by students, involving ANNs, which can of course be done best with a decent GPU.
+
+
+One specific research project is the following:
+The idea is to make an artificial neural network with TensorFlow, that learns to play a racing game. The new thing about that is, that it is a complex game with realistic acelleration and break-behaviour. Some data from the game, written in Unity, is streamed live to python Python then executes the Recurrent Neural Network, and sends the steering command back to Unity. The data the Neural Network gets consists of vectors containing information about speed, position [others, like lookaheadvektor] as well as other variables containing information about slip behaviour etc.
+As the game is supposed to be played in faster-than-realtime, it is necessary to perform the forward step as well as the learning of the ANN as fast as possible, a lot faster than a CPU manages to do that.
+
+
+
+
+https://www.arc.gov/funding/HowtoWriteaGrantProposal.asp

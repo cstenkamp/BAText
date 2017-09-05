@@ -88,27 +88,47 @@ Class.svagent("dqn_sv_agent.Agent")
    "preTrain");    
 
 
+Class.anagent("Agent")
+  ("model",
+   "ff_inputsize")
+  ("policyAction");
+
+
 beginfig(1)
 
 	agent.e = (0,0);
 	rlagent.w = agent.e + (50, 0);
-	dqnagent.nw = rlagent.e + (50,200);	
-	blindqnagent.nw = rlagent.e + (50,110);	
-	ddpgagent.nw = rlagent.e + (50, 20);	
-	blinddpgagent.nw = rlagent.e + (50,-112);	
-	svagent.n = agent.s + (0, -60);
+	anagent.w = rlagent.e + (50, 0);
 	
-	drawObjects(agent, rlagent, dqnagent, blindqnagent, ddpgagent, blinddpgagent, svagent);
+	drawObjects(agent, rlagent, anagent);
 
 
 	link(inheritance)(rlagent.w -- agent.e);
-	link(inheritance)(svagent.n -- agent.s);
+	link(inheritance)(anagent.w -- rlagent.e);
 	
-	link(inheritance)(pathStepX(dqnagent.w, rlagent.e, -15));
-	link(inheritance)(pathStepX(blindqnagent.w, rlagent.e, -15));
-	link(inheritance)(pathStepX(blinddpgagent.w, rlagent.e, -15));
-	link(inheritance)(pathStepX(ddpgagent.w, rlagent.e, -15));
 
+endfig;
+
+beginfig(2)
+
+agent.e = (0,0);
+rlagent.w = agent.e + (50, 0);
+dqnagent.nw = rlagent.e + (50,200);	
+blindqnagent.nw = rlagent.e + (50,110);	
+ddpgagent.nw = rlagent.e + (50, 20);	
+blinddpgagent.nw = rlagent.e + (50,-112);	
+svagent.n = agent.s + (0, -60);
+
+drawObjects(agent, rlagent, dqnagent, blindqnagent, ddpgagent, blinddpgagent, svagent);
+
+
+link(inheritance)(rlagent.w -- agent.e);
+link(inheritance)(svagent.n -- agent.s);
+
+link(inheritance)(pathStepX(dqnagent.w, rlagent.e, -15));
+link(inheritance)(pathStepX(blindqnagent.w, rlagent.e, -15));
+link(inheritance)(pathStepX(blinddpgagent.w, rlagent.e, -15));
+link(inheritance)(pathStepX(ddpgagent.w, rlagent.e, -15));
 
 endfig;
 

@@ -1,12 +1,28 @@
 \chapter{Analysis, Results and open Questions}
 
+\label{ch:analysis}
+
 testing took place on a win10 machine, ...
 Answer all of the research questions explicitly!!!
 
 -result: mein way of incorporating pretraining
 -dass ein supervised agent nicht lernen kann da er immer in die wand brettert
+-parameter selection gehört hier rein!!
+
+\begin{tabular}{l l l l}
+	filename & uses model & uses visionvector & performs RL\\
+	\hline
+	\textbf{ddpg\_novision\_rl\_agent}.py & DDPG & no & yes\\	
+	\textbf{ddpg\_rl\_agent}.py & DDPG & yes & yes\\
+	\textbf{dqn\_novision\_rl\_agent}.py & DQN & no & yes\\
+	\textbf{dqn\_rl\_agent}.py & DQN & yes & yes\\
+	\textbf{dqn\_sv\_agent}.py & \blap{supervised network\\ with DQN-structure} & yes & no\\[2em]
+\end{tabular}
 
 
+\includegraphics[width=\textwidth]{uml_diagrams/models_inText.1}\\
+\newpage
+\includegraphics[width=\textwidth]{uml_diagrams/agent_inText.2}  
 
 \chapter{Discussion}
 

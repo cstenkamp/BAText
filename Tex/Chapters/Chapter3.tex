@@ -9,15 +9,6 @@
 
 \section{Reinforcement Learning Frameworks} \label{ch:rlframeworks}
 
-[hier zuerst noch ne kurze zusammenfassung, und das bild mit der environment-agent metapher!]
-Gym/Universe
-Torcs
-schreiben dass die Arcade Learning Environment (Bellemare et al., 2013 aus dem Dueling) zu Gym wurde (I guess)
-torcs: im DDPG-paper steht "Torcs has previously been used as a testbed in other
-policy learning approaches (Koutnik et al., 2014b). "!!!!!!!!!!!!!!!
-fußnote dass ich auch im code nen evaluator für ddpg hab der gym und pendulum swingup nutzt\\
-
-
 In the previous chapter, I outlined the general structure of a reinforcement learning problem. In summary, it consists of agent and environment, where the environment is discretized into timesteps and only partially observed by the agent (\textbf{POMDP}). Each timestep, the agent gets an observation of the environment's state (making up its \keyword{internal state} and a scalar reward, and chooses an action to return to the environment. A graphical description of this interaction is depicted in figure \ref{fig:agentenvironment}.
 \begin{figure}[h]
 	\centering %https://tex.stackexchange.com/questions/57958/how-to-position-the-labels-of-the-path-in-automata
@@ -33,11 +24,11 @@ In the previous chapter, I outlined the general structure of a reinforcement lea
 	\label{fig:agentenvironment}
 \end{figure}
 
-When developing RL agents, it is not enough to create algorithm, but also to have a specification of agent environment that allows for a dataflow as described above. The original Deep-Q-Network \cite{mnih_playing_2013} as well as its follow-ups \cite{van_hasselt_deep_2015}\cite{wang_dueling_2015} trained their agents on several \textsc{Atari} games using the \keyword{Arcade Learning Environment} (\textbf{ALE}) \cite{bellemare_arcade_2012}. The ALE was developed with the intention to evaluate the generality of several AI techniques, especially general game playing, reinforcement learning and planning. The important contribution of \cite{bellemare_arcade_2012} was to provide a testbed for any kind of agent, by providing a simple common interface to more than a hundred different tasks. The ALE consists of an Atari-Simulator as well as a game-handling layer, which transformed all of the included Atari-games to a standard reinforcement learning problem. Doing that, it provided the accumulated score so far (corresponding to the reward), the information whether game ended (indicating the end of a training episode), as well as a $160 \times 210$  2D array of 7-bit pixels (corresponding to the agent's observation). As the game screen does not correspond to the internal state of the simulator, the ALE corresponds to a POMDP. The possible input to the simulation consists of 18 discrete actions. 
+When developing RL agents, it is not enough to create algorithms, but also to have a specification of agent and environment that allows for a dataflow as described above. The original Deep-Q-Network \cite{mnih_playing_2013} as well as its follow-ups \cite{van_hasselt_deep_2015}\cite{wang_dueling_2015} trained their agents on several \textsc{Atari} games using the \keyword{Arcade Learning Environment} (\textbf{ALE}) \cite{bellemare_arcade_2012}, which was developed with the intention to evaluate the generality of several AI techniques, especially general game playing, reinforcement learning and planning. The important contribution of \cite{bellemare_arcade_2012} was to provide a testbed for any kind of agent, by providing a simple common interface to more than a hundred different tasks -- converting games into reinforcement learning problems. Doing that, it provided the accumulated score so far (corresponding to the reward), the information whether game ended (indicating the end of a training episode), as well as a $160 \times 210$  2D array of 7-bit pixels (corresponding to the agent's observation). As the game screen does not correspond to the internal state of the simulator, the ALE corresponds to a POMDP. 
 
 Environments with discrete actions only are however severly limited, and most of the interesting real-world applications, as for example autonomous driving, require however real-valued action spaces. The test scenarios for the Deep-DPG algorithm consisted thus of a number of simulated physics-tasks, using the MuJoCo physics environment. \\
 
-\noindent Both of the above mentioned environments are by now, among many others, merged into the \keyword{OpenAI gym} environment \cite{brockman_openai_2016}. The OpenAI gym\footnote{\url{https://gym.openai.com}} is created as a toolkit, helping reinforcement learning research by including a collection of benchmark problems with a common interface. The idea is to provide consistent, standardized environments, such that algorithms are easy to benchmark. In that respect, their goal was to provide the reinforcement-learning-pendant of a labeled dataset, such as ImageNet. Aside the previously mentioned ALE as well as a number of physics tasks using the MuJoCo physics-engine, the openAI gym contains the boardgame Go, two-dimensional continous control tasks (\keyword{Box2D games}), a 3D-shooter by the name of \keyword{Doom}, and several other tasks. These tasks are varied in their complexity, input and output: some of them use low-dimensional state representations consisting of only a four-dimensional vector of scalars, while others use a 2D-pixel image of RGB colors.  
+\noindent Both of the above mentioned environments are by now, among many others, merged into the \keyword{OpenAI gym}\footnote{\url{https://gym.openai.com}} environment \cite{brockman_openai_2016}, a toolkit helping reinforcement learning research by including a collection of benchmark problems with a common interface. Aside the previously mentioned ALE as well as a number of physics tasks using the MuJoCo physics-engine, the openAI gym contains the boardgame Go, two-dimensional continous control tasks (\keyword{Box2D games}), a 3D-shooter by the name of \keyword{Doom}, and several other tasks, varying in complexity, input and output.
 
 The goal of openAI gym is to be as convenient and accessible as possible. For that, one of their design decisions was to make a clear cut between agent and environment, only the latter of which is provided by OpenAI. The exemplary sourcecode found in algorithm \ref{alg:gym}, taken from \url{https://gym.openai.com/docs}, outlines the ease of creating an agent working in the gym framework.
 \begin{algorithm}[h]
@@ -66,6 +57,8 @@ for i_episode in range(20): *($\label{algline:gym_episode}$*)
 \caption{Interaction with the openAI gym environment}
 \label{alg:gym}
 \end{algorithm}
+
+
 The code outlines how the general dataflow between agent and environment usually takes place: After a reset, the environment provides the first \keyword{observation} to the agent. Afterwards, it is the agent's turn to provide an action. Even though not featured in this easy example, the action is performed by usage of the observation. Once an agent has calculated the action and provided it to the environment, it can perform another simulation step, returning $\langle observation, reward, done, info\rangle$, which is a tuple consisting of another observation of the environment's state, a scalar reward, the information if the episode is finished and it is time to reset the environment, as well as some information for debugging, typically not used in the final description of an agent. In the remainder of this work, I will refer to this dataflow as a baseline on how the interaction of environment and agent should look like.\\
 
 It is worth noting, that the openAI gym is not even 
@@ -88,7 +81,8 @@ https://arxiv.org/pdf/1704.03952.pdf
 \subsection{games}
 
 Leon wollte hier ne Tabelle von verschiedenen games und den respective inputs die sie nutzen...!
-
+im DDPG-paper steht "Torcs has previously been used as a testbed in other
+policy learning approaches (Koutnik et al., 2014b).
 
 \begin{table}
 \resizebox{\textwidth}{!}{

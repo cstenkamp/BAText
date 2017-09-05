@@ -1,0 +1,30 @@
+Hardware Grant Request: Proposal
+
+Project title: Transfer Learning for deepnets on racing games
+
+Team Leader: Gordon Pipa, University of Osnabrueck
+
+Introduction (zeigt die wichtigkeit)
+<coole, lange intro warum das Projekt nötig ist>
+-Kurzfristig soll es halt ne Rennspiel-Simulation per Reinforcement-Learning lernen, im optimalfall nur anhand von einem visionvektor. "Die Karre schnell um'n Kurs"
+-Mittelfristig geplant ist das zu adaptieren für echte racing cars, und halt auch sachen wie überholen und halt literally alles zu incorporaten
+-sowas wie CV um passanten zu erkennen, darum gehts nicht. ABER um das smart schnell kurven fahren gehts bei DENEN ja nicht. 
+-Latent Variables. InfoGAN. "inwiefern können wir es schaffen dass aufzutrennen, dass wir kontrollieren können dass das gleiche netz, mit unterschiedlichem C für 2 verschiedene Autos, dass wir die neuronal-encodete information auseinanderfrimeln können, um zu sagen "dieser teil ist fahrdynmaik-berechnung, dieser ist streckenspeczifisch, dieser autospezifisch, ...." dass wir sagen können "jetzt ist wasser auf der strecke hast du durch sensoren erfahren, wir teilen dir das mit durch entsprechende ifnormation in C (zusätzlicher input)"... ist halt nur kein 1:1 infoGAN, sondern nur bespielhaft wie man ANNs was beibringen kann ("externes handle", dafür gibts völlig unterschiedliche methoden, das sollen wir anvisieren) <- das ist Leons nächster Schritt sobald der fährt ("handle mit den grip-bedinungen in den grant reinschreiben, ist ziel für step 2 des projects (step 1 ist fahren lernen")
+-zweiter schritt generell ist ENTWEDER ne andere strecke, ODER die selbe in nass
+-theoretisch könnte man auch prozedural strecken generieren (müssen keine kreise sein, sondern quasi-rallye), und auf denen lernen
+-Architektur nicht zu genau beschreiben, nur sagen dass man das extern einstellen sollen kann.
+-sinnvolle Argumentationsstruktur, nciht zu lang, etc!
+-wichtigkeit: generelle self-driving cars, DUH. (relevanz vom am-limit-fahren ist sogar da bei polizei, feuerwehr, etc)
+
+Relevanz
+-Erkenntnisse aus diesem Feld lassen sich unter umständen übertragen auf Real-world applications, wann-immer es darum geht einen Autopiloten zu haben der die Physik lernen muss (im grenzbereich, bei komplexer fahrdynmaik, bewegen... [dann müsste er übrigens die aktuelle physik immer mitsenden damit das irgendwie sinn macht]... wie man autos trainiert auf gewisse situationen zu reagieren)
+-unterliegen soll ein intuitives, durch ausprobierenlernen, von physik [nicht so sagen, da es blöd rumlabern ist]
+-RENNautos ist ein hot-topic und noch kein gelöstes Problem, speziell smart schnell kurven fahren
+
+
+Methods/Approach (selbstgeschriebene unity-fahrsimulation, wie deepnets sind, ..)
+<Die genaue abfolge an zeug das man macht, im letzten satz "relies on something something requiring considerable GPU performance">
+
+
+Outlook
+selbstfahrende autos, handle geben für verschiedene strecken etc
