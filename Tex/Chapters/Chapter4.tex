@@ -270,7 +270,7 @@ its function \inlinecode{StartedAIMode()}, which, next to calling the known \inl
 the function \inlinecode{LoadAndSendToPython}.
 
 
-%%TODO - ungefähres UML-diagramm DES SPIELS!!
+%TODO - ungefähres UML-diagramm DES SPIELS!!
 %-ablaufdiagramm vom server-zeug dass zu dem von python passt
 %-Aufbau des exportierten XMLs (dabieschreiben dass action und speed 2 mal drin sind weil die von fake_speed affektiert sein könnten)
 %-beschreibung der optionen-konstanten
@@ -281,9 +281,10 @@ the function \inlinecode{LoadAndSendToPython}.
 
 -nochmal drauf eingehen dass das spiel live ist
 -das von leon gemalte ablaufdiagramm
+\colorbox{red}{dass der server alle 0.1 sekunden was von unity bekommt!}
 
 
-\subsection{The agent\footnote{I will rely heavily on UML sequence diagrams and class diagrams to explain program flow and classes of agents. In case a reader is unfamiliar with the standards of UML 2.0, it is referred to e.g. \url{https://www.ibm.com/developerworks/rational/library/3101.html} for sequence diagrams and \url{https://www.ibm.com/developerworks/rational/library/content/RationalEdge/sep04/bell/index.html} for class diagrams.}}
+\subsection{The agent\footnote{I will rely heavily on UML sequence diagrams and class diagrams to explain program flow and classes of agents. In case a reader is unfamiliar with the standards of UML 2.0, it is referred to e.g. \url{https://www.ibm.com/developerworks/rational/library/3101.html} for sequence diagrams and \url{https://www.ibm.com/developerworks/rational/library/content/RationalEdge/sep04/bell/index.html} for class diagrams. In the main text, only small class-diagrams accompany the explanation of the code, with respective complete versions in  \colorbox{red}{appendix~\ref{BLABLABLA}.}}}
 
 As already explained, the implementation at hand differs in its program flow from other implementations, as the environment cannot be specified in a separate class, on which the agent can perform a function like \inlinecode{step()} (as in line \ref{algline:gym_envstep} of algorithm~\ref{alg:gym}). As the closest equivalent to such a class, the file  \term{server.py}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN/blob/master/server.py}} (from now on called server) contains the thread-safe class \inlinecode{InputValContainer} that provides explicit functions to read its state. Upon executing the server, an instance \inlinecode{inputval} of type InputValContainer is created. This instance is \term{know}n to objects that read or write from it through \inlinecode{containers}, an instance of the class \inlinecode{Containers}. This class contains references to several objects and settings that must be known to multiple objects and functions, which can thus for example easily access the mentioned input-value as \inlinecode{containers.inputval}.
 
@@ -306,6 +307,8 @@ While the main thread is constantly running, it does not contribute to the agent
 
 The main-thread listens for a termination of the user with \keystroke{CTRL}+\keystroke{C}. Once that occurs, it notifies all other threads to shut down by setting \inlinecode{containers.KeepRunning = False} and waits for their termination by \inlinecode{join}ing them, such that the main thread is guaranteed to be the last to finish.
 
+% TODO - Why I have inputval and outputval: INPUTval damit der immer nur die letzte action hinzügen muss und der die history DADRIN hat, und OUTPUTval damit das multithreading schneller geht. BEIDES hat  seinen sinn!! 
+%TODO [multiple threads deshalb weil das geschwindigkeit optimiert - beim inputval können mehrere agents multi-threaded unabhängig/gleichzeitig lesen und performen (dann gäbs nen weiteren thread, der wäre dann nicht blau und würde auf inputval zugreifen), und beim outputvall können senderthread und receiverthread einfach gleichzeitig so schnell wie möglich arbeiten]
 
 \begin{figure}[h!]
 	\centering
@@ -316,7 +319,7 @@ The main-thread listens for a termination of the user with \keystroke{CTRL}+\key
 	\label{fig:sequenceserver}
 	\medskip
 	\scriptsize
-	Reading instructions: Y-axis is time. Columns with a full colored bar are threads, other objects are classes. The color of a bar represents which thread a method runs in. An arrow from A to B means "A calls a method from B".
+	Reading instructions: Y-axis is time. Columns with a full colored bar are threads, other objects are objects. The color of a bar represents which thread a method runs in. An arrow from A to B means "A calls a method from B". %TODO Simultaneous things are horizontally aligned. Messages from thread to thread are without parantheses?
 \end{figure}
 
 \subsubsection{The main loop}
@@ -325,7 +328,7 @@ In the \inlinecode{receiver\_thread}, the socket is constantly waiting for data.
 
 If the data was no such command, the \inlinecode{receiver\_thread} updates the \inlinecode{inputval} and starts an inference of the agent by calling its method \inlinecode{performAction}, passing the latest content of the \inlinecode{inputval}. This method is where the agent calculates its observation/reward, adds this to his replay memory, calculates the action on basis of its model and performs learning steps as appropriate. Immeadiately after the action is calculated, the agent updates the \inlinecode{outputval} with the the result. Upon being updated, the outputval informs the \inlinecode{sender\_thread} of this update. This thread can then read the latest \inlinecode{outputval} and send it back to the client using its socket, which may be simultaneous to the agent performing its learning-step\footnote{Note that all of the agent's inference runs thus in the receiver-thread. It was experimented to use an additional agent-thread that in regular intervals looks if the \inlinecode{inputval} was filled with new data, such that the inference of the agent and a waiting to receive new data can occur simulatenously. However, as the agent's inference runs fast enough if it does not perform a learning-step after an inference and too slow in any case if it does, this concept was abandoned.}. 
 
-As mentioned above, the \inlinecode{inputval} is the server's closest correspondance of the environment. Every time new raw data from the game is sent to the server, \inlinecode{inputval.update} is called, which then incorporates the new information as well as timestamps of when they were send (used to calculate how long an inference took). Because the information that is sent over the sockets is textual, the method \inlinecode{cutoutandreturnvectors} from the file \term{read\_supervised.py}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN/blob/master/read_supervised.py}} is called to convert this text back to python-arrays. Note, that there will consistently be made a difference between the content of the minimap-cameras (vision-vector, see \ref{ch:minimap}) and the other \term{vectors}, as they are stored in a different type of object. While the vision-vectors are stored as 2-dimensional \keyword{numpy}-array, the other vectors are bundled to a class called \inlinecode{Otherinputs}, a subclass of  \term{namedtuple}\footnote{\url{https://docs.python.org/2/library/collections.html#collections.namedtuple}}, which provides easily readable dot-access to its members instead of solely by index. This allows to add new vectors easily, as only a name of the new feature must be added in the definition of \inlinecode{Otherinputs} in the file read\_supervised.py
+As mentioned above, the \inlinecode{inputval} is the server's closest correspondance of the environment. Every time new raw data from the game is sent to the server, \inlinecode{inputval.update} is called, which then incorporates the new information as well as timestamps of when they were send (used to calculate how long an inference took). Because the information that is sent over the sockets is textual, the method \inlinecode{cutoutandreturnvectors} from the file \term{read\_supervised.py}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN/blob/master/read_supervised.py}} is called to convert this text back to python-arrays. Note, that there will consistently be made a difference between the content of the minimap-cameras (vision-vector, see \ref{ch:minimap}) and the other \term{vectors}, as they are stored in a different type of object. While the vision-vectors are stored as 2-dimensional \keyword{numpy}-array, the other vectors are bundled to a class called \inlinecode{Otherinputs}, a subclass of  \term{namedtuple}\footnote{\url{https://docs.python.org/2/library/collections.html#collections.namedtuple}}, which provides easily readable dot-access to its members instead of solely by index. This allows to add new vectors easily, as only a name of the new feature must be added in the definition of \inlinecode{Otherinputs} in the file read\_supervised.py. Further, it increases the overseeability of functions using its components a lot.
 
 The \inlinecode{inputval} contains arrays to store the history of vision-vectors (\inlinecode{vvec\_hist}), otherinputs (\inlinecode{otherinput\_hist}) as well as an array for the history of performed actions (\inlinecode{action\_hist}). In its \inlinecode{update}-method, it normalizes the \inlinecode{otherinputs} and appends it as well as the latest vision-vectors, where it merges both into the \inlinecode{vvec\_hist}.
 To reduce the computational load, the \inlinecode{inputval} does not contain the entire history of the game. As already explained, it contains a superset of the observations of the actual agent, which likely contains much superflous information. To reduce the working memory load it causes, the \inlinecode{inputval} only saves the latest information send from the game, which corresponds to the maximum of information an agent \textit{could know} about the last or second to last state. After appending the newest vectors to the value, the \inlinecode{inputval} also checks if the car faced into the wrong direction for a certain amount of time and notifies the agent if so, such that the agent can optionally reset the environment.
@@ -352,7 +355,7 @@ Figure~\ref{fig:agentMINI} depicts the inheritance-relation of an agent and its 
 \begin{figure}[h]
 	\centering 
 	\includegraphics[width=\textwidth]{uml_diagrams/agent_inText.1}  
-	\caption[UML-diagram of an agent and its super-classes]{incomplete UML-diagram of an agent and its super-classes. A more complete version can be seen in \colorbox{red}{appendix~\cite{BLABLABLA}}
+	\caption[UML-diagram of an agent and its super-classes]{incomplete UML-diagram of an agent and its super-classes. A more complete version can be seen in \colorbox{red}{appendix~\ref{BLABLABLA}}}
 	\label{fig:agentMINI}
 \end{figure}
 
@@ -369,7 +372,7 @@ Next to \inlinecode{getAgentState(gameState)}, there are several other helper-fu
 
 In its \codefunc{\_\_init\_\_}, called when \codeobj{server} creates the \codeobj{agent}, the classes \codeobj{AbstractAgent} and \codeobj{AbstractRLAgent} define some assumptions about about the configuration of its \term{features}. These variables can be overwritten by its subclasses if their actual configeration differs, such that these variables are reliable information about the agent's configuration of \term{features}. When initializing its memory or its model, the agent also passes a reference to itself, such that the configuration-variables are accessible from inside those objects. 
 
-The server calls not only the \codefunc{\_\_init\_\_}, but also the \codefunc{initForDriving}. In this function, the agent's memory is (according to its \term{features}) initialized, as well as an \term{evaluator}. The evaluator is an independent object, specified in \term{evaluator.py}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN/blob/master/evaluator.py}}. It provides functions to save information about the agent's driving performance in the form of running averages of the agent's rewards, q-values, progress per episode or others to an XML-file. \colorbox{red}{This can be inspected by running the file FILENAME123, which \\ produces the plots like those used in chapter~\ref{ch:analysis}.} If the application is not run with the argument \codeother{-noplot}, the evaluator also plots these running averages live, using the library \codeobj{matplotlib}. The agent uses the evaluator by calling its \codefunc{eval\_episodeVals}.
+The server calls not only the \codefunc{\_\_init\_\_}, but also the \codefunc{initForDriving}. In this function, the agent's memory is (according to its \term{features}) initialized, as well as an \term{evaluator}. The evaluator is an independent object, specified in \term{evaluator.py}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN/blob/master/evaluator.py}}. It provides functions to save information about the agent's driving performance in the form of running averages of the agent's rewards, q-values, progress per episode or others to an XML-file. \colorbox{red}{This can be inspected by running the file FILENAME123, which \\ produces the plots like those used in chapter~\ref{ch:analysis}.} If the application is not run with the argument \codeother{-noplot}, the evaluator also plots these running averages live, using the library \codeobj{matplotlib}. The agent uses the evaluator by calling its \codefunc{eval\_episodeVals}. The performance of a human can be evaluated by using any kind of agent that uses the evalutor and overwriting the agent's actions by pressing \keystroke{H}.
 
 During runtime, the agent's \codefunc{performAction(gameState, pastState)} is called. It is provided by \codeobj{AbstractAgent} (and overwritten by \codeobj{AbstractRLAgent}), and does not need to be changed by agents in the general case. The function checks if an action should be taken, converts the given \codeobj{gameState} into an \codeobj{agentState} and provides the action. Where this action is taken from is decided in this function -- it can use the previous action (a variable \codeobj{action\_repeat} is specified in it with similar reasoning than that of the DQN\cite{mnih_human-level_2015}), a random action (by calling \codefunc{policyAction(agentState)}) or an action according to its model (\codefunc{randomAction(agentState)}). The implementation given in the \codeobj{AbstractRLAgent} uses a simple $\epsilon$-greey approach, such that \codefunc{randomAction} with a probability $\epsilon$, where epsilon decreases over time. In agents where it is desired to overwrite the this exploration method, either the \codefunc{performAction}-function can be overwritten or (as done in the provided DDPG-based agents) the \codefunc{randomAction} simply returns \codefunc{policyAction}, and the actual exploration-technique is integrated into the \codefunc{policyAction}-function. 
 \codefunc{performAction(gameState, pastState)} cares for updating the server's \codeobj{outputval}, such that all issues of communication (next to eg. having to work with the \codeobj{gameState}) are abstracted away from \codeobj{policyAction} and \codeobj{randomAction}. 
@@ -389,11 +392,12 @@ It is possible to use the \codeobj{"parallel"} learn mode or the \codeobj{"betwe
 
 -die gui. dass agents die die unterstützen nen spezielles set an funktionen übershcreiben müssen
 -irgendwo noch "note that the agent's policaction and randomaction must return toUse und toSave"
-
+-while not all functions from the classes are found in this text, the umldiagram in appendix blabla states all. wird aber erst komplett sinvoll nach kapitel features
 
 \subsubsection{Memory}
 
 -dass das aus safety gründen immer 2 mal speichert, falls der pc out of memory runnt
+-dass das halt handcrafted efficient, oder allesfressendes inefficient, wobei das halt halt bei denen wos genutzt wird egal ist
 
 \subsubsection{Pretraining}
 
@@ -401,180 +405,19 @@ It is possible to use the \codeobj{"parallel"} learn mode or the \codeobj{"betwe
 -read_supervised und pretrain.py komplett 
 -die make_trianBatch+makeqleanrinputrfrombath als correspondance zu makeQlearnINputsfrommemoryblabla, und die pretrain
 -warum der von supervisedly lernen nicht mehr lernen kann (nur erwähnen, im nächsten erklären)
+-das ganze export import gedöns [unity exportiert halt die pretraindata, gneauso wie es die python senden würde, als human-readable xml]
 
 \subsubsection{Models}
 
 -auf die gym_test klasse eingehen mit der man testen kann ob man das model abgefuckt hat
 -das uml-diagramm
+-das krasse schlecte diskretisieren in dqn-based, inkl course of dimensionality und allem!
+\includegraphics[width=\textwidth]{uml_diagrams/models_inText.1}
 
 \subsubsection{Network architecture}
 
-\paragraph{DQN}
-
--die grafik von andrea
 
 
-\paragraph{DDPG}
-
--die grafik von andrea
--satz über batchnorm
-
-
-
-\subsection{Performance measure}
-
-
-%
-%bei UML-diagrammen im anhang vollständige diagramme haben und im fließtext die mit nur wichtigen/erwähnten funktionen(!!)
-%[dass abstractRLagent noch memory hat]
-%[jede funktion aus dem Diagramm mit grund erklären warum sie da ist, die die ich ncith erklär auch nur im Diagramm im Anhang haben!]
-%
-%[dann die einzelnen un-abstrakten agents... novision_agent ist halt dqn-basiert, hat daher nen dddqn-model, ist novision, hat also keine conv, muss also getAgentstate übershcreiben (kann auch ruhig inefficientmemroy nutzen da die daten klein sind, ...)
-%
-%[EIGENTLICH sollte abstractRLAgent klappen mit pur random actions... und mit einem param vielleicht als evaluate\_humans agent fungieren??]
-%
-%[dass die alle plotter HABEN und die serverkompomenten über containers KENNen etc]
-%[warum haben dqnbasierte agents nochmal randomaction drin? übernehmen sie nicht die vom abstractRLagent?]
-%
-%[dass dddqn auch supervisedly lernen kann ist superpraktisch, weil so kann man mit dem dqn\_sv\_agent mit der pretrian methode gucken ob das dataset überhaupt seperable ist!
-%
-%wie die othervecs in den agent reingehen, als namedtuple, und wie man sich dann aussuchen kann was man davon nehmen möchte
-%
-%überhaupt pretrianen und dass man die exportieren kann!
-%
-%[die architektur von meinem duelDQN muss nochmal inen eigenen graphen yay]
-%
-%[DDDQN\_model braucht update-target-network methode im UML]
-%[wird evaluator vom standard-agent gecallt?]
-%[wennde testen wilslt ob dataset seperable ist, guckste in sv\_agent, wennde wissen willst ob das model funktioniert, guckste in gym\_text]
-%
-%[unity exportiert halt die pretraindata, gneauso wie es die python senden würde, als human-readable xml]
-
-%
-%
-%ultra-kurze version: -Server.py ist was gerannt wird. Server kommuniziert mit Unity. Unity sendet alle 0.1 sekunden den aktuellen Vektor an python (eigentlich auch vision, reicht aber davon auszugehen dass nur distanz zur straßenmitte und winkel entlang der straße geschickt werden, und dass das network von da an feed-forward ist)
-%-Alle 0.1 Sekunden bekommt also der server den vektor von  unity und führt dann im agent "runInference" aus.
-%-der Agent steht in agent.py (soll ne abstrakte Klasse sein), und wird bspw implementiert von dqn_novision_rl_agent.py
-%-in runInference runnt dann das ANN/random action. Dazu nutzt es sein model. Das model ist halt das DDDQN, welches in der Klasse dddqn.py steht
-%-das dddqn-model hat halt online und target version. Wenn inference vom agent gecallt wird, nutzt es das targetnetwork
-%-Agent lässt dann server das netzwerk-resultat über den server wieder an Unity senden, und wartet auf den nächsten state von unity
-%-wenn er den bekommen hat, fügt er das seinem replay memory hinzu, welches in inefficientmemory.py steht
-%-alle FOREVERYINF schritte führt der agent dann COMESALEARN learn-schritte durch (definiert in der dauerLearnANN/learnANN des agents.py, welche wiederum q_learn von ddddqn.py callen)
-%
-%
-%Das Kommando, was er an unity schicken soll, ist auf einfachste weise diskretisiert: 7 werte für steering, gas und bremse sind binär. also 7 werte mit gas, 7 werte mit bremse, 7 werte mit weder noch. Führt zu 21 Q-werten in jedem State.
-%
-%Das Problem ist: Das Auto fährt immer direkt gegen die Wand. Im laufe der Exploration (epsilon-greedy mit zufallswerten, den Ornstein-Uhlenbeck hab ich fürs erste rausgneommen bis es nicht mehr so blöd ist) fährt es halt anfangs ein bisschen random, unter anderem den schnellsten weg an die Wand (1, 0, 0.875). Nach dem trianing denkt es sich dann hey, schnellster weg gegen die wand, perfekt, genau das will ich. Hat durchgehend den höchsten Q-wert, vom losfahren bis direkt vor der wand stehen.
-%
-%Current Q Vals
-%0, 0, -0.857:   -0.0359664
-%0, 0, -0.571:   -0.108884
-%0, 0, -0.286:     0.0335033
-%0, 0, 0.0:   -0.162055
-%0, 0, 0.286:    0.163034
-%0, 0, 0.571:    0.165725
-%0, 0, 0.857:    0.256491
-%1, 0, -0.857:   0.132185
-%1, 0, -0.571:    0.109252
-%1, 0, -0.286:   -0.121606
-%1, 0, 0.0:   -0.148062
-%1, 0, 0.286:   0.0419721
-%1, 0, 0.571:    0.048473
-%1, 0, 0.857:    0.277924   <— "schnellster weg gegen die wand"
-%0, 1, -0.857:    0.0503001
-%0, 1, -0.571:   -0.356878
-%0, 1, -0.286:    0.101346
-%0, 1, 0.0:   -0.0989533
-%0, 1, 0.286:   -0.059001
-%0, 1, 0.571:   -0.117535
-%0, 1, 0.857:    0.104965
-%
-%Hab jetzt zig verschiedene reward-möglichkeiten ausprobiert, die aktuelle ist nur positiver reward, hilft auch nix.
-%
-%Man sollte auch grundsätzlich davon ausgehen, dass der aktuelle Qmax (plotte ich in jedem state) grundsätzlich niedriger wird wenn er vor der Wand steht, wird er aber nicht, ist durchgehend der gleiche.
-%
-%Und jah, mit den Terminals undso ist alles richtig, hier ein beispiel der letzten replay-memory-einträge bevor er gegen die Wand fährt:
-%
-%State    action    reward  state2  is_terminal
-%0.253   (1, 0, 0.857)   1.085   1.052   False
-%1.052   (1, 0, 0.857)   1.07488 1.965   False
-%1.965   (1, 0, 0.857)   1.06112 2.989   False
-%2.989   (1, 0, 0.857)   1.0428   4.118   False
-%4.118   (1, 0, 0.857)   0   5.334   False
-%5.334   (1, 0, 0.857)   0   6.626   False
-%6.626   (1, 0, 0.857)   0   7.955   False
-%7.955   (1, 0, 0.857)   0   9.322   False
-%9.322   (1, 0, 0.857)   0   10.0  False
-%10.0   (0, 0, 0.857)   -5   10.0   True
-%
-%Wobei ich vom state jetzt nur entfernung zur straßenmitte plotte, und reward auch von entfernung zur straßenmitte aktuell (plus speed in street-direction, die ist aber durchgehend quasi null).
-%
-%
-%Man sollte meinen daraus lernt er dass sehr weit weg von der straßenmitte stheen ein nicth erstrebenswertes ziel ist, aber nope, das ist der mit abstand höchste q-wert, unerreichbar für die anderen.
-%
-%
-%Hab jetzt auch zig verschiedene sachen probiert wie ich q-werte initialisieren (alle negativ, alle positiv, alle ungefähr null), aber nix klappt wirklich
-%
-%
-%
-
-
-
-
-%
-%
-%[Dass man mit supervised training super gucken kann ob dieseundjene state-definition sinnvoll ist, und dass man mit der gym_test super gucken kann ob man das model verbuggt hat]
-%
-%
-%\footnote{I will rely heavily on UML to explain my code and stuff. Version UML 2.0. to get an overview of how that look like, I refer the reader to https://www.ibm.com/developerworks/rational/library/3101.html and https://www.ibm.com/developerworks/rational/library/content/RationalEdge/sep04/bell/index.html for sequence diagrams and class diagrams, respectively.}
-%
-%[tf gibt automatic differentiation, multi-gpu support, python interface]
-%
-%Important to know in sequence diagrams: There are both threads and object-instances. Threads are recognized by the block starting at their top. Threads call methods OF the instances. Which thread called something from the instance in a specific case is recognizable by the color, as colors correspond to threads. Simultaneous things are horizontally aligned. Messages from thread to thread are without parantheses.
-%
-%Why I have inputval and outputval: INPUTval damit der immer nur die letzte action hinzügen muss und der die history DADRIN hat, und OUTPUTval damit das multithreading schneller geht. BEIDES hat  seinen sinn!!
-%[multiple threads deshalb weil das geschwindigkeit optimiert - beim inputval können mehrere agents multi-threaded unabhängig/gleichzeitig lesen und performen (dann gäbs nen weiteren thread, der wäre dann nicht blau und würde auf inputval zugreifen), und beim outputvall können senderthread und receiverthread einfach gleichzeitig so schnell wie möglich arbeiten]
-
-%Das was ich beim Iris-erklären bezüglich der Sequence Diagramme aufgeschrieben hab
-
-
-
-%\begin{algorithm}[H]
-%	\KwData{this text}
-%	\KwResult{how to write algorithm with \LaTeX2e }
-%	initialization\;
-%	\While{not at end of this document}{
-%		read current\;
-%		\eIf{understand}{
-%			go to next section\;
-%			current section becomes this one\;
-%		}{
-%		go back to the beginning of current section\;
-%	}
-%}
-%\caption{How to write algorithms}
-%\end{algorithm}
-
-
-
-
-\subsubsection{Challenges and Solutions}
-
-
-
-\subsubsection{Pretraining}
-
-
-
-\subsubsection{The different agents}
-
-DQN vs DDPG, sehend vs nicht-sehend, ...  
-
-getstatecountfeaturevec macht für das was ich mache mit meiner netzwerk-struktur keinen sinn (256 neurons direkt bevor es in die actions geht)
-
-\subsubsection{Models}
-
--die uml-diagramme sind fertig
 
 \subsubsection{Network architecture}
 
@@ -596,6 +439,59 @@ getstatecountfeaturevec macht für das was ich mache mit meiner netzwerk-struktu
 In the original DDPG-algorithm \cite{lillicrap_continuous_2015}, the authors used \keyword{batch normalization} \cite{ioffe_batch_2015} to have the possibility of using the same network hyperparameters for differently scaled input-values. In the learning step when using minibatches, \batchnorm normalizes each dimension across the samples in a batch to have unit mean and variance, whilst keeping a running mean and variance to normalize in non-learning steps. In Tensorflow, batchnorm can be added with an additional layer and an additional input, specifying the phase (learning step/non-learning step)\footnote{cf. \url{https://www.tensorflow.org/api\_docs/python/tf/contrib/layers/batch_norm}}. Though Lillicrap et al. seemed to have success on using \batchnorm, in practice it lead to unstability, even on simple physics tasks in openAI's gym. As I am not the only one having this issue \footnote{redditlink}, I left out batch normalization for good.
 
 
+\paragraph{DQN}
+
+-die grafik von andrea
+
+
+\paragraph{DDPG}
+
+-die grafik von andrea
+-satz über batchnorm
+
+
+
+\subsection{Performance measure}
+
+-dass halt eigentlich zu jedem zeitpunkt compared zu rrt oder human sein müsste
+
+%[dass die alle plotter HABEN und die serverkompomenten über containers KENNen etc]... doch nochmal in nem großem uml-diagram? dann auch als notiz rein dass bei nem actual agent der gameState weg-abstrahiert ist ... und inklusive agent has evaluator, evaluator knows agent, ... same for memory, ...
+
+%[die architektur von meinem duelDQN muss nochmal inen eigenen graphen yay]
+
+%%-alle FOREVERYINF schritte führt der agent dann COMESALEARN learn-schritte durch (definiert in der dauerLearnANN/learnANN des agents.py, welche wiederum q_learn von ddddqn.py callen)
+%
+%Was der Fehler sooooo lange war: Das Auto fährt immer direkt gegen die Wand. Im laufe der Exploration fährt es halt anfangs ein bisschen random, unter anderem den schnellsten weg an die Wand (1, 0, 0.875). Nach dem trianing denkt es sich dann hey, schnellster weg gegen die wand, perfekt, genau das will ich. Hat durchgehend den höchsten Q-wert, vom losfahren bis direkt vor der wand stehen.
+%
+%
+%State    action    reward  state2  is_terminal
+%0.253   (1, 0, 0.857)   1.085   1.052   False
+%1.052   (1, 0, 0.857)   1.07488 1.965   False
+%1.965   (1, 0, 0.857)   1.06112 2.989   False
+%2.989   (1, 0, 0.857)   1.0428   4.118   False
+%4.118   (1, 0, 0.857)   0   5.334   False
+%5.334   (1, 0, 0.857)   0   6.626   False
+%6.626   (1, 0, 0.857)   0   7.955   False
+%7.955   (1, 0, 0.857)   0   9.322   False
+%9.322   (1, 0, 0.857)   0   10.0  False
+%10.0   (0, 0, 0.857)   -5   10.0   True
+
+
+
+
+%
+%[tf gibt automatic differentiation, multi-gpu support, python interface]
+%
+
+
+%mehr pseudocodes!!!!
+
+
+
+
+% TODO \subsubsection{Challenges and Solutions}
+
+
 
 
 
@@ -615,4 +511,7 @@ In the original DDPG-algorithm \cite{lillicrap_continuous_2015}, the authors use
 
 \subsection{Reward}
 
+-meine theorien: continuous, non-negative, aus ner shclehcten darf nicht besser sein als in einem guten eh sein)
+-dass immer speed belohnen negativ ist, siehe ->problem bei ddpg, approach von dem kerastorcsguy, siehe kapitel \colorbox{red}{Daskapitel}
+-die funktion wo man sich den durchgängingen reward in ner farbe plotten kann (auch bei \keystroke{H})
 

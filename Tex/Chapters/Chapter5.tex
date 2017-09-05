@@ -13,12 +13,26 @@ Answer all of the research questions explicitly!!!
 -wie viel arbeit die socketkommunikation war und wie überraschend effizient die ist
 -mit dem aktuellem reward lernt er das vor der kurve bremsen besser ist als fahren, wie man sieht wenn man davor steht
 
--dass man mit dem SV-agent testen kann ob dataset separable
+-dass man mit dem SV-agent testen kann ob dataset separable, praktischerweise kann das supervisednet ja die gleiche struktur haben wie das dqn (gucken kann ob dieseundjene state-definition sinnvoll ist)
 
 -dass er definitiv lernt vor ner wand zu bremsen, dank der reward function, war nen langer weg bis dahin.
 
-%scalability: mit minimal arbeit könnte man mehrere unity-instanzen haben die sich am reclistenport anmelden, an nen eigenen receiverthread weitergeleitet werden, eigenen inputval haben um das bottleneck instanzen erzeugen zu umgehen
+-dass actions als input (beosnder bei pretraining) sehr schlecht ist da der dann lernt immer die vorherige zu machen
 
+%scalability: mit minimal arbeit könnte man mehrere unity-instanzen haben die sich am reclistenport anmelden, an nen eigenen receiverthread weitergeleitet werden, eigenen inputval haben um das bottleneck instanzen erzeugen zu umgehen
+%den anderen emma-text wie man weitere instanzen hinzufügen kann
+
+[wennde testen wilslt ob dataset seperable ist, guckste in sv\_agent, wennde wissen willst ob das model funktioniert, guckste in gym\_text]
+
+
+Hab jetzt auch zig verschiedene sachen probiert wie ich q-werte initialisieren (alle negativ, alle positiv, alle ungefähr null
+
+
+\subsubsection{The different agents}
+
+DQN vs DDPG, sehend vs nicht-sehend, ...  
+
+getstatecountfeaturevec macht für das was ich mache mit meiner netzwerk-struktur keinen sinn (256 neurons direkt bevor es in die actions geht)
 
 
 \begin{tabular}{l l l l}
@@ -32,8 +46,6 @@ Answer all of the research questions explicitly!!!
 \end{tabular}
 
 
-\includegraphics[width=\textwidth]{uml_diagrams/models_inText.1}\\
-\newpage
 \includegraphics[width=\textwidth]{uml_diagrams/agent_inText.2}  
 
 \chapter{Discussion}

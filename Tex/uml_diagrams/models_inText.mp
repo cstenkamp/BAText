@@ -65,7 +65,8 @@ Class.dqnmod("DDDQN_model")
    "statevalue(oldstates: [s]): float",
    "qvalue(oldstates: [s], actions: [a]): float",
    "q_train_step(batch: <[s],[a],[r],[s],[t]>, decay_lr: bool=False): float",
-   "sv_train_step(batch: <[s],[a],[r],[s],[t]>, decay_lr: bool=True): float");
+   "sv_train_step(batch: <[s],[a],[r],[s],[t]>, decay_lr: bool=True): float",
+   "update_target_network()");
 
 
 
