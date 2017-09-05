@@ -2,6 +2,7 @@
 
 \label{ch:RL} 
 
+\newcommand{\inlinecode}[1]{\colorbox{evenmorelightgray}{\lstinline[basicstyle=\ttfamily\color{black}]{#1}}}
 
 %----------------------------------------------------------------------------------------
 %	INTRO
@@ -256,7 +257,7 @@ The use of these two techniques leads to the Q-learning update rule, using the l
 \end{flushright}
 As is the case with the experience replay mechanism, the usage of a target network was improved as well -- modern algorithms do not perform a hard update of the target network every $C$ steps, but instead perform \keyword{soft target network updates}, where every iteration, the weights of the target network are defined as $\theta^-_i := \theta_i * \tau + \theta^-_i * (1-\tau)$ with $0 < \tau \ll 1$, first introduced in \cite{lillicrap_continuous_2015}. This improves the stability of the algorithm even more.\\
 
-As a pseudocode for the DQN-architecture is already stated in the corresponding paper \cite{mnih_human-level_2015}, listing it again here would be superflous. Instead, I try to compare the pseudocode with the code of my actual implementation using Python and Tensorflow in appendix~\ref{ap:dqn}. In the first two pages of the appendix, the necessary definitions of agent and network structure are introduced, before in page~\pageref{ap:dqn_comparison} there is the actual comparison between the pseudocode and its correspondences in the actual code, namely the \inlinecode{__init__}, \inlinecode{inference} and \inlinecode{q_learn}-functions of the model-class. Note that the blue lines of the pseudocode correspond to difference from the original DQN in favor of later improvements.
+As a pseudocode for the DQN-architecture is already stated in the corresponding paper \cite{mnih_human-level_2015}, listing it again here would be superflous. Instead, I try to compare the pseudocode with the code of my actual implementation using Python and Tensorflow in appendix~\ref{ap:dqn}. In the first two pages of the appendix, the necessary definitions of agent and network structure are introduced, before in page~\pageref{ap:dqn_comparison} there is the actual comparison between the pseudocode and its correspondences in the actual code, namely the \inlinecode{\_\_init\_\_}, \inlinecode{inference} and \inlinecode{q\_learn}-functions of the model-class. Note that the blue lines of the pseudocode correspond to difference from the original DQN in favor of later improvements.
 
 \subsection{Double-Q-Learning}
 It is well known that Q-learning tends to ascribe unrealistically high Q-values to some action-state-combinations. The reason for this is, that to estimate the value of a state $s_j$ it includes a maximization step over estimated action values $Q(s_j,a)$ , where naturally, overestimated values are preferred over underestimated values. 

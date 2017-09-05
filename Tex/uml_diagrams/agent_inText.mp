@@ -4,38 +4,39 @@ iClass.iName.iFont.scale := 1.1;
 iAssoc.iFont.scale := 1.2;
 
 AbstractClass.agent("AbstractAgent")
-  ("isInitialized: bool",
-   "action_repeat: int=4",
-   "isSupervised: bool=False",
-   "isContinuous: bool=False",
-   "usesConv: bool=True",
-   "usesGUI: bool=False")
-  ("getAgentState",
-   "initForDriving",
-   "performAction",
-   "resetUnityAndServer",
-   "handle_special_commands");
+  ("-action_repeat: int=4",
+   "-isSupervised: bool=False",
+   "-isContinuous: bool=False",
+   "-usesConv: bool=True",
+   "+usesGUI: bool=False",
+   "-evaluator: evaluator(settings)")
+  ("-getAgentState(gameState)",
+   "+initForDriving(*args)",
+   "+performAction(gameState,pastState)",
+   "-resetUnityAndServer()",
+   "+handle_commands(command: string)");
 
 
 AbstractClass.rlagent("AbstractRLAgent")
-  ("start_fresh: bool",
-   "wallhitPunish: int=1",
-   "wrongDirPunish: int=5",
-   "startepsilon: float",
-   "epsilon: float",
-   "memory: Inefficientmemory")
-  ("policyAction",
-   "initForDriving",
-   "calculateReward",
-   "performAction",
-   "randomAction",
-   "addToMemory",
-   "handle_special_commands",
-   "learnANN",
-   "dauerLearnANN",
-   "punishLastAction",
-   "endEpisode",
-   "preTrain");
+  ("-start_fresh: bool",
+   "-wallhitPunish: int=1",
+   "-wrongDirPunish: int=5",
+   "-startepsilon: float",
+   "+time_ends_episode: int=60",
+   "-epsilon: float",
+   "-evaluator: evaluator(settings)",
+   "-memory: Inefficientmemory")
+  ("+initForDriving(*args)",
+   "-calculateReward(gameState)",
+   "+performAction(gameState,pastState)",
+   "-randomAction(agentState)",
+   "-addToMemory(gameState,pastState)",
+   "+handle_commands(command: string)",
+   "-learnANN()",
+   "+dauerLearnANN(steps: int)",
+   "-punishLastAction(howmuch: int)",
+   "-endEpisode(reason: string, gameState)",
+   "+preTrain(dataset, iterations: int)");
 
 
 Class.dqnagent("dqn_rl_agent.Agent")
@@ -89,16 +90,17 @@ Class.svagent("dqn_sv_agent.Agent")
 
 
 Class.anagent("Agent")
-  ("model",
-   "ff_inputsize")
-  ("policyAction");
+  ("-name: string",
+   "-model: model",
+   "-ff_inputsize: int")
+  ("-policyAction(agentState)");
 
 
 beginfig(1)
 
 	agent.e = (0,0);
-	rlagent.w = agent.e + (50, 0);
-	anagent.w = rlagent.e + (50, 0);
+	rlagent.w = agent.e + (24, 0);
+	anagent.w = rlagent.e + (24, 0);
 	
 	drawObjects(agent, rlagent, anagent);
 
@@ -109,28 +111,28 @@ beginfig(1)
 
 endfig;
 
-beginfig(2)
-
-agent.e = (0,0);
-rlagent.w = agent.e + (50, 0);
-dqnagent.nw = rlagent.e + (50,200);	
-blindqnagent.nw = rlagent.e + (50,110);	
-ddpgagent.nw = rlagent.e + (50, 20);	
-blinddpgagent.nw = rlagent.e + (50,-112);	
-svagent.n = agent.s + (0, -60);
-
-drawObjects(agent, rlagent, dqnagent, blindqnagent, ddpgagent, blinddpgagent, svagent);
-
-
-link(inheritance)(rlagent.w -- agent.e);
-link(inheritance)(svagent.n -- agent.s);
-
-link(inheritance)(pathStepX(dqnagent.w, rlagent.e, -15));
-link(inheritance)(pathStepX(blindqnagent.w, rlagent.e, -15));
-link(inheritance)(pathStepX(blinddpgagent.w, rlagent.e, -15));
-link(inheritance)(pathStepX(ddpgagent.w, rlagent.e, -15));
-
-endfig;
+%beginfig(2)
+%
+%agent.e = (0,0);
+%rlagent.w = agent.e + (40, 0);
+%dqnagent.nw = rlagent.e + (40,200);	
+%blindqnagent.nw = rlagent.e + (50,110);	
+%ddpgagent.nw = rlagent.e + (50, 20);	
+%blinddpgagent.nw = rlagent.e + (50,-112);	
+%svagent.n = agent.s + (0, -60);
+%
+%drawObjects(agent, rlagent, dqnagent, blindqnagent, ddpgagent, blinddpgagent, svagent);
+%
+%
+%link(inheritance)(rlagent.w -- agent.e);
+%link(inheritance)(svagent.n -- agent.s);
+%
+%link(inheritance)(pathStepX(dqnagent.w, rlagent.e, -15));
+%link(inheritance)(pathStepX(blindqnagent.w, rlagent.e, -15));
+%link(inheritance)(pathStepX(blinddpgagent.w, rlagent.e, -15));
+%link(inheritance)(pathStepX(ddpgagent.w, rlagent.e, -15));
+%
+%endfig;
 
 
 end

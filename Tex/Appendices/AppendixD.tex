@@ -1,0 +1,58 @@
+% Appendix D
+
+\newgeometry{
+	a4paper,
+	top=20mm,
+	bottom=10mm,
+	inner=24mm,
+	outer=9mm,} %bindingoffset=.5cm
+
+\lstset{
+	numberblanklines=false
+	,basicstyle=\ttfamily%
+	,breaklines=true%
+	,tabsize=1%
+	,showstringspaces=false%
+	,numbers=left%
+	,numbersep=\lstnumbersep%
+	,numberstyle=\lstnumberstyle%
+	,framesep=0pt%
+	,xleftmargin=\lstnumberwidth%
+	,framexleftmargin=\lsthorizontalpadding%
+	,xrightmargin=\lsthorizontalpadding%
+	,framexrightmargin=\lsthorizontalpadding%
+	,backgroundcolor=\color{verylightgray}%
+	,postbreak=\ding{229}\space%
+	,escapeinside={*(}{*)}
+	\linespread{1.0}
+}
+
+\chapter{A minimally viable agent} % Main appendix title
+% https://tex.stackexchange.com/questions/22988/multicolumn-listing-for-comparison-in-latex
+
+\label{AppendixD} % For referencing this appendix elsewhere, use \ref{AppendixA}
+
+\begin{lstlisting}[language=Python, frame=none]
+import tensorflow as tf
+#====own classes====
+from agent import AbstractRLAgent
+from dddqn import DDDQN_model 
+
+
+
+class Agent(AbstractRLAgent):    
+def init(self, conf, containers, isPretrain=False, start_fresh=False, *args, **kwargs):
+	self.name = "dqn_rl_agent"
+	super().init(conf, containers, isPretrain, start_fresh, *args, **kwargs)
+	self.ff_inputsize = conf.speed_neurons + conf.num_actions * conf.ff_stacksize #32
+	self.model = DDDQN_model(self.conf, self, tf.Session(), isPretrain=isPretrain)
+	self.model.initNet(load=("preTrain" if (self.isPretrain and not start_fresh) else (not start_fresh)))
+
+
+def policyAction(self, agentState):
+	action, _ = self.model.inference(self.makeInferenceUsable(agentState)) 
+	throttle, brake, steer = self.dediscretize(action[0])
+	toUse = "["+str(throttle)+", "+str(brake)+", "+str(steer)+"]"
+	return toUse, (throttle, brake, steer)
+\end{lstlisting}%
+

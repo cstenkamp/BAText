@@ -9,6 +9,18 @@ Answer all of the research questions explicitly!!!
 -dass ein supervised agent nicht lernen kann da er immer in die wand brettert
 -parameter selection gehört hier rein!!
 
+-dass mit maximalgeschwindigkeit funtioniert
+-wie viel arbeit die socketkommunikation war und wie überraschend effizient die ist
+-mit dem aktuellem reward lernt er das vor der kurve bremsen besser ist als fahren, wie man sieht wenn man davor steht
+
+-dass man mit dem SV-agent testen kann ob dataset separable
+
+-dass er definitiv lernt vor ner wand zu bremsen, dank der reward function, war nen langer weg bis dahin.
+
+%scalability: mit minimal arbeit könnte man mehrere unity-instanzen haben die sich am reclistenport anmelden, an nen eigenen receiverthread weitergeleitet werden, eigenen inputval haben um das bottleneck instanzen erzeugen zu umgehen
+
+
+
 \begin{tabular}{l l l l}
 	filename & uses model & uses visionvector & performs RL\\
 	\hline
@@ -25,6 +37,8 @@ Answer all of the research questions explicitly!!!
 \includegraphics[width=\textwidth]{uml_diagrams/agent_inText.2}  
 
 \chapter{Discussion}
+
+-wie gut dieses framework mittlerweile funktioniert, und was für ein langer weg das dahin war (dass das definitiv was war das ne ganze arbeit füllt, aber zukünftige arbeiten jetzt super gut darauf gehen, weil wegen bam framework.)
 
 -dass es zur beschleuniung möglich wäre mehrere aggregatoren zu haben, die immer die recht aktuellste policy haben und mit unity interagieren und das nem learn-thread schicken, auf verschiedenen Maschinen
 

@@ -5,6 +5,19 @@
 \newcommand{\term}[1] {{\spaceskip=.95\fontdimen2\font minus \fontdimen4\font
 	\xspaceskip=0pt\relax \large\texttt{#1}}}
 
+\renewcommand{\inlinecode}[1]{\colorbox{red}{\lstinline[basicstyle=\ttfamily\color{black}]{#1}}}
+
+\newcommand{\codefunc}[1]{\colorbox{evenmorelightgray}{\lstinline[basicstyle=\ttfamily\color{black}]{#1}}}
+
+\newcommand{\codeobj}[1]{\colorbox{evenmorelightgray}{{\spaceskip=.95\fontdimen2\font minus \fontdimen4\font	\xspaceskip=0pt\relax \large\texttt{#1}}}}
+
+\newcommand{\codeother}[1]{\colorbox{evenmorelightgray}{\lstinline[basicstyle=\ttfamily\color{black}]{#1}}}
+
+
+\newcommand{\filename}[1] {{\spaceskip=.95\fontdimen2\font minus \fontdimen4\font
+		\xspaceskip=0pt\relax \large\texttt{#1}}}
+
+
 As explained in the introduction (\ref{ch:intro}), the aim of this thesis is to convert a given racing game into an environment that can be played by reinforcement learning agents and to analyze the performance of different agents. In this chapter, I will explain the implementation that was developed throughout this process. I will start by explaining the design decisions that shaped this implementation in section~\ref{ch:projectcharacteristicschap}. In the following section (\ref{ch:implementation}) I will explain the particular source code. I will start with the game as it was given as starting point, most parts of which are not implemented by the author of this thesis. Then the implemented extensions of the game are explained, before leading over to the agent. In the last section of this chapter (section~\ref{ch:possiblefeatures}), I will explain what kind of data the game provides that can be used by an agent.
 
 \section{Characteristics and design decisions}
@@ -115,7 +128,7 @@ As stated above, it was a design decision to leave as many options open to the a
 \end{itemize}
 \begin{flushright}
 	\scriptsize
-	In the following sections, I will refer to the definitions of these functions/options as the \keyword{features} of the agent. In the implementation, there are many possible features, not all of which are actually used by an agent. I will refer to those as \keyword{possible features}. When I talk specifically about the possible observations influencing the observation-function, I refer to those as \keyword{(possible) vectors}.
+	In the following sections, I will refer to the definitions of these functions/options as the \keyword{features} of the agent. In the implementation, there are many possible features, not all of which are actually used by an agent. I will refer to those as \keyword{possible features}. When I talk specifically about the possible observations influencing the observation-function, I refer to those as \keyword{(possible) vectors}. Furthermore, the specific implementation of the agent's memory will be considered a feature. This has however no further consequences as it only differs in some agents in order to save its replay memory more efficiently.
 \end{flushright}
 
 It is due to this design decision that the program flow of this project cannot follow the exact same structure than the one put forward in algorithm~\ref{alg:gym}. One big structural difference is for example that the outer loop (line~\ref{algline:gym_episode}) becomes obsolete, as the agent decides under what conditions the environment must be reset. A further advantage of an implementation like this is also, that it can be experimented with rewards that change over time, such that an agent can for example first learn how to move forward, and only later to always stay on track.
@@ -202,7 +215,7 @@ Besides defining the \inlinecode{anchorVector}-array and other helper-arrays dep
 
 As visible in the game's screenshots (more precisely annotations \textbf{B}, \textbf{C}, \textbf{P} and \textbf{Q} of Figure~\ref{fig:aidriveshot}), the game displays information about the current laptime, the last laptime as well as the time needed for the fastest lap. Futhermore the game provides a visual feedback basing on the time needed for a specific section of the street in comparison to the time that was needed for this section in the fastest lap so far (annotation \textbf{E}). This is possible because the game records current laptime multiple times throughout the course. As mentioned above, \inlinecode{RecordingSystem.UpdateList()} gets called regularly by the \inlinecode{TrackingSystem}. \inlinecode{RecordingSystem} is an instance of the type \term{Recorder}. It contains three lists of \inlinecode{PointInTime}s, for \inlinecode{thisLap}, \inlinecode{lastLap} and \inlinecode{fastestLap}. A \inlinecode{PointInTime} is a \term{serializable} object (also defined in \term{Recorder.cs}) that contains two floats, for a progress and a corresponding time.
 
-An instance of a separate class, \term{TimingScript} (found in \term{TimingScrip.cs}\footnote{\url{https://github.com/cstenkamp/BA-rAIce/blob/master/Assets/Scripts/TimingScript.cs}}\byLeon) is attached to a permeable Collider right on the start/finish line that functions as trigger. As a subclass of \term{MonoBehaviour}, \term{TimingScript} has a \inlinecode{void OnTriggerExit(Collider other)}, that is invoked as soon as another Collider stops contact with it. As the only movable collider is the car's boxCollider, this method is called as soon as the car starts a lap. A lap is considered valid under two conditions: First, the car needs to pass a second collider (confirmCollider, with its attached \term{ConfirmColliderScript}\footnote{\url{https://github.com/cstenkamp/BA-rAIce/blob/master/Assets/Scripts/ConfirmColliderScript.cs}}\byLeon), which ensures that the car did in fact drive a complete lap instead of backing up right back on the start/finish line. The second condition for validity is, that at no time all four tires of the car hit left the street's surface.
+An instance of a separate class, \term{TimingScript} (found in \term{TimingScript.cs}\footnote{\url{https://github.com/cstenkamp/BA-rAIce/blob/master/Assets/Scripts/TimingScript.cs}}) is attached to a permeable Collider right on the start/finish line that functions as trigger. As a subclass of \term{MonoBehaviour}, \term{TimingScript} has a \inlinecode{void OnTriggerExit(Collider other)}, that is invoked as soon as another Collider stops contact with it. As the only movable collider is the car's boxCollider, this method is called as soon as the car starts a lap. A lap is considered valid under two conditions: First, the car needs to pass a second collider (confirmCollider, with its attached \term{ConfirmColliderScript}\footnote{\url{https://github.com/cstenkamp/BA-rAIce/blob/master/Assets/Scripts/ConfirmColliderScript.cs}}), which ensures that the car did in fact drive a complete lap instead of backing up right back on the start/finish line. The second condition for validity is, that at no time all four tires of the car hit left the street's surface.
 
 If a lap is considered valid, the \term{TimingSystem}'s \inlinecode{onTriggerExit}-procedure calls \term{RecordingSystem}'s \inlinecode{Rec.FinishList()}-method. Afterwards and under no restrictions, it prepares the start of a new lap by calling \inlinecode{Rec.StartList()}. Once \term{StartList} is called, the \term{RecordingSystem} creates a new List of \inlinecode{PointInTime}s, to which the \term{TrackingSystem} then regularly adds new tuples of progress and corresponding time. Once FinishList is called, the \term{RecordingSystem} checks if the lap just now is a new record, and saves it on the computer's disk if so. In its methods \inlinecode{GetDelta()} and \inlinecode{GetFeedback()}, which are called every \inlinecode{Update()}-step of the \inlinecode{UI}, it can then compare the time of the currently latest progress with the corresponding time of \inlinecode{fastestLap}. \\
 
@@ -283,7 +296,7 @@ The behaviour that will be explained is represented graphically in the sequence 
 The main loop of the agent is started by the \inlinecode{main}-method of the server. Upon execution of the this file, it interprets any passed arguments and starts the method. %TODO auf die argumente zurückkommen die Übergeben werden
 To allow a fast communication with the game, the main loop of the server is multi-threaded, such that a stable socket-connection to Unity can be preserved while the agent performs its actions in another thread. This may lead to some objects being accessed by different threads (like for example \inlinecode{outputval}), which requires a thread-safe implementation of them.
 
-In its \inlinecode{main}-method, the server creates two server-sockets\footnote{More precisely, the server uses a wrapper-class called \inlinecode{MySocket} (defined in \term{server.py}), which provides the additional behaviour of prepending the length of the future message to it, such that the socket on the other end knows how much it needs to read.}, one on the receiver-port (which is equal to Unity's sender-port), and another one on the sender-port (Unity's receiver-port). Afterwards, the server creates an agent (which one will be explained later), the \term{InputValContainer} \inlinecode{inputval} as well as an \term{OutputValContainer} termed \inlinecode{outputval} and assigns all their references to \inlinecode{containers}. Once those are created, the server starts two \term{thread}s, more precisely a \inlinecode{ReceiverListenerThread} and a \inlinecode{SenderListenerThread}. These threads use their respective server-socket they know through \inlinecode{containers}, and wait on their port by calling the socket's \inlinecode{accept()}-method over and over.
+In its \inlinecode{main}-method, the server creates two server-sockets\footnote{More precisely, the server uses a wrapper-class called \inlinecode{MySocket} (defined in \term{server.py}), which provides the additional behaviour of prepending the length of the future message to it, such that the socket on the other end knows how much it needs to read.}, one on the receiver-port (which is equal to Unity's sender-port), and another one on the sender-port (Unity's receiver-port). Afterwards, the server creates an agent of choice by initializing it and calling its \inlinecode{initForDriving}, passing command-line-parameters. Afterwards, the \term{InputValContainer} \inlinecode{inputval} as well as an \term{OutputValContainer} termed \inlinecode{outputval} are created, and their references are added to \inlinecode{containers}. Once those are created, the server starts two \term{thread}s, more precisely a \inlinecode{ReceiverListenerThread} and a \inlinecode{SenderListenerThread}. These threads use their respective server-socket they know through \inlinecode{containers}, and wait on their port by calling the socket's \inlinecode{accept()}-method over and over.
 
 Once a client connects to one of those listener-sockets, a new connected socket is created. Using this socket, a \inlinecode{receiver\_thread} or \inlinecode{sender\_thread} is created respectively, representing a stable connection to Unity. After creating this thread, the ListenerThread lets \inlinecode{containers} know about its reference (by appending it to \inlinecode{containers.receiverthreads} or \inlinecode{containers.senderthreads}) and starts its listening-loop over again. This means that during runtime, the two ListenerThreads are always active. If for some reason the old \inlinecode{receiver\_thread} or \inlinecode{sender\_thread} loses its connection, the ListenerThreads will simply estabish a new one and create a new thread. Both \inlinecode{receiver\_thread} and  \inlinecode{sender\_thread} contain a method to destroy themselves if needed, such that at any time there is exactly one thread responsible for the connection with Unity.
 
@@ -308,7 +321,7 @@ The main-thread listens for a termination of the user with \keystroke{CTRL}+\key
 
 \subsubsection{The main loop}
 
-In the \inlinecode{receiver\_thread}, the socket is constantly waiting for data. When it receives data, it first checks if it was the usual raw data used for the agent's observation/reward or a \textit{special command}. If it was the latter, the receiver\_thread calls the function \inlinecode{handle\_special\_commands} from the agent which will, according to its preferences, terminate the episode (for which it resets \inlinecode{inputval} and \inlinecode{outputval} and notifies the environment to reset itself, more on that later). 
+In the \inlinecode{receiver\_thread}, the socket is constantly waiting for data. When it receives data, it first checks if it was the usual raw data used for the agent's observation/reward or a \textit{special command}. If it was the latter, the receiver\_thread calls the agent's function \inlinecode{handle\_commands} which will, according to its preferences, terminate the episode (for which it resets \inlinecode{inputval} and \inlinecode{outputval} and notifies the environment to reset itself, more on that later). 
 
 If the data was no such command, the \inlinecode{receiver\_thread} updates the \inlinecode{inputval} and starts an inference of the agent by calling its method \inlinecode{performAction}, passing the latest content of the \inlinecode{inputval}. This method is where the agent calculates its observation/reward, adds this to his replay memory, calculates the action on basis of its model and performs learning steps as appropriate. Immeadiately after the action is calculated, the agent updates the \inlinecode{outputval} with the the result. Upon being updated, the outputval informs the \inlinecode{sender\_thread} of this update. This thread can then read the latest \inlinecode{outputval} and send it back to the client using its socket, which may be simultaneous to the agent performing its learning-step\footnote{Note that all of the agent's inference runs thus in the receiver-thread. It was experimented to use an additional agent-thread that in regular intervals looks if the \inlinecode{inputval} was filled with new data, such that the inference of the agent and a waiting to receive new data can occur simulatenously. However, as the agent's inference runs fast enough if it does not perform a learning-step after an inference and too slow in any case if it does, this concept was abandoned.}. 
 
@@ -319,18 +332,18 @@ To reduce the computational load, the \inlinecode{inputval} does not contain the
 
 Furthermore, the \inlinecode{inputval} defines a \inlinecode{read(pastState=False)}-method, such that an agent can access the information needed for its observation of the latest two states. This method unpacks and returns the respective vision-vector history of both minimap-cameras, the \inlinecode{otherinput\_hist} as well as the \inlinecode{action\_hist}. It is necessary that also the information about the penultimate state can be obtained, as the agent must add a full tuple of $\langle s_t, a_t, r_t, s_{t+1}, t+1==t_t \rangle$ to its replay memory (see chapter~\ref{ch:DQN}) to perform Q-learning. 
 
-The \inlinecode{outputval} is less complex than the inputval, and only contains the latest result of the inference. When its \inlinecode{update}-method is called, it adds the action to the \inlinecode{inputval} (because the corresponding action to the environment could otherwise not be known) and goes on notifying a \inlinecode{sender\_thread} that new information can be sent to Unity in its method \inlinecode{send\_via\_senderthread}. This method is also called when the client needs to be paused (by sending \inlinecode{"pleaseFreeze"}), needs to continue (\inlinecode{pleaseUnFreeze"}) or needs to reset (by sending \inlinecode{"pleasereset"}). The function \inlinecode{resetUnityAndServer} combines sending the reset-command to Unity and resetting \inlinecode{inputval} and \inlinecode{outputval}.
+The \inlinecode{outputval} is less complex than the inputval, and only contains the latest result of the inference. When its \inlinecode{update}-method is called, it adds the action to the \inlinecode{inputval} (because the corresponding action to the environment could otherwise not be known) and goes on notifying a \inlinecode{sender\_thread} that new information can be sent to Unity in its method \inlinecode{send\_via\_senderthread}. This method is also called when the client needs to be paused (by sending \inlinecode{"pleaseFreeze"}), needs to continue (\inlinecode{"pleaseUnFreeze"}) or needs to reset (by sending \inlinecode{"pleasereset"}). The function \inlinecode{resetUnityAndServer} combines sending the reset-command to Unity and resetting \inlinecode{inputval} and \inlinecode{outputval}.
 
 \subsubsection{Agent-independent features}
 
 All of the above explained functionality is necessary for the agent to learn the given game, and has turned out this way due to certain design choices (like the agent deciding itself when to reset the environment) and peculiarities of the necessary proprietary communication with the game. As the game is its own thread, it is constantly running and does not wait while the agent calculates the action (the space between \term{send(data)} and \term{send(content)} in the leftmost column of figure~\ref{fig:sequenceserver}). While this makes it necessary for the agent be quick, it provides the advantage that a user inspect the live environment and inspect it at will. If inside Unity the \keystroke{H}-key is pressed, the actions the agent suggested are overwritten, however the agent still gets input from the environment. If an agent features a GUI, the Q-values and rewards of the states a user drives will be printed to screen, including the agent's suggested action.
 
-When talking about the \inlinecode{inputval}, it was mentioned that it contains as much information as an agent \textit{could} know. In this implementation, there are some features that are clearly specific to an agent, while others are general settings indepent of the current agent. Those are stored in the file \term{config.py}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN/blob/master/config.py}}, while the settings of the agent are saved in the respective file of the agent. Note that the value \inlinecode{msperframe}, which specifies in what interval the agent performs actions, must always equal to its correspondance in Unity, \inlinecode{Consts.updatepythonintervalms}. The value for the maximum number of history frames, \inlinecode{history\_frame\_nr}, is currently set to four.
+When talking about the \inlinecode{inputval}, it was mentioned that it contains as much information as an agent \textit{could} know. In this implementation, there are some features that are clearly specific to an agent, while others are general settings indepent of the current agent. Those are stored in an instance of the class \codeobj{Consts}, defined in \term{config.py}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN/blob/master/config.py}}, while the settings of the agent are saved in the respective file of the agent. Note that the value \inlinecode{msperframe}, which specifies in what interval the agent performs actions, must always equal to its correspondance in Unity, \inlinecode{Consts.updatepythonintervalms}. The value for the maximum number of history frames, \inlinecode{history\_frame\_nr}, is currently set to four. When running the \filename{server}, an instance \codeobj{conf} of type \codeobj{Config} is created. The reference to this object is passed to basically all threads and objects, such that they can access all their settings clearly.
 
 
-\subsubsection{The agents}
+\subsubsection{Agents}
 
-Until it gets to the agent, neither the observation nor the reward is set. Thus, the agent needs to specify its own functions for its observation (given environment-state) and reward (given state and action). Furthermore, the server notifies the agent of specific events that happened in the game, to which the agent could react by resetting the environment and starting a new episode. These methods, next to the obvious ones of performing an action or conducting a learning-step, must thus be specified by an agent. When describing the agent in this section, only those functions are relevant, as the inner workings of the server are hidden to the agent.
+Until it gets to the agent, neither the observation nor the reward is set. Thus, the agent needs to specify its own functions for its observation (given environment-state) and reward (given state and action). Because of this, some methods of an agent receive the \inlinecode{gameState} instead of the \inlinecode{agentState}, in contrast to other approaches. Furthermore, the server notifies the agent of specific events that happened in the game, to which the agent could react by resetting the environment and starting a new episode. These methods, next to the obvious ones of performing an action or conducting a learning-step, must thus be specified by an agent. When describing the agent in this section, only those functions are relevant, as the inner workings of the server are hidden to the agent.
 
 To ease the implementation of agents, they all inherit from a superclass called \inlinecode{AbstractAgent} as well as a class termed \inlinecode{AbstractRLAgent}, both of which are defined in \term{agent.py}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN/blob/master/agent.py}}. The key idea is, that all functions and features mutural to all agents are set in these classes, such that any specific agent must only implement/overwrite the functions in which it differs from its superclasses. Because not all agents use reinforcement learning, it was decided to use two superclasses instead of only one -- the class \inlinecode{AbstractAgent} does for example not specify a memory, as a purely pre-trained agent does not need it.
 
@@ -339,21 +352,78 @@ Figure~\ref{fig:agentMINI} depicts the inheritance-relation of an agent and its 
 \begin{figure}[h]
 	\centering 
 	\includegraphics[width=\textwidth]{uml_diagrams/agent_inText.1}  
-	\caption{incomplete UML-diagram of an agent and its superclasses}
+	\caption[UML-diagram of an agent and its super-classes]{incomplete UML-diagram of an agent and its super-classes. A more complete version can be seen in \colorbox{red}{appendix~\cite{BLABLABLA}}
 	\label{fig:agentMINI}
 \end{figure}
 
+To add a new RL-agent, a class extending \inlinecode{AbstractRLAgent} that specifies at least \inlinecode{name}, \inlinecode{ff\_inputsize}, an initialized \inlinecode{model} and the function \inlinecode{policyAction} must be added to the agents-directory, an exemplary agent that does so is listed in appendix~\ref{AppendixD}. To use any agent, its filename (without extension) must be supplied as argument when running the server, such that it gets automatically imported and initialized: \inlinecode{python server.py --agent ddpg\_rl\_agent}.
+
+reihenfolge, überleitung, whatever.
+
+
+Most of the functions an agent specifies are only for internal use -- the only ones which are called from outside (by the server) are the ones for initializing the agent, performing an action, reacting to (reset-) commands and performing pretraining.
+
+As can be seen in the diagram, some methods require a \inlinecode{gameState} (or \inlinecode{pastState}) as argument, whereas others require an \inlinecode{agentState}. Inside the implemention, they are both clearly defined. An \inlinecode{gameState} is what is provided by the server, a tuple of $\langle visionvectorHistory, visionvector2History, otherinputHistory, actionHistory \rangle$. This tuple is used to calculate the agent's observation in the function \inlinecode{getAgentState(*gameState)}. An agent-state is defined as a tuple consisting of $\langle convolutionalInputs, otherInputs, standsInput \rangle$. If used by an agent, $convolutionalInputs$ consists of stacked 2D-matrices originally stemming from the minimaps, whereas all non2D-input given in $otherInputs$. It was decided to seperate the $convolutionalInputs$ from the $otherInputs$ such that hybrid ANNs, having both a convolutional as well as a feed-forward component, have a distinct input for either. A distinctiveness of this implementation to others is the additional usage of $standsInput$, which is a boolean that is only true if the car currently stands. When having such an input, models can easily be hard-coded to prevent situations in which the car stands undesirably still. 
+
+Next to \inlinecode{getAgentState(gameState)}, there are several other helper-functions specified in \inlinecode{AbstractAgent(gameState)}, like for example \inlinecode{getAction(gameState)}. This function returns the agent's last action in a way that can be used by the agent's model. One has to be aware that the DQN-models need the agent to be discretized to a one-hot vector, while the DDPQ-models need the action input in form of three real numbers. As in the current implementation both models are used by respective agents, this function may have to be overwritten. As the \codeobj{AbstractAgent} was implemented with DQN-based agents in mind, it provides the function to discretize and dediscretize the action, which wraps such a function from the file \filename{read\_supervised.py}. The function \inlinecode{makeInferenceUsable(state)} combines those functions for certain kinds of states, such that it is the only one needing to be called whenever the agent accesses its \inlinecode{model}.
+
+In its \codefunc{\_\_init\_\_}, called when \codeobj{server} creates the \codeobj{agent}, the classes \codeobj{AbstractAgent} and \codeobj{AbstractRLAgent} define some assumptions about about the configuration of its \term{features}. These variables can be overwritten by its subclasses if their actual configeration differs, such that these variables are reliable information about the agent's configuration of \term{features}. When initializing its memory or its model, the agent also passes a reference to itself, such that the configuration-variables are accessible from inside those objects. 
+
+The server calls not only the \codefunc{\_\_init\_\_}, but also the \codefunc{initForDriving}. In this function, the agent's memory is (according to its \term{features}) initialized, as well as an \term{evaluator}. The evaluator is an independent object, specified in \term{evaluator.py}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN/blob/master/evaluator.py}}. It provides functions to save information about the agent's driving performance in the form of running averages of the agent's rewards, q-values, progress per episode or others to an XML-file. \colorbox{red}{This can be inspected by running the file FILENAME123, which \\ produces the plots like those used in chapter~\ref{ch:analysis}.} If the application is not run with the argument \codeother{-noplot}, the evaluator also plots these running averages live, using the library \codeobj{matplotlib}. The agent uses the evaluator by calling its \codefunc{eval\_episodeVals}.
+
+During runtime, the agent's \codefunc{performAction(gameState, pastState)} is called. It is provided by \codeobj{AbstractAgent} (and overwritten by \codeobj{AbstractRLAgent}), and does not need to be changed by agents in the general case. The function checks if an action should be taken, converts the given \codeobj{gameState} into an \codeobj{agentState} and provides the action. Where this action is taken from is decided in this function -- it can use the previous action (a variable \codeobj{action\_repeat} is specified in it with similar reasoning than that of the DQN\cite{mnih_human-level_2015}), a random action (by calling \codefunc{policyAction(agentState)}) or an action according to its model (\codefunc{randomAction(agentState)}). The implementation given in the \codeobj{AbstractRLAgent} uses a simple $\epsilon$-greey approach, such that \codefunc{randomAction} with a probability $\epsilon$, where epsilon decreases over time. In agents where it is desired to overwrite the this exploration method, either the \codefunc{performAction}-function can be overwritten or (as done in the provided DDPG-based agents) the \codefunc{randomAction} simply returns \codefunc{policyAction}, and the actual exploration-technique is integrated into the \codefunc{policyAction}-function. 
+\codefunc{performAction(gameState, pastState)} cares for updating the server's \codeobj{outputval}, such that all issues of communication (next to eg. having to work with the \codeobj{gameState}) are abstracted away from \codeobj{policyAction} and \codeobj{randomAction}. 
+
+As mentioned, the server does not only call the agent's \codefunc{performAction}, but also its function \codefunc{handle\_commands(command)} if it got a \textit{special command} from the client (environment). The \codefunc{handle\_commands}-function gets as input the string providing information about what this command was. In the current implementation, the existing commands are \codeobj{"wallhit"}, \codeobj{"lapdone"}, \codeobj{"timeover"} and  \codeobj{"turnedaround"}. The default reaction, specified in \codeobj{AbstractRLAgent} is to end the training episode (with \codefunc{endEpisode(reason, gameState)}) for either of those commands -- after explicitly giving negative reward for the last seen state using its function \codefunc{punishLastAction(howmuch)}. The necessity of these two functions is an artifact of the design decision to let the agent decide on when an episode ends. In this implementation, the main loop is not nested in an outer loop that recognizes when an epsiode end, instead the agent is only notified of the end of an episode after it stored the last state already in its replay memory. Using those two functions, the last addition to that can be changed in retrospect, such that the flag $s_t == s_{t_t}$ can be set to \codeother{true}, indicating a final state. The \codefunc{endEpisode} also calls the evaluator to save and plot the respective running averages.
+
+All \term{features} that are not needed for supervised agents are only specified in \codeobj{AbstractRLAgent}. This includes the methods to calculate reward, performing random actions, managing its replay memory and reinforced learning.
+
+As especially \codefunc{calculateReward(gameState)}, \codeobj{randomAction(agentState)} and \codeobj{policyAction(agentState)} are considered \term{features} of the agent, they are explained in section~\ref{ch:possiblefeatures}. 
+
+An agent using a DDPG- or DQN-model requires a replay memory, such that its ANN can learn from uncorellated samples. The function \codefunc{addToMemory(gameState, pastState)} adds an agent's state to its memory, and the function \codefunc{learnANN} accesses its values, converted into a usable shape by \codefunc{create_QLearnInputs_from_MemoryBatch}. The implementation of the memory is detailed in the next section.
+
+It is possible to use the \codeobj{"parallel"} learn mode or the \codeobj{"between"} learn-mode (as specified in \codeobj{conf}). If the learning mode is set to the latter, \codefunc{performAction} starts the execution of a specified number of learning steps in a specified interval, according to \code{config}'s configuration of \codeobj{ForEveryInf} and \codeobj{ComesALearn}. This corresponds basically to the \term{update frequency} of the DQN\cite{mnih_human-level_2015}. As the learning steps take some time, 
+-erst warum freeze nötig ist (komplett, inkl functions)
+-dann dass das halt im 400:100 verhältnis gemacht werden kann
+-dann der parallel-learnmode und damit einhergehend die  \codefunc{checkIfAction()} function
+
+-die gui. dass agents die die unterstützen nen spezielles set an funktionen übershcreiben müssen
+-irgendwo noch "note that the agent's policaction and randomaction must return toUse und toSave"
+
+
+\subsubsection{Memory}
+
+-dass das aus safety gründen immer 2 mal speichert, falls der pc out of memory runnt
+
+\subsubsection{Pretraining}
+
+-meine erkenntnis hier noch nicht
+-read_supervised und pretrain.py komplett 
+-die make_trianBatch+makeqleanrinputrfrombath als correspondance zu makeQlearnINputsfrommemoryblabla, und die pretrain
+-warum der von supervisedly lernen nicht mehr lernen kann (nur erwähnen, im nächsten erklären)
+
+\subsubsection{Models}
+
+-auf die gym_test klasse eingehen mit der man testen kann ob man das model abgefuckt hat
+-das uml-diagramm
+
+\subsubsection{Network architecture}
+
+\paragraph{DQN}
+
+-die grafik von andrea
+
+
+\paragraph{DDPG}
+
+-die grafik von andrea
+-satz über batchnorm
 
 
 
+\subsection{Performance measure}
 
 
-%zum thema special commands: unity sendet bspw ob wallhit, und python entscheided ob das nen reset ist. [gegen wand, umgedreht, runde geschafft, zeit ende, connection failed]
-%könnte mehrere unity-instanzen haben die sich am reclistenport anmelden, an nen eigenen receiverthread weitergeleitet werden, eigenen inputval haben
-%inputval ist ne intra-threaded class damit es daten akkumuliert, outputval ist intra-thread  damit schneller mit 2 threads die gleichzeitig drauf zugreifen
-
-%
-%im gegensatz zu anderen kriegt der agent hier bei aufruf erstmal den ENVIRONMENTS-state statt agentstate was sinnvoll ist, weil er halt selbst entscheided was er wissen soll
 %
 %bei UML-diagrammen im anhang vollständige diagramme haben und im fließtext die mit nur wichtigen/erwähnten funktionen(!!)
 %[dass abstractRLagent noch memory hat]
@@ -488,15 +558,13 @@ Figure~\ref{fig:agentMINI} depicts the inheritance-relation of an agent and its 
 
 
 
--Hier im Fließtext nur kleine Versionen der UML-Diagramme, und im Anhang dann die vollständingen versionen!
-
 \subsubsection{Challenges and Solutions}
 
 
 
 \subsubsection{Pretraining}
 
--damit die pretraining-daten genutzt werden können muss ne methode existieren die die gleich macht wie die methode vom memory
+
 
 \subsubsection{The different agents}
 
@@ -543,9 +611,8 @@ In the original DDPG-algorithm \cite{lillicrap_continuous_2015}, the authors use
 
 \subsection{Exploration}
 
+-epsilon-greedy als standard und make_noisy vom DDPG
+
 \subsection{Reward}
 
-\subsection{Pre-training}
-
-\subsection{Performance measure}
 
