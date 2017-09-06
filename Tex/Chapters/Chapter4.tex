@@ -235,6 +235,8 @@ Both cameras provide the public function \inlinecode{GetVisionDisplay()}. When t
 
 \subsubsection{Recording training data\footnote{\url{https://github.com/cstenkamp/BA-rAIce/blob/master/Assets/Scripts/Recorder.cs}}}
 
+\label{sec:exportdata}
+
 For the game to be played by an AI agent, data of the environment must be recorded in regular intervals, to either be sent to the agent in the case of it playing the game or learning via reinforcement learning, or to be exported to a file, which an agent can perform pretraining on. In the following sections, I will not talk about what those data exactly looks like, but only how it is saved and sent. Because of that, I will refer to this data under the name \term{vectors}, which are in detail explained in section~\ref{ch:thevectors}. Collecting the lastest \term{vectors} happens in the function \inlinecode{GetAllInfos()} of \term{AiInterface.cs}, which calls a number of functions and returns a string containing the combined result of those.
 
 As calculating the data that needs to be exported can take relatively much time, this process cannot be performed every \inlinecode{FixedUpdate()}-step. Because of that, the following function is used to perform a function in regular time intervals:
@@ -282,6 +284,8 @@ the function \inlinecode{LoadAndSendToPython}.
 -nochmal drauf eingehen dass das spiel live ist
 -das von leon gemalte ablaufdiagramm
 \colorbox{red}{dass der server alle 0.1 sekunden was von unity bekommt!}
+\colorbox{red}{dass der client mitbekommt wenn nen connection delay entsteht und dann 
+	Unity automatisch pausiert (deswgen quickpausereason)! mega das feature!!!}
 
 
 \subsection{The agent\footnote{I will rely heavily on UML sequence diagrams and class diagrams to explain program flow and classes of agents. In case a reader is unfamiliar with the standards of UML 2.0, it is referred to e.g. \url{https://www.ibm.com/developerworks/rational/library/3101.html} for sequence diagrams and \url{https://www.ibm.com/developerworks/rational/library/content/RationalEdge/sep04/bell/index.html} for class diagrams. In the main text, only small class-diagrams accompany the explanation of the code, with respective complete versions in  \colorbox{red}{appendix~\ref{BLABLABLA}.}}}
@@ -348,6 +352,8 @@ When talking about the \inlinecode{inputval}, it was mentioned that it contains 
 
 Until it gets to the agent, neither the observation nor the reward is set. Thus, the agent needs to specify its own functions for its observation (given environment-state) and reward (given state and action). Because of this, some methods of an agent receive the \inlinecode{gameState} instead of the \inlinecode{agentState}, in contrast to other approaches. Furthermore, the server notifies the agent of specific events that happened in the game, to which the agent could react by resetting the environment and starting a new episode. These methods, next to the obvious ones of performing an action or conducting a learning-step, must thus be specified by an agent. When describing the agent in this section, only those functions are relevant, as the inner workings of the server are hidden to the agent.
 
+\paragraph{Inheritance relation}
+
 To ease the implementation of agents, they all inherit from a superclass called \inlinecode{AbstractAgent} as well as a class termed \inlinecode{AbstractRLAgent}, both of which are defined in \term{agent.py}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN/blob/master/agent.py}}. The key idea is, that all functions and features mutural to all agents are set in these classes, such that any specific agent must only implement/overwrite the functions in which it differs from its superclasses. Because not all agents use reinforcement learning, it was decided to use two superclasses instead of only one -- the class \inlinecode{AbstractAgent} does for example not specify a memory, as a purely pre-trained agent does not need it.
 
 In the scope of this thesis, multiple agents where developed, using different models, vectors and approaches. In the final version of the implementation there are five exemplary agents left, which can all be found in the folder \term{agents}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN/tree/master/agents}}. These agents differ in the model they use, if they use the vision-vector and if they rely on supervised pretraining, as will be detailed in chapter \ref{ch:analysis}. %TODO SATZ weg
@@ -361,8 +367,7 @@ Figure~\ref{fig:agentMINI} depicts the inheritance-relation of an agent and its 
 
 To add a new RL-agent, a class extending \inlinecode{AbstractRLAgent} that specifies at least \inlinecode{name}, \inlinecode{ff\_inputsize}, an initialized \inlinecode{model} and the function \inlinecode{policyAction} must be added to the agents-directory, an exemplary agent that does so is listed in appendix~\ref{AppendixD}. To use any agent, its filename (without extension) must be supplied as argument when running the server, such that it gets automatically imported and initialized: \inlinecode{python server.py --agent ddpg\_rl\_agent}.
 
-reihenfolge, überleitung, whatever.
-
+\paragraph{Agent-state and game-state}
 
 Most of the functions an agent specifies are only for internal use -- the only ones which are called from outside (by the server) are the ones for initializing the agent, performing an action, reacting to (reset-) commands and performing pretraining.
 
@@ -370,14 +375,16 @@ As can be seen in the diagram, some methods require a \inlinecode{gameState} (or
 
 Next to \inlinecode{getAgentState(gameState)}, there are several other helper-functions specified in \inlinecode{AbstractAgent(gameState)}, like for example \inlinecode{getAction(gameState)}. This function returns the agent's last action in a way that can be used by the agent's model. One has to be aware that the DQN-models need the agent to be discretized to a one-hot vector, while the DDPQ-models need the action input in form of three real numbers. As in the current implementation both models are used by respective agents, this function may have to be overwritten. As the \codeobj{AbstractAgent} was implemented with DQN-based agents in mind, it provides the function to discretize and dediscretize the action, which wraps such a function from the file \filename{read\_supervised.py}. The function \inlinecode{makeInferenceUsable(state)} combines those functions for certain kinds of states, such that it is the only one needing to be called whenever the agent accesses its \inlinecode{model}.
 
+\paragraph{Methods called by the server}
+
 In its \codefunc{\_\_init\_\_}, called when \codeobj{server} creates the \codeobj{agent}, the classes \codeobj{AbstractAgent} and \codeobj{AbstractRLAgent} define some assumptions about about the configuration of its \term{features}. These variables can be overwritten by its subclasses if their actual configeration differs, such that these variables are reliable information about the agent's configuration of \term{features}. When initializing its memory or its model, the agent also passes a reference to itself, such that the configuration-variables are accessible from inside those objects. 
 
-The server calls not only the \codefunc{\_\_init\_\_}, but also the \codefunc{initForDriving}. In this function, the agent's memory is (according to its \term{features}) initialized, as well as an \term{evaluator}. The evaluator is an independent object, specified in \term{evaluator.py}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN/blob/master/evaluator.py}}. It provides functions to save information about the agent's driving performance in the form of running averages of the agent's rewards, q-values, progress per episode or others to an XML-file. \colorbox{red}{This can be inspected by running the file FILENAME123, which \\ produces the plots like those used in chapter~\ref{ch:analysis}.} If the application is not run with the argument \codeother{-noplot}, the evaluator also plots these running averages live, using the library \codeobj{matplotlib}. The agent uses the evaluator by calling its \codefunc{eval\_episodeVals}. The performance of a human can be evaluated by using any kind of agent that uses the evalutor and overwriting the agent's actions by pressing \keystroke{H}.
+The server calls not only the \codefunc{\_\_init\_\_}, but also the \codefunc{initForDriving}. In this function, the agent's memory is (according to its \term{features}) initialized, as well as an \term{evaluator}. The evaluator is an independent object, specified in \term{evaluator.py}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN/blob/master/evaluator.py}}. It provides functions to save information about the agent's driving performance in the form of running averages of the agent's rewards, q-values, progress per episode or others to an XML-file. \colorbox{red}{This can be inspected by running the file FILENAME123, which \\ produces the plots like those used in chapter~\ref{ch:analysis}.} If the application is not run with the argument \codeother{-noplot}, the evaluator also plots these running averages live, using the library \codeobj{matplotlib}. The agent uses the evaluator by calling its \codefunc{eval\_episodeVals}. The performance of a human can be evaluated by using any kind of agent that uses the evalutor and overwriting the agent's actions by pressing \keystroke{H}. An exemplary plot can be inspected in appendix~\ref{AppendixB}, in figure~\ref{fig:plot}.
 
 During runtime, the agent's \codefunc{performAction(gameState, pastState)} is called. It is provided by \codeobj{AbstractAgent} (and overwritten by \codeobj{AbstractRLAgent}), and does not need to be changed by agents in the general case. The function checks if an action should be taken, converts the given \codeobj{gameState} into an \codeobj{agentState} and provides the action. Where this action is taken from is decided in this function -- it can use the previous action (a variable \codeobj{action\_repeat} is specified in it with similar reasoning than that of the DQN\cite{mnih_human-level_2015}), a random action (by calling \codefunc{policyAction(agentState)}) or an action according to its model (\codefunc{randomAction(agentState)}). The implementation given in the \codeobj{AbstractRLAgent} uses a simple $\epsilon$-greey approach, such that \codefunc{randomAction} with a probability $\epsilon$, where epsilon decreases over time. In agents where it is desired to overwrite the this exploration method, either the \codefunc{performAction}-function can be overwritten or (as done in the provided DDPG-based agents) the \codefunc{randomAction} simply returns \codefunc{policyAction}, and the actual exploration-technique is integrated into the \codefunc{policyAction}-function. 
 \codefunc{performAction(gameState, pastState)} cares for updating the server's \codeobj{outputval}, such that all issues of communication (next to eg. having to work with the \codeobj{gameState}) are abstracted away from \codeobj{policyAction} and \codeobj{randomAction}. 
 
-As mentioned, the server does not only call the agent's \codefunc{performAction}, but also its function \codefunc{handle\_commands(command)} if it got a \textit{special command} from the client (environment). The \codefunc{handle\_commands}-function gets as input the string providing information about what this command was. In the current implementation, the existing commands are \codeobj{"wallhit"}, \codeobj{"lapdone"}, \codeobj{"timeover"} and  \codeobj{"turnedaround"}. The default reaction, specified in \codeobj{AbstractRLAgent} is to end the training episode (with \codefunc{endEpisode(reason, gameState)}) for either of those commands -- after explicitly giving negative reward for the last seen state using its function \codefunc{punishLastAction(howmuch)}. The necessity of these two functions is an artifact of the design decision to let the agent decide on when an episode ends. In this implementation, the main loop is not nested in an outer loop that recognizes when an epsiode end, instead the agent is only notified of the end of an episode after it stored the last state already in its replay memory. Using those two functions, the last addition to that can be changed in retrospect, such that the flag $s_t == s_{t_t}$ can be set to \codeother{true}, indicating a final state. The \codefunc{endEpisode} also calls the evaluator to save and plot the respective running averages.
+As mentioned, the server does not only call the agent's \codefunc{performAction}, but also its function \codefunc{handle\_commands(command)} if it got a \textit{special command} from the client (environment). The \codefunc{handle\_commands}-function gets as input the string providing information about what this command was. In the current implementation, the existing commands are \codeobj{"wallhit"}, \codeobj{"lapdone"}, \codeobj{"timeover"} and  \codeobj{"turnedaround"}. The default reaction, specified in \codeobj{AbstractRLAgent} is to end the training episode (with \codefunc{endEpisode(reason, gameState)}) for either of those commands -- after explicitly giving negative reward for the last seen state using its function \codefunc{punishLastAction(howmuch)}. The necessity of these two functions is an artifact of the design decision to let the agent decide on when an episode ends. In this implementation, the main loop is not nested in an outer loop that recognizes when an epsiode end, instead the agent is only notified of the end of an episode after it stored the last state already in its replay memory. Using those two functions, the last addition to that can be changed in retrospect, such that the flag $t == t_t$ can be set to \codeother{true}, indicating a final state. The \codefunc{endEpisode} also calls the evaluator to save and plot the respective running averages.
 
 All \term{features} that are not needed for supervised agents are only specified in \codeobj{AbstractRLAgent}. This includes the methods to calculate reward, performing random actions, managing its replay memory and reinforced learning.
 
@@ -385,41 +392,64 @@ As especially \codefunc{calculateReward(gameState)}, \codeobj{randomAction(agent
 
 An agent using a DDPG- or DQN-model requires a replay memory, such that its ANN can learn from uncorellated samples. The function \codefunc{addToMemory(gameState, pastState)} adds an agent's state to its memory, and the function \codefunc{learnANN} accesses its values, converted into a usable shape by \codefunc{create_QLearnInputs_from_MemoryBatch}. The implementation of the memory is detailed in the next section.
 
-It is possible to use the \codeobj{"parallel"} learn mode or the \codeobj{"between"} learn-mode (as specified in \codeobj{conf}). If the learning mode is set to the latter, \codefunc{performAction} starts the execution of a specified number of learning steps in a specified interval, according to \code{config}'s configuration of \codeobj{ForEveryInf} and \codeobj{ComesALearn}. This corresponds basically to the \term{update frequency} of the DQN\cite{mnih_human-level_2015}. As the learning steps take some time, 
--erst warum freeze nötig ist (komplett, inkl functions)
--dann dass das halt im 400:100 verhältnis gemacht werden kann
--dann der parallel-learnmode und damit einhergehend die  \codefunc{checkIfAction()} function
+\paragraph{Learning}
 
--die gui. dass agents die die unterstützen nen spezielles set an funktionen übershcreiben müssen
--irgendwo noch "note that the agent's policaction and randomaction must return toUse und toSave"
--while not all functions from the classes are found in this text, the umldiagram in appendix blabla states all. wird aber erst komplett sinvoll nach kapitel features
+It is possible to use the \codeobj{"parallel"} learn-mode or the \codeobj{"between"} learn-mode (as specified in \codeobj{conf}). If the learning mode is set to the latter, \codefunc{performAction} starts the execution of a specified number of learning steps in a specified interval, according to \codeobj{conf}'s configuration of \codeobj{ForEveryInf} and \codeobj{ComesALearn}. This corresponds basically to the \term{update frequency} of the DQN\cite{mnih_human-level_2015}. Learning is specified in the method \codefunc{learnANN()}, itself executed by \codefunc{dauerlearnANN(steps)}. To perform the actual learning, the former extracts a batch of a specified number of transitions from its replay memory using \codefunc{create\_QLearnInputs\_from\_MemoryBatch} and performs the model's method \codefunc{q\_train\_step} on the extracted batch. 
+
+Performing a q-train-step takes significantly longer than performing an inference. While agent (including its model) is fast enough to perform an inference-step in between two updates with new information about the game (everything that happens in the main loop between the Unity-client sending data and doing it again in figure~\ref{fig:sequenceserver}), it looses a significant amount of time when also having perform a train-step. Because of this, additionally to Unity's client automatically pausing the game if Python's response is delayed too much, the class \codeobj{AbstractRLAgent} includes methods ask the client to freeze itself. In doing so, it uses another string-array \codeobj{freezeInfReasons} to which a reason is appended for every call of \codefunc{freezeInf(reason)}, and popped for every call of \codefunc{unFreezeInf(reason)}, with similar reasoning than described for the QuickPause-function of the game. If the respective conditions apply, a message \codeobj{"pleaseFreeze"} is sent to the client, such that the agent has time to perform its learning-steps. Once it is done, it notifies the client by sending \codeobj{"pleaseUnFreeze"}. As it was a design decision that the game runs as smoothly as possible, it was decided to not rigidly perform one learning-step every 
+\term{update frequency} steps, but to increase the respective batchsize (for example $100$ learn steps every $400$ steps), such that the game is not constantly interrupted due to learning steps. 
+
+Because the agent was also developed with the learn mode \codeobj{"between"} in mind, respective functions can also be found in the agent and server. If this mode is set, then the method \codefunc{dauerlearnANN} is run by the server in a separate thread (started in its main-method). To keep the ratio of learning steps and inference roughly constant at all times, the methods \codefunc{checkIfAction} and \codefunc{dauerLearnANN} provide functionality to freeze either learning or inference, if the respective thread was faster than the other. For that, a \codefunc{freezeLearn}-method is necessary, which sets a respective boolean value to \codeobj{false}, stopping the learning. A ratio of $4:1$, as already done in the original DQN, showed to decrease the amount of time any thread must be frozen the most.
+
+
+\paragraph{GUI}
+
+As mentioned before, the implementation also features a basic GUI, to which current information about the agent's latest values can be sent to. The typical view of this GUI is shown in figure~\ref{fig:gui} in appendix~\ref{AppendixB}. For a respective agent to use this GUI, some functions must be overwritten to also include those printing-functions. To do so, an agent must import the infoscreen, such that itsfunctions can simply call their respective counterpart of the agent's super-class and print its result to the infoscreen using \codefunc{infoscreen.print}. The functions that are overwritten to show a GUI as in figure~\ref{fig:gui} are \codefunc{eval\_episodeVals}, \codefunc{punishLastAction}, \codefunc{addToMemory}, \codefunc{learnANN}, \codefunc{policyAction} and \codefunc{calulateReward}. Most agents of the given implementations to so, the reader is for example referred to \file{agents/ddpg\_rl\_agent.py}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN/blob/master/agents/ddpg_rl_agent.py}}. Note that an exception is the added code of \codefunc{calculateReward}, which does not update a text-element of the GUI, but a color. This color is a gray-scale value whose saturation depends on a scalar value between zero and one. This feature is useful to inspect if the agent's reward-function is useful -- the lighter the color-area, the higher the current reward.
 
 \subsubsection{Memory}
 
--dass das aus safety gründen immer 2 mal speichert, falls der pc out of memory runnt
--dass das halt handcrafted efficient, oder allesfressendes inefficient, wobei das halt halt bei denen wos genutzt wird egal ist
+During its learning process, the agent stores every transition it encounters in its replay memory. Following the tradition of the DQN\cite{mnih_human-level_2015}, it is a buffer of limited size, consisting of tuples $\langle s_t, a_t, r_t, s_{t+1}, t==t_t \rangle$. This buffer is wrapped in a class of type \codeobj{Memory}, specified in either in the file \filename{inefficientmemory.py}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN/blob/master/inefficientmemory.py}} or \filename{efficientmemory.py}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN/blob/master/efficientmemory.py}} Note that while the agent's \codefunc{addToMemory(gameState, pastState)} is called with the \codeobj{gameState}, this function converts both gameState and pastState to the respective agent-state to save on its memory consumption. Adding to its is the only situation where the agent's function \codefunc{calculateReward(gameState)} is called. The memory contains methods to change the last stored transition's reward in retrospect as well as to update if the episode ended in the last step -- the values for reward and if the state was terminal in \codefunc{addToMemory} are thus possibly only provisional.
+
+When performing a q-training-step, a random sample of size \codeobj{conf.batch\_size} is sampled from the replay memory. It is established that \term{Prioritized Experience Replay}\cite{schaul_prioritized_2015} increases the agent's speed of learning, but while the implementation allows for such an addition, nothing comparable is done in the actual implementation. 
+
+The memory-classes of this implementation can be saved to a file using Python's \inlinecode{pickle}-library. The memory is generally saved together with the agent's model, using its function \codefunc{save\_memory()}. Because the memory can become very large (consisting of hundreds of thousands of transitions), both inference and learning are frozen while the memory is saved. To be more failsafe, the agent is always stored twice (with both files containing the exact same memory). If the computer runs out of storage while one of these files is being created, the respective file is corrupted -- however one backup-copy will always be save.
+
+In the given project, there are two memory-classes provided which both containing the same methods, where the one (\filename{efficientmemory.py}) is used by certain agents, as it is more efficient in those ones, namely the ones using \inlinecode{history-frames}. 
+The reason for this is the following: 
+Let's assume an agent's state consists of an observation of the current-gamestate as well as the three ones before that, corresponding to four history-frames: $agentstate_t = (state_t, state_{t-1}, state_{t-2}, state_{t-3})$. A tuple added to the memory contains its current state and the state before that: $agentstate_t$ and $agentstate_{t-1}$, which corresponds under the previous definition of an agent's state to the following environment-states: $state_t, state_{t-1}, state_{t-2}, state_{t-3}$ and $state_{t-1}, state_{t-2}, state_{t-3}, state_{t-4}$. Even more, in the next inference even more overlaps, as adds the following states: $state_{t+1}, state_{t}, state_{t-1}, state_{t-2}$ and $state_{t}, state_{t-1}, state_{t-2}, state_{t-3}$. It is easy to see, that an implementation that always adds $agentstate_t$ and $agentstate_{t-1}$ is very inefficient, using roughly 8 times as much storage as needed. The class specified in \filename{efficientmemory.py} works around those problems by always adding only the latest frame to the replay-memory. While this file is internally far more efficient than the inefficient memory for agents using many history-frames, it can be interfaced just like \filename{inefficientmemory.py}, such that they easily be exchanged, providing the exact same values in all situations\footnote{It could be argued that the memory is different after a reset if it only adds the latest part of the transition, however a solution for that problem is simply overwriting the latest transitions in that case. A proof that both memorys behave exactly equal is given in an older branch of the repository: \url{https://github.com/cstenkamp/BA-rAIce-ANN/tree/newmemory}}.
+If an agent uses many history-frames (especially relevant when using minimaps as input), it can load the efficient memory in its \codefunc{initForDriving}-function. If no such is given, the inefficientmemory is loaded by default. 
 
 \subsubsection{Pretraining}
+
+As stated in section~\ref{sec:exportdata}, not only the possibility for reinforcement learning is given in this implementation, but the game also contains functionalities to record manual driving data and export those via XML. By running the file \filename{pretrain.py}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN/blob/master/pretrain.py}} with the respective agent as command-line parameter (see server), all exported data which has the file-ending \filename{.svlap} and is stored in the directory \codeobj{conf.LapFolderName} is used to pre-train the agent.
+
+The data the game exports for pretraining consists of the \term{vectors}, corresponding to the game's state, for every point in time it recorded -- because the data is independent of individual \codeobj{agentState}s, it can be used by all agents. Additionally, the data in the XML saves the time of recording (system's time as well as Unity-Time), speed, progress, and explicit user-input (throttlePedalValue, brakePedalValue, steeringValue). The file \filename{read\_supervised.py} contains (among others) the necessary classes and methods such that this XML-data can be converted into a format an agent can use for pretraining. For that, it contains a definition of a \codeobj{TrackingPoint}-class. This class is a counterpart of the game's class of the same name, defined in \filename{AiInterface.cs}. Furthermore, \filename{read\_supervised.py} contains a class \codeobj{TPList}, which corresponds to a complete usable dataset of driving-data.
+
+Upon 
+
+
+
 
 -meine erkenntnis hier noch nicht
 -read_supervised und pretrain.py komplett 
 -die make_trianBatch+makeqleanrinputrfrombath als correspondance zu makeQlearnINputsfrommemoryblabla, und die pretrain
 -warum der von supervisedly lernen nicht mehr lernen kann (nur erwähnen, im nächsten erklären)
 -das ganze export import gedöns [unity exportiert halt die pretraindata, gneauso wie es die python senden würde, als human-readable xml]
+-dass pretrian.py auch ne fake_real (aka vom memory) methode hat
 
 \subsubsection{Models}
 
--auf die gym_test klasse eingehen mit der man testen kann ob man das model abgefuckt hat
+-auf die gym\_test klasse eingehen mit der man testen kann ob man das model abgefuckt hat
 -das uml-diagramm
--das krasse schlecte diskretisieren in dqn-based, inkl course of dimensionality und allem!
+-das krasse schlecte diskretisieren in dqn-based, inkl course of dimensionality und allem!\\
 \includegraphics[width=\textwidth]{uml_diagrams/models_inText.1}
 
 \subsubsection{Network architecture}
 
 
 
+-die settozero-funktino
 
-\subsubsection{Network architecture}
 
 1. dqn-algorithm
 - anzahl layer, Batchnorm, doubles dueling
@@ -491,7 +521,9 @@ In the original DDPG-algorithm \cite{lillicrap_continuous_2015}, the authors use
 
 % TODO \subsubsection{Challenges and Solutions}
 
+% TODO \subsection{Performance measure}
 
+% TODO dden -help command-line parameter erwähnen
 
 
 
