@@ -3,7 +3,8 @@ input metauml;
 iClass.iName.iFont.scale := 1.1;
 iAssoc.iFont.scale := 1.2;
 
-Interface.model("Model")
+AbstractClass.model("Model")
+  ("isPretrain: bool")
   ("__init__()", 
    "initNet(load: bool/string)",
    "save()",
@@ -11,7 +12,11 @@ Interface.model("Model")
    "getAccuracy(batch: [s],[a],[r],[s],[t]>, _): float",
    "statevalue(oldstates: [s]): float",
    "qvalue(oldstates: [s], actions: [a]): float",
-   "q_train_step(batch: <[s],[a],[r],[s],[t]>): float");
+   "q_train_step(batch: <[s],[a],[r],[s],[t]>): float",
+   "run_inferences(): int",
+   "step(): int",
+   "pretrain_episode(): int",
+   "inc_episode()");
 
 classStereotypes.model("<<interface>>");
 
@@ -29,7 +34,11 @@ Class.dpgmod("DDPG_model")
    "statevalue(oldstates: [s]): float",
    "qvalue(oldstates: [s], actions: [a]): float",
    "getstatecountfeaturevec(oldstates: [s], actions: [a]): [int]",
-   "q_train_step(batch: <[s],[a],[r],[s],[t]>): float");
+   "q_train_step(batch: <[s],[a],[r],[s],[t]>): float",
+   "run_inferences(): int",
+   "step(): int",
+   "pretrain_episode(): int",
+   "inc_episode()");
 
 Class.actor("Actor")
   ("session: tf.Session",
@@ -66,24 +75,34 @@ Class.dqnmod("DDDQN_model")
    "qvalue(oldstates: [s], actions: [a]): float",
    "q_train_step(batch: <[s],[a],[r],[s],[t]>, decay_lr: bool=False): float",
    "sv_train_step(batch: <[s],[a],[r],[s],[t]>, decay_lr: bool=True): float",
-   "update_target_network()");
+   "update_target_network()",
+   "run_inferences(): int",
+   "step(): int",
+   "pretrain_episode(): int",
+   "inc_episode()");
 
 
 
 beginfig(1)
 	model.e = (0,0);
+	drawObjects(model);
+endfig;
+
+
+beginfig(2)
+	model.e = (0,0);
 	dpgmod.w = model.e + (30,105);
-	dqnmod.nw = dpgmod.sw + (0, -60);
+	dqnmod.nw = dpgmod.sw + (0, -25);
 	actor.w = dpgmod.e + (30, 60);
 	critic.nw = actor.sw + (0,-10);
 	drawObjects(model,dpgmod,dqnmod,actor,critic);
 	
 	item(iAssoc)("1")(obj.se = actor.w + (-1,-17));
 	clink(compositionUni)(dpgmod,actor);
-
+	
 	item(iAssoc)("1")(obj.se = critic.w + (-1,27));
 	clink(compositionUni)(dpgmod,critic);
-
+	
 	clink(realization)(dqnmod, model);
 	clink(realization)(dpgmod, model);
 

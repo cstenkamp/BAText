@@ -1,5 +1,17 @@
 \chapter{Analysis, Results and open Questions}
 
+-mit maxspeed klappts
+-gym\_test klasse existiert, models klappen damit
+-dataset is separable as can be tested by dqn_sv_agent
+-das headstart scheint helfen
+-von sv-training kann man nicht q-training weitermachen
+-meine reward-funktion die bremsen belohnt
+-der twist im pretraining
+
+-dass SV-pretraining nicht als grundlage für Q-training genutzt werden kann
+-dass auch Q-training sucks wenn nicht die make_trainbatch funktion
+
+
 \label{ch:analysis}
 
 testing took place on a win10 machine, ...
@@ -36,15 +48,7 @@ DQN vs DDPG, sehend vs nicht-sehend, ...
 getstatecountfeaturevec macht für das was ich mache mit meiner netzwerk-struktur keinen sinn (256 neurons direkt bevor es in die actions geht)
 
 
-\begin{tabular}{l l l l}
-	filename & uses model & uses visionvector & performs RL\\
-	\hline
-	\textbf{ddpg\_novision\_rl\_agent}.py & DDPG & no & yes\\	
-	\textbf{ddpg\_rl\_agent}.py & DDPG & yes & yes\\
-	\textbf{dqn\_novision\_rl\_agent}.py & DQN & no & yes\\
-	\textbf{dqn\_rl\_agent}.py & DQN & yes & yes\\
-	\textbf{dqn\_sv\_agent}.py & \blap{supervised network\\ with DQN-structure} & yes & no\\[2em]
-\end{tabular}
+
 
 
 \includegraphics[width=\textwidth]{uml_diagrams/agent_inText.2}  
