@@ -11,7 +11,7 @@ Interface.model("Model")
    "getAccuracy(batch: [s],[a],[r],[s],[t]>, _): float",
    "statevalue(oldstates: [s]): float",
    "qvalue(oldstates: [s], actions: [a]): float",
-   "q_train_step(batch: <[s],[a],[r], [s],[t]>): float");
+   "q_train_step(batch: <[s],[a],[r],[s],[t]>): float");
 
 classStereotypes.model("<<interface>>");
 

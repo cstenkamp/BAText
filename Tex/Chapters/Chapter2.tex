@@ -371,7 +371,7 @@ In other words, to maximize the performance of the policy, one can re-use the gr
 As stated by \cite{silver_deterministic_2014}, these algorithm may have convergence issues in practice, due to a bias introduced by approximating $Q^\pi(s,a)$ with $Q^w(s,a)$. It is thus important, that the approximation $Q^w(s,a)$ is \keyword{compatible}, preserving the true gradient $\nabla_a Q^\pi(s,a) \approx \nabla_a Q^w(s,a)$. This is the case when the gradients are orthogonal, and $w$ minimizes $MSE(\theta,w)$. However, the necessary conditions are approximately fulfilled when using a differentiable critic that finds $Q^w(s,a) \approx Q^\pi(s,a)$.
 
 
-\subsubsection*{Deep DPG}
+\subsubsection*{Deep DPG} \label{ch:ddpg}
 
 The \keyword{Deep DPG Algorithm} is an off-policy actor-critic, online, active, model-free, deterministic policy gradient algorithm for continous action-spaces. The basic idea behind \keyword{Deep DPG} (\textbf{DDPG})\cite{lillicrap_continuous_2015} is to combine the ideas of the DQN (section \ref{ch:DQN}) with the architecture and learning rule using the deterministic policy gradient. For that, they also use parameterized deterministic actor function $\pi_\theta(s) = a$, as well as a critic function $Q^w(s,a)$. As the algorithm is also off-policy, it will learn the policy $\pi_theta$, while following a trajectory arising through another, stochastic policy $\beta$. This policy will again be a \textit{soft} version of the learned policy $\pi$ that allows for adequate exploration: $\beta := soft(\pi)$.
 
