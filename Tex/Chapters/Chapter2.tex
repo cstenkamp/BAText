@@ -279,6 +279,8 @@ It can be seen in appendix~\ref{ap:dqn} how small the actual change to normal DQ
 
 \subsection{Dueling Q-Learning}
 
+\label{sec:dueling}
+
 In many situations encountered during Q-learning, the value of all possible actions $a_t$ in a state $s_t$ is almost equal. Consider a simulated car, driving with full speed towards a wall, already so close that breaking or steering can't stop the car from driving into the wall. As all actions will end in the episode will end by the car hitting the wall, all actions will have roughly the same Q-value. 
 
 The idea of the \keyword{dueling architecture}\cite{wang_dueling_2015} for DQN is to learn the action-state-value function more efficiently. For that, it splits up the Network into a \keyword{value stream} and separate \keyword{advantage streams}. As mentioned earlier, though the ANN resembles the $\hat{Q}(s,a)$-function, the actions are not input to the network, but instead it outputs $|\mathcal{A}|$ Q-values, one for each action. A \keyword{Dueling Double Deep-Q-Network} (\textbf{DDDQN}) works by splitting an early layer of its corresponding network in half. One of the resulting streams is the value-stream, which results in one value, intuitively corresponding to the value ($\hat{V_{s_t}}$) of a state $s_t$, irrespective of the action that can be taken in this state. The other stream is  the advantage stream, which has as output $|\mathcal{A}|$ values, standing for the \keyword{Advantage} ($A$) of taking a certain action in this state -- it can be seen as a relative measure of the importance of each action. The relation between $Q$, $V$ and $A$ is the following:
