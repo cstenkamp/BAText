@@ -85,6 +85,8 @@ It is worth noting that most \term{possible vectors} are normalized after loadin
 
 One has to be aware that the DQN-models need the agent to be discretized to a one-hot vector, while the DDPQ-models need the action input in form of three real numbers. As in the current implementation both models are used by respective agents, this function may have to be overwritten
 
+No pooling, nur stride
+
 There are two different models implemented in this project: a \keyword{Double Dueling Deep-Q-Learning} model, specified in the class \codeobj{DDDQN\_model} in \filename{models/dddqn.py}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN/blob/master/models/dddqn.py}} as well as a \keyword{Deep Deterministic Policy Gradient} model, specified in \codeobj{DDPG\_model} in \filename{models/ddpg.py}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN/blob/master/models/ddpg.py}} Both models learn via temporal differences and are in detail explained in chapters~\ref{ch:DQN}ff and \ref{ch:ddpg}, respectively. 
 
 While the actual learning technique differs in both models, they both implement the same interface (not implemented because of python's duck typing), such that the functions relevant for the agent are accessible in the same way. An UML-diagram of most of their functions as well as the interface is given in figure~\ref{fig:modelssmall}. 
@@ -132,9 +134,38 @@ An overview of the general network architecture, as used by the \codeobj{dqn\_rl
 
 \begin{figure}[h]
 	\centering 
-	\includegraphics[trim={10cm 6cm 10cm 5.5cm},clip,width=\textwidth]{DQN_structure}
+	\includegraphics[trim={1.22cm 3.4cm 1.15cm 3cm},clip,width=1.05\textwidth]{draw_convnet/dqn}
 	\caption{The used convolutional DQN-network with a dueling architecture}
 	\label{fig:dqn_graph}
+\end{figure}
+
+
+\begin{figure}[h]
+	\centering 
+	\includegraphics[trim={1.22cm 4.6cm 2cm 3cm},clip,width=1.05\textwidth]{draw_convnet/critic-2d}
+	\caption{Convolutional critic}
+	\label{fig:2dcrit}
+\end{figure}
+
+\begin{figure}[h]
+	\centering 
+	\includegraphics[trim={3.7cm 4.4cm 2cm 3cm},clip,width=1.05\textwidth]{draw_convnet/critic-lowd}
+	\caption{Low-dimensional critic}
+	\label{fig:lowcrit}
+\end{figure}
+
+\begin{figure}[h]
+	\centering 
+	\includegraphics[trim={1.22cm 5.03cm 0.4cm 3cm},clip,width=1.05\textwidth]{draw_convnet/actor-2d}
+	\caption{Convolutional actor}
+	\label{fig:2dact}
+\end{figure}
+
+\begin{figure}[h]
+	\centering 
+	\includegraphics[trim={2.7cm 4.2cm 0.8cm 3cm},clip,width=1.05\textwidth]{draw_convnet/actor-lowd}
+	\caption{Low-dimensional actor}
+	\label{fig:lowdact}
 \end{figure}
 
 In a hybrid ANN (having both 2D and 1D input), four convolutional layers calculate an abstract representation of the two-dimensional inputs, which is flattened into a hidden layer consisting of 256 Units. The one-dimensional input are connected via a dense layer to another hidden layer of 64 units. These two layers are then concatenated to form a layer of 384 hidden Units, which is densely connected to a furhter hidden layer, which splits into an advantage and a value stream as proposed by \cite{wang_dueling_2015}. While the advantage stream ends in a layer with one unit for each action, the value-stream has one output. In the very last layer of the network, the advantage and value stream are combined into the final output layer, providing a separate Q-value for each action.
@@ -169,7 +200,7 @@ In the original DDPG-algorithm \cite{lillicrap_continuous_2015}, the authors use
 
 %############################################################################################
 \section{Implemented Agents}
-%############################################################################################
+d%############################################################################################
 
 \begin{tabular}{l l l l}
 	filename & uses model & uses visionvector & performs RL\\
