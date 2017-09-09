@@ -1,0 +1,2 @@
+https://tex.stackexchange.com/questions/186389/how-can-i-annotate-an-image-with-arrow-and-text
+https://github.com/gwding/draw_convnet

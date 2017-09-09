@@ -19,66 +19,79 @@
 %	SECTION 1
 %----------------------------------------------------------------------------------------
 
-"sollte etwa 10\% der Gesamtarbeit ausmachen"
 
 \section{Motivation}
-Self-driving cars are becoming more and more a center of public attention.
+
+\textcolor{red}{Self-driving cars are becoming more and more a center of public attention.}
 
 Google's self-driving car, Tesla autopilot, die vision von Ubers autonomous taxis, ...
 
-\subsection{Problem Domain}
+self-driving cars are the shit
 
+Following https://arxiv.org/pdf/1704.03952.pdf, it is possible to transform virtual driving agents to real agents
 
+https://qz.com/694520/tesla-has-780-million-miles-of-driving-data-and-adds-another-million-every-10-hours/
 
-\subsection{Goal of this thesis}
+\section{Goal of this thesis}
+
+\colorbox{red}{"Leon, die ganze scheiße drumherum zu machen dauert lange"}\\
+"make good tactical race decisions."\\
+"die karre schnell um kurs"
+
+\subsection{Driving}
 
 As put forward by \keyword{Lex Fridman} in his MIT lecture "\keyword{Deep Learning for Self-Driving Cars}"\footnote{MIT 6.S094, course website: \url{http://selfdrivingcars.mit.edu/}} the tasks for self-driving cars can be sub-divided into the following categories: 
-\begin{itemize} \bfseries
+\begin{itemize} 
 	\item Localization and Mapping
 	\item Scene Understanding
 	\item Movement Planning
 	\item Driver State
 \end{itemize}
-[rrt* macht halt sowas von 3., end-to-end macht die kiste insgesamt nen bisschen anders]
 
-- von wegen dass hier nur der task von einem auto alleine auf einem track
-- convert game into RL problem, and compare performances.
-- Difference to other approaches: es ist live und eingreifbar udn insptectable. Du stehst vor der wand, plottest q-value, siehst der ist hoch, weißt du hast was falsch gemacht. das gibts bisher nicht.
+Similar categorization is provided by the Developers of the race car simulation \keyword{TORCS}\cite{wymann_torcs_2015}, which divide the \keyword{racing problem} among others into \textit{trajectory planning}, which is finding an optimal trajectory on the fly while driving and \textit{inference and vision}, the problem of how to infer useful information from high-dimensional input.
 
+State-of-the-art self-driving cars rely on handcrafted algorithms to solve either of these problems individually, in highly modularized systems. The problem of driving a car is seperated into tactical decisions, such was what speed to aim for to drive safely or whether or not to overtake, and on the other side operational low-level decisions for the actual motor commands. While many advances on the tactical are made, offensive tactical profiles require good operational systems. In car racing, be it virtual or real motorsports, extreme tactical profiles are used, as the goal is to perform at the limits of the possbile. Such tactical profiles require reliable operational performance.
 
-\section{Research Questions}
+Especially in virtual car racing, where mistakes are condoned far more than in real life where actual lives are involved, it is interesting to focus on the overall racing problem. In \keyword{end-to-end} approaches, this can be summarized as \keyword{minimal lap time}: Finding the policy that minimizes the excepted time for a given lap. 
 
--pretraining
--how to reward braking if needed
--others, like how to optimize speed of communication und wie sieht gutes software development aus?
+While this problem can be solved analytically, it is also interesting to solve the racing problem \textit{on the fly}, where the agent learns over its task only throughout continuous interaction. If the situation of a single car on the track is given, the problem corresponds to a \keyword{partially observed markov decision process}. A formulation of the environment in such a way allows for \keyword{reinforcement learning}, a branch of artificial intelligence where many progresses are made in recent time.
 
-\section{noclue}
+In course this thesis, a virtual driving agent was developed, that solves a given racing game using recent advances in \keyword{deep neural networks} as well as reinforcement learning. The goal of this agent is to archieve the best possible driving policy, advancing as far as possible without crashing, or even minimizing laptime of a given track. 
 
-%TODO !!!!!!!!!!! https://qz.com/694520/tesla-has-780-million-miles-of-driving-data-and-adds-another-million-every-10-hours/
+\subsection{Creating a research platform}
 
-https://arxiv.org/pdf/1704.03952.pdf
+Creating an artificial driving agent is impossible without an environment to train the agent on. While numerous environments for car racing already exist (like many environments openAI's \keyword{gym} or the \keyword{TORCS} platform), in this thesis a proprieatary software will be used. The game to be played is a driving simulation programmed with the game engine \keyword{Unity 3D}. 
 
-Semi-autonomous vehicle components: Radar, Visible-light-camera, LIDAR, infrared-camera, stereo vision, GPS/IMU, CAN, Audio
+The basis of the environment was given by \leon of this thesis as a fully playable game. In the course of this thesis, this game was extended, such that artificial driving agents can communicate with this platform over \keyword{sockets}. The game sends high-level as well as low-level information about the state of the game in textual form and requires actions back fast from the agent. Additionally, all functionality to easily create agents using the programming language \keyword{python} and the deep learning library \keyword{TensorFlow} was implemented. This communciation needs to be as efficient as possible, such that the performed action receives the environment in time.
 
-Localization and Mapping: eg. $file:///C:/Users/Marie/Downloads/VISAPP_2015_145.pdf$
-Scene Understanding/Object Detection: Scene Segentation Network (SegNet)
-Movement Planning: Previously by stuff like RRT* (optimization-based control), however reinforcement learning!
+There are several contrasts to other environments and other approaches that make this one interesting: For example, the game is live, inspectable and a user can intervene into what the agent does at any time. This makes it easy to assess the policy of an agent. Further, if agents specify a \keyword{reward} or some measure of \keyword{value of state or action}, these values can be inspected -- if the state-value or reward is high when driving into a wall at full speed, something is likely to be wrong.
 
-End-to-End: NVIDIA Paper
+Further, as \colorbox{red}{the source code is open} and the game is programmed straight forward without unneeded features, it is very easy to change its code, such that any new information an agent could incorporate is easily added to it.
 
-dass Reinforcement Learning ja eigentlich nicht so der beste approach ist
+\subsection{Research Questions}
 
+Additionally to implementing platform and agent, some first research questions will be crystallized and answered. In doing so, different agents will be developed, and their performance compared. Some of the answered questions are:
+\begin{itemize}
+	\item How different models perform in comparison, and specifically if discretizing the action-space impairs performance
+	\item What a good reward function looks like, that rewards the \textit{correct} behaviour at all times (including braking)
+	\item How agents that rely purely on pretraining perform in comparison to reinforcement learning agents
+	\item How to incorporate pretraining into reinforcedly learning agents
+\end{itemize}
 
-Normally when dealing with self-driving cars, there are countless additional issues, each making up a whole new challenge on their own, like wheather conditions (snow, rain, fog), pedestrians, other cars, reflections, merging into ongoing traffic, ...
-we make it easier here.
+\section{Reading instructions}
 
-Or, according to the Torcs-paper:
-The racing problem could be split into a number of different components, including
-robust control of the vehicle, dynamic and static trajectory planning,
-car setup, inference and vision, tactical decisions (such as overtaking) and fi-
-nally overall racing strategy. With only a single car on the track, the overall
-problem can be formalised as a partially observable Markov decision processes.
+This thesis is structured as follows:
 
 
-
---> Because we only consider the case of a  single car on the track it definitely is a POMDP! seeee next chapter yay
+\renewcommand{\arraystretch}{1.3}
+\begin{flushleft}
+\begin{tabular}{>{\em}p{2.4cm} p{\textwidth-3.8cm}} 
+	\textbf{Chapter 1} & begins with the motivation for this topic. Afterwards, the goals of this thesis are presenteted. In the end, a short summary of the chapters is given as an overview.\\
+	\textbf{Chapter 2} & provides an extensive theoretical foundation of reinforcement learning. The first section details how to correctly formalize an environment as a markov decision process. Afterwards, Q-learning will be explained. This leads over to the \keyword{Deep Q Network}, a recent advance in deep learning. Subsequently policy gradient techniques will be introduced, most notably a learning technique termed \keyword{Deep DPG}. The chapter concludes with an overview of exploration techniques.\\
+	\textbf{Chapter 3} & gives an overview of related work of this field. At first, other frameworks for reinforcement learning and racing simulations will be introduced. Afterwards, a coarse overview of the state-of-the-art in self-driving cars, in real life as well as in simulations, will be given.\\
+	\textbf{Chapter 4} & details the program architecture provided in the course of this thesis. It will start with the general characteristics and design decisions, before providing a detailed explanation of the source code of environment and agent. The explanations are in enough detail to understand the complete code developed in the scope of this thesis.\\
+	\textbf{Chapter 5} & \colorbox{red}{explains the result of the implementation the agents that crystallize out}\\
+	\textbf{Chapter 6} & \colorbox{red}{presents first results and answers of the research questions}\\
+	\textbf{Chapter 7} & \colorbox{red}{ends this thesis with discussion and conclusion.}
+\end{tabular}
+\end{flushleft}

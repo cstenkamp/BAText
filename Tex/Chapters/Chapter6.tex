@@ -1,5 +1,7 @@
 \chapter{Analysis, Results and open Questions}
 
+-dass alle cars useful driving policies haben: q-werte vor wänden gering, steeren von wänden weg, fahren widely geradeaus... nur lernen sie halt das vollgas voll super ist
+
 -mit maxspeed klappts
 -gym\_test klasse existiert, models klappen damit
 -dataset is separable as can be tested by dqn_sv_agent
@@ -13,11 +15,12 @@
 -dass, wenn man actiona slinput gibt, er nur die lernt :o
 -wie schnell humans fahren
 -wie shcnell nen ranodm agent fährt, haha
-
+-die beiden offensichtlichen local maxima, erste kurve 16prozent, zweite kurve 30something?
 
 ok, also wenn du wirklich gar nichts hast zum vergleichen dann schreib auf was du hast, und was genau die nächsten schritte (also vergleiche etc.) wären, evtl. was du ungefähr erwarten würdest das rauskommt und warum. mach dabei klar was eine relativ gesicherte erkenntnis ist und was eher ne vermutung ist
 
 es ist kein problem, dass du nicht fertig geworden bist. geh also mit dem fakt selbstbewusst um
+-dass sich herausgestellt hat das simultaneous inference and learning a lot slower ist!
 
 -it is obvious, that DQN cannot be as good as DDPG - 
 The wheel must be turned 50◦ (or more) to avoid the obstacle. A
@@ -33,10 +36,18 @@ die performance vom server
 -die neuesten openai-algorithms, ......
 
 
+-dank sockets können agent und env easypeasy auf verschiedenen maschinen sein
+
+-da qualitative änderungen sich literally immer erst nach tagen bemerkbar machen war paramter-tuning EXTREM langwierig und ist noch nicht done
+
+-wie schlecht die anderen eigentlcih funktioniert haben so "fleigt aus der ersten kurve, klappt bei konstant 1.8kmh speed"... meins fährt gut bei max-speed, und fährt hin und wieder ganze runden I mean thats good!!
+
 \label{ch:analysis}
 
 testing took place on a win10 machine, ...
 Answer all of the research questions explicitly!!!
+
+-wie praktisch das mit dem info senden ist, dass das mit torcs-env-accessen nicht so einfach wäre
 
 -result: mein way of incorporating pretraining
 -dass ein supervised agent nicht lernen kann da er immer in die wand brettert
@@ -76,7 +87,16 @@ getstatecountfeaturevec macht für das was ich mache mit meiner netzwerk-struktu
 
 \chapter{Discussion}
 
+-dass feed_dict slow ist https://github.com/tensorflow/tensorflow/issues/2919
+
 -wie gut dieses framework mittlerweile funktioniert, und was für ein langer weg das dahin war (dass das definitiv was war das ne ganze arbeit füllt, aber zukünftige arbeiten jetzt super gut darauf gehen, weil wegen bam framework.)
+-das das framework definitiv comparable zu dem given in den beiden torcs-papern (BEIDE NOCHMAL ZITIEREN!!) ist.
+-man kann a3c nutzen statt dqn
+-dass ich kein anderes paper gesehen habe dass sinvolle sachen macht... das virutal to real macht 9 discrete actions, das ddpg-torcs-ding macht "sometimes useful pocicies", ...
+
+Normally when dealing with self-driving cars, there are countless additional issues, each making up a whole new challenge on their own, like wheather conditions (snow, rain, fog), pedestrians, other cars, reflections, merging into ongoing traffic, ...
+we make it easier here.
+
 
 -dass es zur beschleuniung möglich wäre mehrere aggregatoren zu haben, die immer die recht aktuellste policy haben und mit unity interagieren und das nem learn-thread schicken, auf verschiedenen Maschinen
 

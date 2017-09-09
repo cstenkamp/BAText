@@ -321,6 +321,10 @@ This may sound unintuitive at first, because there is no specific loss function 
 
 \subsection{Actor-Critic architectures}
 
+\colorbox{red}{"AC-algorithm is essentially a hybrid to combine the pg method and the value function together."}
+\colorbox{red}{"technically lernt der critic mit sarsa"}
+
+
 The technique introduced in the previous sections is a direct adaption of the Q-learning algorithm \cite{sutton_learning_1988}\cite{watkins_learning_1989}, adapted for higher-level function approximators. Standard Q-learning is a kind of \keyword{generalized policy iteration}, where the policy evaluation and policy improvement happen in the same step. The algorithm learns via temporal differences the state-action value $Q^{\pi_{greedy}}(s,a)$ for the states it encountered with its current policy $\pi$. It then updates $\pi$ to a soft version of that greedy policy: $\pi_{i+1}(s) := soft(argmax_a Q^{\pi_{greedy}}(s,a) \forall s \in \mathcal{S})$, where the $soft$-function ensures appropriate exploration. Learning the Q-function and the policy simultaneously is however generally limited: $argmax_aQ(\cdot, a)$ can only easily be found in settings where the action space $\mathcal{A}$ is finite and discrete, as it requires a global maximization over all possible actions. While discretizing the action space is possible, it gives rise to the \keyword{curse of dimensionality}, especially when the discretization is fine grained. An iterative optimization process like the $argmax$-operation would thus likely be intractable.\\
 
 
@@ -418,6 +422,7 @@ In the following subsection, I will start with exploration techniques for discre
 
 % TODO [GORILA ist 10x so schnell!!]
 
+dass ich gerade daran arbeite - https://arxiv.org/pdf/1706.08090.pdf
 
 \subsection{Exploration for discrete action-spaces}
 
