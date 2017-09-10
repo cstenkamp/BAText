@@ -413,16 +413,73 @@ For a complete code of the DDPG-implementation, I refer to appendix~\ref{ap:ddpg
 
 \section{Exploration techniques}
 
-There is one main difference between supervised learning and reinforcement learning, which I mentioned right at the beginning of this chapter: in RL, the only way to collect information about the environment is by interacting with it. In supervised learning it is no problem to shuffle the dataset beforehand, giving the learner i.i.d. samples, which are sure to be representatitive about the dataset. In RL however, this is not possible: Consider the situation where the agent drives a car around a track -- as long as the agent doesn't drive the car well enough, it will probably not reach high speeds, and will thus learn nothing about situations in which it drives at high speeds. Another problem which was also mentioned before is that so far, only deterministic policies $\pi(s) = a$ were considered. It is obvious that in practice, purely using deterministic policies leads to a complete lack of \keyword{exploration} of the state space $\mathcal{S}$ of the MDP: Once the agent found one path to a terminal state, it will continue \keyword{exploiting} this path, which almost gurantees a suboptimal solution. In order to explore the full state space instead of sticking with the first local optimum found, a stochastic, non-greedy policy is necessary.
+There is one main difference between supervised learning and reinforcement learning, mentioned right at the beginning of this chapter: in RL, the only way to collect information about the environment is by interacting with it. In supervised learning it is no problem to shuffle the dataset beforehand, giving the learner i.i.d. samples, which are certainly representatitive about the dataset. In RL however, this is not possible: Consider the situation where the agent drives a car around a track -- as long as the agent doesn't drive the car well enough, it will probably not reach high speeds, and will thus learn nothing about situations in which it drives at high speeds. Another problem which was also mentioned before is that so far, only deterministic policies $\pi(s) = a$ were considered. It is obvious that in practice, purely using deterministic policies leads to a complete lack of \keyword{exploration} of the state space $\mathcal{S}$ of the MDP: Once the agent found one path to a terminal state, it will continue \keyword{exploiting} this path, which almost gurantees a suboptimal solution. In order to explore the full state space instead of sticking with the first local optimum found, a stochastic, non-greedy policy is necessary.
 
-The two algorithms considered here were both variants of Q-learning, which is an off-policy algorithm. In practice that means that the agent learned about some greedy, deterministic policy while following another policy, which I said was a \keyword{noisy} version of that greedy policy. A noisy version helps ensuring adequate exploration. The big advantage of off-policy algorithms is thus, that the problem of exploration can be treated independently of the learning algorithm -- whatever the mechanism for exploration will be, it is easy to incorporate it in both of the explained algorithms by letting it implement the previously mentioned $soft(\pi)$ method, which takes as input a greedy, deterministic policy and yields a version of it that accounts for adequate state space exploration.
+The two algorithms considered here are both variants of Q-learning, which is an off-policy algorithm. In practice that means that the agent learned about some greedy, deterministic policy while following another policy, which I said was a \keyword{noisy} version of that greedy policy. A noisy version helps ensuring adequate exploration. The big advantage of off-policy algorithms is thus, that the problem of exploration can be treated independently of the learning algorithm -- whatever the mechanism for exploration will be, it is easy to incorporate it in both of the explained algorithms by letting it implement the previously mentioned $soft(\pi)$ method, which takes as input a greedy, deterministic policy and yields a version of it that accounts for adequate state space exploration.
+
+A big problem of reinforcement learning is the tradeoff between \keyword{exploration} and \keyword{exploitation}. At the beginning of training, an agent is supposed to explore the environment as good as it can. In this situation, a highly stochastical exploration function is required. At later stages of training however, once the agent knows most of the state dynamics, exploiting its learned policy becomes more important to generate traning samples. Because of that, most exploration techniques use an exploration parameter $\epsilon$, that decreases over time. This is called \keyword{simulated annealing}.
 
 % TODO letzten 2 absätze von chaper 3 vom ddpg-paper ist über exploration und den orntstien-uhlenbeck prozess
 In the following subsection, I will start with exploration techniques for discrete actions, before then explaining methods that can be used in the case of continous action spaces $\mathcal{A}$.
 
 % TODO [GORILA ist 10x so schnell!!]
 
-dass ich gerade daran arbeite - https://arxiv.org/pdf/1706.08090.pdf
-
 \subsection{Exploration for discrete action-spaces}
 
+The easiest way incorporate exploration is the \keyword{$\epsilon$-greedy} approach. In this, an agent uses its greedy policy with a probability of $1-\epsilon$, and a purely random policy with a probability of $\epsilon$. With $\epsilon$ decreasing over time, it is ensured to explore the environment at first, to lateron exploit the greedy policy. 
+
+While epsilon-greedy is the most popular approach (also used in the original DQN), it has some obvious shortcomings: a purely random action has no way to incorporate any semantics, manchmal its ne folge die relevant ist, 
+
+temporal correlation against jerking movement
+situations in which all but one action is fatal
+takes into account either verybest or completelyrandom
+das an states, die man schon kennt, exploited werden soll und nur an unbekannten/grundsätzlich schlechten exploration 
+schon den speziellen fall von autonomous driving, dass plötzlich volle möhre rechts sehr scheiße ist
+
+--> boltzmann exploration legt ne wahrscheinlichkeitsverteilung über die eh schon ge-softmax-ten einzelnen actions -> incorporates also value of other actions. to anneal, a temperature tau (spread of the softmax) wird annealed over time. Damit das sinnvoll ist müssten die values confidence sein
+
+In tabular settings, count-based exploration techniques are also possible. \keyword{Model-based Interval Estimation with Exploration Bonuses} (MBIE-EB) algorithms for example solve an extended Bellman-equation that incorporates en exploration bonus for states that have a low state-visit count, driving the agent to reduce its uncertainty by visiting less frequently visited states. In high-dimensional, non-tabular settings however, the actual state-visit count becomes almost meaningless, as states are rarely visited more than once.
+
+In \cite{bellemare_unifying_2016}, the authors propose a \textit{pseudo-count}, derived from a learning-positive density model over the state space. These are subsequently used in a variant of MBIE-EB, adapted with the techniques of the DQN. The used density-model must fulfil certain criteria, as being linearly increasing, generalizing across states and being roughly zero for novel events. In their paper, they use the \keyword{Context Tree Switching} density model for two-dimensional images. This density model can also be replaced by a neural network.
+
+Another idea, proposed in \cite{martin_count-based_2017}, is to compute the generalized state visit-count from the \keyword{feature-space} of the value function. In their algorithm, they propose to use the feature-representation of a higher layer of the neural bellmann approximator for the psudocount -- states that have less frequently observed features are deemed more uncertain. 
+-darauf dann halt some exploration-bonus-algorithm (die... was macht? explored what suprises?
+-key problem is to compute appropirate similiarity measure efficiently
+-less computationally expensive than \cite{bellemare_unifying_2016}
+-can easily be added to existing stuff (to value-based RL, can principally aded in any case as exploration bonus -- lower count = higher bonus)
+-...but needs feature maps used for liniar function approximation...use the same feature dimension to astimate value and uncertainty, near state-of-the-art performance
+-dass die aber die values der einzelnen componenten des vektors zählen... while it can be high-dimensional, it must be countable leider
+-their model assigns higher proability to state feature vectors that share features with visited states
+-man könnte also versuchen den zu diskretisieren, ...
+-in any case, density model über feature space: higher probab to states that share more features iwth more frequenclty observed states... this feature-visit density is calculated as the product of independent factor distributions over the vector bomponents --> count-based estimator if U is countable. Then they compute the pseudocount for from this density model accorting to \cite{bellemare_unifying_2016}.
+
+Das ich das versuche, aber noch nicht so weit bin.
+
+\subsection{Exploration for continuous action-spaces}
+
+Switching from discrete to continuous action-spaces allows for new exploration techniques. In the discrete case, each possible action must be treated as isolated from the others, as no assumption about semantic relatedness of actions (for example by their distance) can be made. 
+This is different in continuous action-spaces, where a random action can be calculated as a noisy version of the action as provided by the agent's policy. Considering the case of autonomous driving, one output of the network can correspond to the car's steering. Instead of using a purely random action, gaussian noise can be added to this steering command, such that a random action is not too far off the original action -- completely random actions are not performed anymore, only noisy versions of the desired ones:
+\begin{equation*}
+	\pi^\theta_{noisy}(s_t) = \pi^\theta(s_t) + \mathcal{N}
+\end{equation*}
+
+Selecting noise from this distribution is however still not optimal for self-driving cars or robotics: consecutive actions are selected independently on random, which can lead to them being excessively far from one another, and the control signal discontinuous. It is easy to see that this leads to \textit{jerky} movements, which may ultimately lead to the destruction of an agent or a fast driving car. 
+
+A solution for that is \keyword{autocorrelated noise}, as for example proposed in \cite{wawrzynski_control_2015}, which selects the noise basing on a stochastic process dependent on a running average. For that, a policy-action is selected as $a_t = \pi^\theta(s_t, \xi_t)$, with $\xi_t \in \mathds{R}^n$ as the random element. In standard RL processes, $\xi_t$ is identically distributed and stochastically independent for all $t$, meaning that the noise is not autocorrelated.
+
+The addition of \cite{wawrzynski_control_2015} is, to provide a noise function $\xi_t$ that has the same distribution for each $t$, with $\xi_{t+1}$ dependant on $\xi_t$, forcing consecutive actions to be close to each other. For that, it incorporates a moving average:\\
+\begin{equation*}
+	\xi_t = \sum^{M-1}_{i=0} \zeta_{t-i}
+\end{equation*}
+
+With M corresponding to the sliding window for the moving average. For $M=1$, this corresponds to the traditional control policy. It is worth noting, that the variance of noise function is dependant on the temporal discretization -- the coefficient needs to be adjusted for different levels of temporal discretization. \cite{wawrzynski_control_2015} provides extensive explanation how to select parameters appropriately. In general, a control policy basing on this has much less jerky movements, even though a fully smooth function is impossible for any discretization of time. Using autocorrelated noise is advantagous in situations where single actions do not have much influence on their own: Due to the temporal correlation, a feedback loop may arise in the noise function, leading to a whole new trajectory of states to be explored.
+
+Similar reasoning lead to the exploration function used in \cite{lillicrap_continuous_2015}. To incorporate autocorrelated noise, they used an Ornstein-Uhlenbeck process \cite{uhlenbeck_theory_1930}, which was originally created to model the velocity of particles with friction, which makes it very suitable to for physical processes with intertia. An Ornstein-Uhlenbeck process has mean-reverting properties, which means that it keeps a running average of the $noisestate$, as well as a parameter $\Theta$ that decides how fast the variable reverts towards the desired mean $\mu$. Additionally, it keeps a parameter $\sigma$, controlloling the volitility. Using this process, an action is calculated like the following:
+\begin{align*}
+	noisestate &= \Theta (\mu - noisestate) + \sigma * \mathcal{N}\\
+	a_{noisy}  &= a + \epsilon * noisestate
+\end{align*}
+
+An advantage of this function is, that it is possible to treat $\Theta$, $\sigma$ and $\mu$ as vectors, providing different properties for each individual action.
+ 
+ 

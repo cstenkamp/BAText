@@ -274,6 +274,8 @@ the function \inlinecode{LoadAndSendToPython}.
 
 \colorbox{red}{dass ich dass wie das wryman-paper mit robotern mache, dass unity dafür zuständig ist zu interpolieren}
 
+The used setting is comparable to \cite{wawrzynski_control_2015}. There are two levels of control: The agent tells the car the desired position/speed of rotation of the cars actuators, and the lower-level (->unity) tries to make the joints follow them
+
 %TODO - ungefähres UML-diagramm DES SPIELS!!
 %-ablaufdiagramm vom server-zeug dass zu dem von python passt
 %-Aufbau des exportierten XMLs (dabieschreiben dass action und speed 2 mal drin sind weil die von fake_speed affektiert sein könnten)
@@ -289,6 +291,7 @@ the function \inlinecode{LoadAndSendToPython}.
 \colorbox{red}{dass der client mitbekommt wenn nen connection delay entsteht und dann 
 	Unity automatisch pausiert (deswgen quickpausereason)! mega das feature!!!}
 
+\colorbox{red}{dass das auto selbst environment ist ist auch so in \cite{wawrzynski_control_2015} (bei robots)}
 
 \subsection{The agent\footnote{I will rely heavily on UML sequence diagrams and class diagrams to explain program flow and classes of agents. In case a reader is unfamiliar with the standards of UML 2.0, it is referred to e.g. \url{https://www.ibm.com/developerworks/rational/library/3101.html} for sequence diagrams and \url{https://www.ibm.com/developerworks/rational/library/content/RationalEdge/sep04/bell/index.html} for class diagrams. In the main text, only small class-diagrams accompany the explanation of the code, with respective complete versions in  \colorbox{red}{appendix~\ref{BLABLABLA}.}}}
 
