@@ -457,6 +457,8 @@ Das ich das versuche, aber noch nicht so weit bin.
 
 \subsection{Exploration for continuous action-spaces}
 
+\label{sec:contexptheory}
+
 Switching from discrete to continuous action-spaces allows for new exploration techniques. In the discrete case, each possible action must be treated as isolated from the others, as no assumption about semantic relatedness of actions (for example by their distance) can be made. 
 This is different in continuous action-spaces, where a random action can be calculated as a noisy version of the action as provided by the agent's policy. Considering the case of autonomous driving, one output of the network can correspond to the car's steering. Instead of using a purely random action, gaussian noise can be added to this steering command, such that a random action is not too far off the original action -- completely random actions are not performed anymore, only noisy versions of the desired ones:
 \begin{equation*}

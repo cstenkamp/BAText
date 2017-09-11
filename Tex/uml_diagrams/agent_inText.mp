@@ -60,9 +60,12 @@ Class.ddpgagent("ddpg_rl_agent.Agent")
    "model: DDPG_model",
    "usesGUI: bool=True",
    "isContinous: bool=True",
-   "memory: EfficientMemory")
+   "memory: EfficientMemory",
+   "-_noiseState: [float]")
   ("initForDriving",
+   "makeNetUsableAction",
    "-make_noisy",
+   "-endEpisode",
    "randomAction",
    "policyAction",
    "preTrain"); 
@@ -73,9 +76,12 @@ Class.blinddpgagent("ddpg_novision_rl_agent.Agent")
    "model: DDPG_model",
    "usesGUI: bool=True",
    "usesConv: bool=False",
-   "isContinous: bool=True")
+   "isContinous: bool=True",
+   "-_noiseState: [float]")
   ("getAgentState",
+   "makeNetUsableAction",
    "-make_noisy",
+   "-endEpisode",
    "randomAction",
    "policyAction",
    "preTrain"); 
@@ -97,42 +103,34 @@ Class.anagent("Agent")
 
 
 beginfig(1)
-
-	agent.e = (0,0);
-	rlagent.w = agent.e + (24, 0);
-	anagent.w = rlagent.e + (24, 0);
-	
-	drawObjects(agent, rlagent, anagent);
-
-
-	link(inheritance)(rlagent.w -- agent.e);
-	link(inheritance)(anagent.w -- rlagent.e);
-	
-
+%	agent.e = (0,0);
+%	rlagent.w = agent.e + (24, 0);
+%	anagent.w = rlagent.e + (24, 0);
+%	drawObjects(agent, rlagent, anagent);
+%	link(inheritance)(rlagent.w -- agent.e);
+%	link(inheritance)(anagent.w -- rlagent.e);
 endfig;
 
-%beginfig(2)
-%
-%agent.e = (0,0);
-%rlagent.w = agent.e + (40, 0);
-%dqnagent.nw = rlagent.e + (40,200);	
-%blindqnagent.nw = rlagent.e + (50,110);	
-%ddpgagent.nw = rlagent.e + (50, 20);	
-%blinddpgagent.nw = rlagent.e + (50,-112);	
-%svagent.n = agent.s + (0, -60);
-%
-%drawObjects(agent, rlagent, dqnagent, blindqnagent, ddpgagent, blinddpgagent, svagent);
-%
-%
-%link(inheritance)(rlagent.w -- agent.e);
-%link(inheritance)(svagent.n -- agent.s);
-%
-%link(inheritance)(pathStepX(dqnagent.w, rlagent.e, -15));
-%link(inheritance)(pathStepX(blindqnagent.w, rlagent.e, -15));
-%link(inheritance)(pathStepX(blinddpgagent.w, rlagent.e, -15));
-%link(inheritance)(pathStepX(ddpgagent.w, rlagent.e, -15));
-%
-%endfig;
+
+beginfig(2)
+	agent.e = (0,0);
+	rlagent.w = agent.e + (40, 0);
+	dqnagent.nw = rlagent.e + (40,200);	
+	blindqnagent.nw = rlagent.e + (40,110);	
+	ddpgagent.nw = rlagent.e + (40, 20);	
+	blinddpgagent.nw = rlagent.e + (40,-143);	
+	svagent.n = agent.s + (0, -60);
+	
+	drawObjects(agent, rlagent, dqnagent, blindqnagent, ddpgagent, blinddpgagent, svagent);
+	
+	link(inheritance)(rlagent.w -- agent.e);
+	link(inheritance)(svagent.n -- agent.s);
+	
+	link(inheritance)(pathStepX(dqnagent.w, rlagent.e, -15));
+	link(inheritance)(pathStepX(blindqnagent.w, rlagent.e, -15));
+	link(inheritance)(pathStepX(blinddpgagent.w, rlagent.e, -15));
+	link(inheritance)(pathStepX(ddpgagent.w, rlagent.e, -15));
+endfig;
 
 
 end
