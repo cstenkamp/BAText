@@ -94,7 +94,7 @@ In the \term{Drive}-mode of the game, throttle and steering are both binary, but
 \begin{figure}[h]
 	\centering 
 	\includegraphics[width=\textwidth]{uml_diagrams/models_inText2.2}
-	\caption{UML-diagram of the two given models as well as the interface both of them implement}
+	\caption[UML-diagram of the two models and their interface]{UML-diagram of the two given models as well as the interface both of them implement}
 	\label{fig:modelssmall}
 \end{figure}
 
@@ -243,34 +243,49 @@ The agents differ in the used \keyword{model} (and through that their \keyword{e
 \begin{figure}[h]
 	\centering 
 	\includegraphics[width=\textwidth]{uml_diagrams/agent_inText.2}  
-	\caption{(incomplete) UML-Diagram of the five implemented agents and their abstract superclasses}
+	\caption[UML-Diagram of the implemented agents and their superclasses]{(incomplete) UML-Diagram of the five implemented agents and their abstract superclasses}
 	\label{fig:umlAgents}
 \end{figure}
 
-In the following sections, these functions will be described. Further, the used reward function will be elucidated, even though it was the same for all agents.
+In the following sections, these functions will be described. Further, the used reward function will be elucidated, even though it was the same for all agents. To specify which agent a \term{feature} belongs to, captions will indicated the respective agents. If no such caption is given, it is assumed that all agents use the same feature.
 
 \subsection{Pretraining}
 
 The exported \codeobj{.svlap}s from Unity are used to train an agent. Note however, that only complete, \codeobj{valid} laps are exported. This means, that it is guaranteed that no laps where the car steeres into the wall or drives too slow will be in the sample. It can thus also be safely assumed that all datapoints in the set are \textit{good}, in the sense of contributing to relatively fast lap. 
 
+\subsubsection{dqn\_sv\_agent}
+
 Using only good datapoints is perfectly suited for supervised training, where the agent lerns to do the same actions as provided in the dataset. The \filename{dqn\_sv\_agent} simply iterates over the dataset for a specified number of iterations, splitting the dataset into minibatches according to its settings. To do so, this agent specifies the \codefunc{preTrain}-function itself, as it is not specified in its only superclass, \codeobj{AbstractRLAgent}.
 
-While it is good for a supervisedly trained agent to learn only from good actions, the same cannot be said for q-learning agents. As mentioned before, q-training is normally used when the state dynamics of the underlying is unknown. It is easy to see that to learn accurately, a q-learning agent must thus get \textit{representative} samples of the environment. The actions in the dataset used for pretraining are all parts of \textit{good} rounds, where the car mostly drives at high speeds and does not crash into a wall. It is easy to see, that using only those samples is not representative for the environment. Almost all values in the dataset have a relatively high reward. If a q-learning agent is trained purely on samples with a high reward, it will assume that high rewards are representative for the entire environment and assign a high reward to all state-action pairs. Testing showed that this was actually the case, and that an agent trained this way did not learn at all. Because of this, in the \codefunc{preTrain}-function of the agent, the method \codefunc{make\_trainbatch} is used. 
+\subsubsection{Other agents}
 
+While it is good for a supervisedly trained agent to learn only from good actions, the same cannot be said for q-learning agents. As mentioned before, q-training is normally used when the state dynamics of the underlying is unknown. It is easy to see that to learn accurately, a q-learning agent must thus get \textit{representative} samples of the environment. The actions in the dataset used for pretraining are all parts of \textit{good} rounds, where the car mostly drives at high speeds and does not crash into a wall. It is easy to see, that using only those samples is not representative for the environment. Almost all values in the dataset have a relatively high reward. If a q-learning agent is trained purely on samples with a high reward, it will assume that high rewards are representative for the entire environment and assign a high reward to all state-action pairs. Testing showed that this was actually the case, and that an agent trained this way did not learn at all. Because of this, in the \codefunc{preTrain}-function \codeobj{AbstractAgent}, the method \codefunc{make\_trainbatch} (printed in algorithm~\ref{alg:maketrainbatch}) is used. 
 
+\begin{algorithm}[h]
+\begin{lstlisting}[language=Python, style=Python, frame=none]
+def make_trainbatch(self,dataset,batchsize,epsilon=0):
+	trainBatch = dataset.create_QLearnInputs_fromBatch(*dataset.next_batch(self.conf, self, batchsize), self)
+	s,a,r,s2,t = trainBatch
+	if np.random.random() < epsilon:
+		r = np.zeros_like(r)
+		a = np.array([random_unlike(i,self) for i in a])
+		t = np.array([True]*len(t))
+		trainBatch = s,a,r,s2,t
+	return trainBatch
+\end{lstlisting}%
+\caption{The \codefunc{make\_trainbatch} - function}
+\label{alg:maketrainbatch}
+\end{algorithm}
+
+This method simulates an environment that rewards the actions from the pretraining as demanded and provides a reward of zero for any other action. While this makes it possible to perform q-pretraining, the result cannot be perfect, as all actions are punished hard.
 
 \colorbox{red}{dass getAcurracy das flag likeDDPG hat}
-
+\colorbox{red}{dass beim DDPG ne bessere funktion mit gaussian distance überlegt ist aber nicht klappt}
+\colorbox{red}{dass results davon, und wie gut das pretraining übernommen werden kann, später gezeigt wird}
 
 \subsection{Exploration}
 
-das mit high-level information in der randomAction-funktion eigentlich ne wahrscheinlichkeitsmeasure über policyAction gemacht werden kann
--dass man ähnliche actions mit ner höheren wahrscheinlichkeit nehmen könnte, boltzmann, oder einfach eine normale discretisieren und noise drauf packen könnte
-
--die expliziten values für den ornstein-uhlenbeck
-
-\colorbox{red}{das experimentelle getstatecountfeaturevec, das aber noch nix tun will}
-
+-der sv-agent hat natürlich keine exploration, die anderen schon
 
 Only very basic exploration algorithms are provided in this thesis. There are two different methods used in the DQN-based agents compared to the agents with a DDPG-model, following their definition of an action. While in DDPG-based agents it holds that $action \subset \mathds{R}^{n \in \mathds{N}}$, in DQN-based agent the action is discretized into one unique value. 
 
@@ -279,12 +294,32 @@ With Deep Q-Networks the most common policy during training is $\epsilon$-greedy
 With continuous actions thats not an option. The DDPG actor at each timestep outputs an action vector of continuous values. For exploration the straight forward approach is to add some noise to those actions. Because we model some physical environment just adding noise would make the agents behavior very jumpy -- therefore Lillicrap et al. instead propose to sample from a continuous Ornstein-Uhlenbeck process. Such a process models the continuous behavior of a physical particle, with some friction $\theta$ and some diffusion $\sigma$.
 
 
-While the action-value 
 
--epsilon-greedy als standard und make_noisy vom DDPG
+\subsubsection{dqn\_rl\_agent and dqn\_novision\_rl\_agent}
+
+-dass das in abstractrlagent ist
+-das mit high-level information in der randomAction-funktion eigentlich ne wahrscheinlichkeitsmeasure über policyAction gemacht werden kann
+-dass man ähnliche actions mit ner höheren wahrscheinlichkeit nehmen könnte, boltzmann, oder einfach eine normale dediscretisieren und noise drauf packen könnte
+
+\subsubsection{ddpg\_rl\_agent and ddpg\_novision\_rl\_agent}
+
+-die expliziten values für den ornstein-uhlenbeck
+
+\colorbox{red}{das experimentelle getstatecountfeaturevec, das aber noch nix tun will}
+getstatecountfeaturevec macht für das was ich mache mit meiner netzwerk-struktur keinen sinn (256 neurons direkt bevor es in die actions geht)
+
+-explizites listing von der make\_noisy mit allen params
 
 
 \subsection{Reward}
+
+\begin{figure}[h]
+	\centering 
+	\includegraphics[trim={5.5cm 2cm 4.5cm 2cm},clip,width=1.05\textwidth]{reward_components}
+	\caption{Reward-components}
+	\label{fig:reward}
+\end{figure}
+
 
 -meine theorien: continuous, non-negative, aus ner shclehcten darf nicht besser sein als in einem guten eh sein)
 -dass immer speed belohnen negativ ist, siehe ->problem bei ddpg, approach von dem kerastorcsguy, siehe kapitel \colorbox{red}{Daskapitel}
@@ -293,10 +328,13 @@ While the action-value
 \subsection{Observation}
 
 
+\subsubsection{ddpg\_rl\_agent, dqn\_rl\_agent and dqn\_sv\_agent}
 
 
-% \subsection{Performance measure}
+
+\subsubsection{ddpg\_novison\_rl\_agent and dqn\_novision\_rl\_agent}
+
+
+\subsection{Others}
 
 -dass ne runde nach 60 sekunden/wallhit/lapdone endet 
-
-% TODO -dass halt eigentlich zu jedem zeitpunkt compared zu rrt oder human sein müsste

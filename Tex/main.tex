@@ -24,7 +24,7 @@ headsepline, % Uncomment to get a line under the header
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc} 
 \usepackage{palatino} %font style palatino
-\usepackage{algorithm}
+\usepackage[plain]{algorithm}
 \usepackage{amsmath}
 \usepackage{dsfont}
 \usepackage{hyperref}
@@ -116,7 +116,27 @@ headsepline, % Uncomment to get a line under the header
 	numberblanklines=false
 	,basicstyle=\ttfamily%
 	,breaklines=true%
-	,tabsize=1%
+	,tabsize=2%
+	,showstringspaces=false%
+	,numbers=left%
+	,numbersep=\lstnumbersep%
+	,numberstyle=\lstnumberstyle%
+	,framesep=0pt%
+	,xleftmargin=\lstnumberwidth%
+	,framexleftmargin=\lsthorizontalpadding%
+	,xrightmargin=\lsthorizontalpadding%
+	,framexrightmargin=\lsthorizontalpadding%
+	,backgroundcolor=\color{verylightgray}%
+	,postbreak=\ding{229}\space%
+	,escapeinside={*(}{*)}
+	\linespread{1.0}
+}
+	
+\lstdefinestyle{Python}{language=Python,
+	numberblanklines=false
+	,basicstyle=\ttfamily%
+	,breaklines=true%
+	,tabsize=2%
 	,showstringspaces=false%
 	,numbers=left%
 	,numbersep=\lstnumbersep%
@@ -262,7 +282,7 @@ headsepline, % Uncomment to get a line under the header
 	\begin{abstract}
 		\addchaptertocentry{\abstractname} % Add the abstract to the table of contents
 		State-of-the-art self-driving cars rely on handcrafted algorithms to control the car's movement. As those systems rely on complete understanding of the environment, tactical decisions such as optimizing its speed are not considered as factor in their driving profile.
-		In this thesis, a realistic racing simulation will be paired with state-of-the-art deep learning techniques to investigate how to maximize a self-driving car’s operational capabilities. The racing simulation was given as a game implemented with the Unity game engine, to which this thesis adds the capabilities to be played and learned using artificial agents.
+		In this thesis, a racing simulation will be paired with state-of-the-art deep learning techniques to investigate how to maximize a self-driving car’s operational capabilities. The racing simulation was given as a game implemented with the Unity game engine, to which this thesis adds the capabilities to be played and learned using artificial agents.
 		After discussing the implementation of environment and agent, first experiments are conducted concerning the best reward-function, the effect of supervised pre-training and required inputs to the agent.
 	\end{abstract}
 
@@ -270,10 +290,10 @@ headsepline, % Uncomment to get a line under the header
 	%	PREFACE PAGE
 	%----------------------------------------------------------------------------------------
 
-	\begin{preface}{\authorname}{Osnabrück, \today}
-		\addchaptertocentry{\prefacename}
-		\noindent This document was written as the author’s bachelor thesis at the \deptname~at the \univname~during summer 2017 and is an original and independent work by the author \authorname.
-	\end{preface}
+%	\begin{preface}{\authorname}{Osnabrück, \today}
+%		\addchaptertocentry{\prefacename}
+%		\noindent This document was written as the author’s bachelor thesis at the \deptname~at the \univname~during summer 2017 and is an original and independent work by the author \authorname.
+%	\end{preface}
 
 
 
@@ -284,7 +304,9 @@ headsepline, % Uncomment to get a line under the header
 	
 	\begin{acknowledgements}
 		\addchaptertocentry{\acknowledgementname} % Add the acknowledgements to the table of contents
-		Thanks to my parents, Marie, my supervisors, and my friends.\ldots
+		This thesis is dedicated to my friends and family.\\
+		A big thanks goes to my supervisors as well as my proof-readers, and also to Alex for his help his code.\\
+		I am most grateful to my girlfriend Marie, who had the hard task of all: Enduring me while writing this thesis, while consistently proof-reading and helping me focus.
 	\end{acknowledgements}
 	
 	
@@ -310,7 +332,7 @@ headsepline, % Uncomment to get a line under the header
 	\listoffigures % Prints the list of figures
 %	\addchaptertocentry{List of Figures}
 	
-	\listoftables % Prints the list of tables
+%	\listoftables % Prints the list of tables
 %	\addchaptertocentry{List of Tables}
 	
 	\listofalgorithms
@@ -321,7 +343,7 @@ headsepline, % Uncomment to get a line under the header
 	%----------------------------------------------------------------------------------------
 	%	ABBREVIATIONS
 	%----------------------------------------------------------------------------------------
-	\newcommand{\abbrevtext}{The abbreviations used throughout the work are compiled in the following list below. Note that the abbreviations denote the singular form of the abbreviated words. Whenever the plural forms is needed, an s is added. Thus, for example, whereas ANN abbreviates \textit{artificial neural network}, the abbreviation of\textit{ artificial neural networks} is written ANNs.}
+	\newcommand{\abbrevtext}{The abbreviations used throughout the work are compiled in the following list below. Note that the abbreviations denote the singular form of the abbreviated words. Whenever the plural forms is needed, an s is added. Thus, for example, whereas ANN abbreviates \textit{artificial neural network}, the abbreviation of\textit{ artificial neural networks} is written as ANNs.}
 
 	\begin{abbreviations}{ll}[\abbrevtext] % Include a list of abbreviations (a table of two columns)
 		
@@ -330,11 +352,15 @@ headsepline, % Uncomment to get a line under the header
 		\textbf{API}	& \textbf{A}pplication \textbf{P}rogramming \textbf{I}nterface\\
 		\textbf{CNN} 	& \textbf{C}onvolutional (artificial) \textbf{N}eural \textbf{N}etwork\\
 		\textbf{CPU} 	& \textbf{C}entral \textbf{P}rocessing \textbf{U}nit\\
+		\textbf{DDDQN} 	& \textbf{D}ueling \textbf{D}eep-\textbf{D}ouble\textbf{Q}-\textbf{N}etwork\\
+		\textbf{DDQN} 	& \textbf{D}eep-\textbf{D}ouble\textbf{Q}-\textbf{N}etwork\\
 		\textbf{DDPG} 	& \textbf{D}eep \textbf{D}eterministic \textbf{P}olicy \textbf{G}radient - Network\\
+		\textbf{DPG} 	& \textbf{D}eterministic \textbf{P}olicy \textbf{G}radient\\
 		\textbf{DQN} 	& \textbf{D}eep-\textbf{Q}-\textbf{N}etwork\\
 		\textbf{FPS} 	& \textbf{F}rames \textbf{P}er \textbf{S}econd\\
 		\textbf{GUI} 	& \textbf{G}raphical \textbf{U}ser \textbf{I}nterface\\
 		\textbf{MDP}	& \textbf{M}arkov \textbf{D}ecision \textbf{P}rocess\\
+		\textbf{PG}	    & \textbf{P}olicy \textbf{G}radient\\
 		\textbf{POMDP} 	& \textbf{P}artially \textbf{O}bserved \textbf{M}arkov \textbf{D}ecision \textbf{P}rocess\\
 		\textbf{TORCS}  & \textbf{T}he \textbf{O}pen \textbf{R}acing \textbf{C}ar \textbf{S}imulator \textit{(software)}\\
 		
@@ -345,6 +371,8 @@ headsepline, % Uncomment to get a line under the header
 	%----------------------------------------------------------------------------------------
 	
 	\begin{symbols}{lll} % Include a list of Symbols (a three column table)
+		
+		AUßERDEM NOCH NE SEITE wo ich die notation von terms erkläre... also codefunc und codeobj undso...
 		
 %		\addchaptertocentry{\symbolsname}
 		%TODO: die hier schöner, mit text drüber a la einheitliche symbole etc, und spaltennamen!
@@ -363,7 +391,7 @@ headsepline, % Uncomment to get a line under the header
 	%	DEDICATION
 	%----------------------------------------------------------------------------------------
 	
-	\dedicatory{For my friends, family, and especially Marie.} 
+%	\dedicatory{For my friends, family, and especially Marie.} 
 	
 	%----------------------------------------------------------------------------------------
 	%	THESIS CONTENT - CHAPTERS
