@@ -1,11 +1,31 @@
 \chapter{Results -- Analysis and Performance}
 
-testing took place on a win10 machine, ...
+As stated in the introduction, in the course of this thesis not only platform and agents were implemented, but the agents were also tested to answer the research questions from section~\ref{sec:researchquestions}. The testing took place on a \keyword{Windows 10 Pro} machine, using GPU-accelerated Tensorflow with an \keyword{NVIDIA GeForce GTX 970} graphics card.
+
 Answer all of the research questions explicitly!!!
 
 -parameter selection gehört hier rein!!
 
+
 \section{General Performance}
+
+The first and foremost result is, that some were able to learn successful policies that are able to drive complete laps in a reasonable time. 
+-aus zeitgründen nur bis die das erste mal schaffen, auf zeit wird nicht geschaut
+-random agent
+-human
+-nur geradeaus
+\textit{How agents that rely purely on pretraining perform in comparison to reinforcement learning agents}
+
+\begin{figure}[h]
+	{%
+		\setlength{\fboxsep}{0pt}%
+		\setlength{\fboxrule}{1pt}%
+		\fbox{\includegraphics[width=.6\textwidth]{performance_plots/humandrive_average1_50eps}}%
+	}%
+	\centering
+	\caption{Exemplary laps driven by a human}
+	\label{fig:humandrive}
+\end{figure}
 
 % TODO -dass halt eigentlich zu jedem zeitpunkt compared zu rrt oder human sein müsste
 
@@ -25,10 +45,44 @@ Answer all of the research questions explicitly!!!
 -dass alle cars useful driving policies haben: q-werte vor wänden gering, steeren von wänden weg, fahren widely geradeaus... 
 -gym\_test klasse existiert, models klappen damit
 -mit dem aktuellem reward lernt er das vor der kurve bremsen besser ist als fahren, wie man sieht wenn man davor steht
+-dass die rewardfunktion vom ddpgpaper nicht klappt
+
+
+
+\section{Discretizing actions}
+
+\textit{How different models perform in comparison, and specifically if discretizing the action-space impairs performance}
+
+-plot von ddpg vs dqn
+
+\begin{figure}[h!]
+		{%
+			\setlength{\fboxsep}{0pt}%
+			\setlength{\fboxrule}{1pt}%
+			\fbox{\includegraphics[width=\textwidth]{performance_plots/dqn_bestresult_meinreward_average10_3500ep}}%
+		}%
+	\centering
+	\caption[Exemplary performance of the dqn\_novison\_rl\_agent]{Exemplary performance of the dqn\_novison\_rl\_agent. Plots are smoothed by averaging over 10 episodes.}
+	\label{fig:dqn_result}
+\end{figure}
+
+
+\begin{figure}[h!]
+{%
+	\setlength{\fboxsep}{0pt}%
+	\setlength{\fboxrule}{1pt}%
+	\fbox{\includegraphics[width=\textwidth]{performance_plots/ddpg_bestresult_meinreward_average10_1400ep}}%
+}%
+\centering
+\caption[Exemplary performance of the ddpg\_novison\_rl\_agent]{Exemplary performance of the ddpg\_novison\_rl\_agent. Plots are smoothed by averaging over 10 episodes.}
+\label{fig:ddpg_result}
+\end{figure}
 
 
 \section{Incorporating pretraining}
+\textit{How to incorporate pretraining into reinforcedly learning agents}
 
+ddpg-result: ...nope.
 -dass, wenn man actiona slinput gibt, er nur die lernt :o
 -dass supervised pretraining nicht übernommen werden kann wegen exorbitanter q-werte
 -dass auch q-pretraining nicht funktioniert ohne meinen twist
@@ -36,26 +90,44 @@ Answer all of the research questions explicitly!!!
 -plots von der performance nur pretraining, performance nur ohne, performance nach pretraining einbauen
 -dass dqn-models auch leider nicht als base für ddpg taugen, weil sie halt nen output für jede action haben
 
-
-\section{Discretizing actions}
-
--plot von ddpg vs dqn
-
 \begin{figure}[h]
-%		{%
-%			\setlength{\fboxsep}{0pt}%
-%			\setlength{\fboxrule}{1pt}%
-%			\fbox{\includegraphics[width=\textwidth]{result_dqn}}%
-%		}%
-	\colorbox{red}{dazushcreiben dass das mit skript xy gemacht wurde, und die daten dazu online unterxyz zu finden sind, und dass das jeweils der average von 10 runs ist}
+	{%
+		\setlength{\fboxsep}{0pt}%
+		\setlength{\fboxrule}{1pt}%
+		\fbox{\includegraphics[width=\textwidth]{performance_plots/ddpg_meinward_average5_1900eps_2500pretrainepisodesauf17datasets}}%
+	}%
 	\centering
-	\caption{Performance of the dqn\_novison\_rl\_agent}
-	\label{fig:dqn_result}
+	\caption[Exemplary performance of the ddpg\_novison\_rl\_agent after 40000 pretrain episodes]{Exemplary performance of the ddpg\_novison\_rl\_agent after 40000 pretraining episodes. Plots are smoothed by averaging over 5 episodes.}
+	\label{fig:ddpg_incorpPre}
 \end{figure}
 
 \section{Reward function}
 
+\textit{What a good reward function looks like, that rewards the \textit{correct} behaviour at all times (including braking)}
 -meine reward-funktion die bremsen belohnt
+
+\begin{figure}[h]
+	{%
+		\setlength{\fboxsep}{0pt}%
+		\setlength{\fboxrule}{1pt}%
+		\fbox{\includegraphics[width=\textwidth]{performance_plots/dqn_rewardinrelationtowalldist_smooth1_900ep}}%
+	}%
+	\centering
+	\caption[Exemplary performance of the dqn\_novison\_rl\_agent with SpeedInRelationToWallDist as only reward.]{Exemplary performance of the dqn\_novison\_rl\_agent with SpeedInRelationToWallDist as only reward. Plots are smoothed over 10 episodes.}
+	\label{fig:dqnrewardinrelationtowall}
+\end{figure}
+
+
+\begin{figure}[h]
+	{%
+		\setlength{\fboxsep}{0pt}%
+		\setlength{\fboxrule}{1pt}%
+		\fbox{\includegraphics[width=\textwidth]{performance_plots/dqn_rewardspeed_smooth10_2600ep}}%
+	}%
+	\centering
+	\caption[Exemplary performance of the dqn\_novison\_rl\_agent with the reward function from \cite{lillicrap_continuous_2015}]{Exemplary performance of the dqn\_novison\_rl\_agent with the reward function from \cite{lillicrap_continuous_2015}. Plot is not averaged.}
+	\label{fig:dqnrewardspeedstuff}
+\end{figure}
 
 
 
