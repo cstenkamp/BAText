@@ -27,7 +27,10 @@
 	\linespread{1.0}
 }
 
-\chapter{A minimally viable agent} % Main appendix title
+\chapter{Code-excerpts}
+
+
+\section{A minimally viable agent} % Main appendix title
 % https://tex.stackexchange.com/questions/22988/multicolumn-listing-for-comparison-in-latex
 
 \label{AppendixD} % For referencing this appendix elsewhere, use \ref{AppendixA}
@@ -56,3 +59,61 @@ def policyAction(self, agentState):
 	return toUse, (throttle, brake, steer)
 \end{lstlisting}%
 
+\vspace*{2cm}
+\section{The used calculateReward-function}
+
+
+
+\begin{lstlisting}[language=Python, frame=none]
+def calculateReward(self, *gameState):
+	vvec1_hist, vvec2_hist, otherinput_hist, action_hist = gameState
+	self.steeraverage.append(action_hist[1][2]) 
+	dist = otherinput_hist[0].CenterDist[0]-0.5  #abs is 0 for center, 0.15 for curb, 0.5 wall 
+	angle = otherinput_hist[0].SpeedSteer.carAngle - 0.5
+	badspeed = abs(2*otherinput_hist[0].SpeedSteer.speedInTraverDir-1)*5
+	
+	stay_on_street = ((0.5-abs(dist))*2)+0.35 
+	stay_on_street = stay_on_street**0.1 if stay_on_street > 1 else stay_on_street**2 
+	#flat on-street, steep off-street
+	stay_on_street = ((1-((0.5-abs(dist))*2))**10) * -self.wallhitPunish + (1-(1-((0.5-abs(dist))*2))**10) * stay_on_street 
+	#the influence of wallhitpunish is exponentially more relevant closer to the wall
+	stay_on_street -= 0.5 #in range [0.5,-1.5] for wallhitpunish=1
+	
+	direction_bonus = abs((0.5-(abs(angle)))*2/0.75) 
+	direction_bonus = ((direction_bonus**0.4 if direction_bonus > 1 else direction_bonus**2) / 1.1 / 2) - 0.25 #no big difference until 45degrees, then BIG diff.
+	#maximally 0.25, minimally -0.25
+	
+	tmp = (np.mean(self.steeraverage)) 
+	steer_bonus1 = tmp/5 + angle #rewards sterering into street-direction if the cars angle is off
+	steer_bonus1 = 0 if np.sign(steer_bonus1) != np.sign(angle) and abs(angle) > 0.15 else steer_bonus1
+	steer_bonus1 = (abs(dist*2)) * ((0.5-abs(angle)) * (1-abs(steer_bonus1))) + (1-abs(dist*2))*0.5  
+	#more relevant the further off you are.
+	steer_bonus2 = (1-((0.5-abs(dist))*2))**10 * -abs(((tmp+np.sign(dist))*np.sign(dist)))/1.5   
+	#more relevant further off, steering away from wall is as valuable as doing nothing in center
+	steer = steer_bonus1+steer_bonus2 #maximally 0.5
+	
+	#in front of curves, some values become less relevant
+	curveMultiplier = 1-abs(otherinput_hist[0].SpeedSteer.CurvinessBeforeCar-0.5)
+	direction_bonus *= curveMultiplier
+	badspeed *= curveMultiplier 
+
+	speedInRelationToWallDist = otherinput_hist[0].WallDistVec[6]-otherinput_hist[0].SpeedSteer.speedInStreetDir+(80/250)
+	speedInRelationToWallDist = 1-(abs(speedInRelationToWallDist)*3) if speedInRelationToWallDist < 0 else (1-speedInRelationToWallDist)+0.33                                   
+	speedInRelationToWallDist = min(1,speedInRelationToWallDist)
+	speedInRelationToWallDist += -badspeed + 0.3*otherinput_hist[0].SpeedSteer.speedInStreetDir
+	#rewards driving slow if close to wall
+	
+	rew = (2*speedInRelationToWallDist + stay_on_street + 0.5*direction_bonus + 0.5*steer)/ 4 
+
+	slidingToWall = (min(0.05, otherinput\_hist[0].WallDistVec[2]) / 0.05)**3
+	toWallSpeed =  (1-slidingToWall) * ((min(0.1, otherinput_hist[0].SpeedSteer.velocity) / 0.1)) 
+	#if the car is sliding sliding to and almost at the wall, subtract a lot 
+	tooslow = 1- ((min(0.2, otherinput_hist[0].SpeedSteer.speedInStreetDir) / 0.2) ** 3)
+	#drive faster at 0.2 at all times, its easily possible to keep this at 0 at all times
+	rew -= toWallSpeed
+	rew -= 0.5*tooslow
+	
+	rew = max(rew, 0) 
+	return rew
+
+\end{lstlisting}%

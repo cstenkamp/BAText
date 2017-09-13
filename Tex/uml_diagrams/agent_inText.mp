@@ -103,12 +103,12 @@ Class.anagent("Agent")
 
 
 beginfig(1)
-%	agent.e = (0,0);
-%	rlagent.w = agent.e + (24, 0);
-%	anagent.w = rlagent.e + (24, 0);
-%	drawObjects(agent, rlagent, anagent);
-%	link(inheritance)(rlagent.w -- agent.e);
-%	link(inheritance)(anagent.w -- rlagent.e);
+	agent.e = (0,0);
+	rlagent.w = agent.e + (24, 0);
+	anagent.w = rlagent.e + (24, 0);
+	drawObjects(agent, rlagent, anagent);
+	link(inheritance)(rlagent.w -- agent.e);
+	link(inheritance)(anagent.w -- rlagent.e);
 endfig;
 
 

@@ -9,7 +9,7 @@
 %	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
 %----------------------------------------------------------------------------------------
 
-\documentclass[11pt, oneside, english, singlespacing, %TODO: twosided machen
+\documentclass[11pt, english, singlespacing, 
 %draft, % Uncomment to enable draft mode (no pictures, no links, overfull hboxes indicated)
 %nolistspacing, % If the document is onehalfspacing or doublespacing, uncomment this to set spacing in lists to single
 %liststotoc, % Uncomment to add the list of figures/tables/etc to the table of contents
@@ -156,6 +156,20 @@ headsepline, % Uncomment to get a line under the header
 \newcommand{\blap}[1]{\smash[b]{{\def\arraystretch{1}\tabcolsep=0pt \begin{tabular}[t]{@{}l@{}}#1\end{tabular}}}}
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% LaTeX Overlay Generator - Annotated Figures v0.0.1
+% Created with http://ff.cx/latex-overlay-generator/
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\annotatedFigureBoxCustom{bottom-left}{top-right}{label}{label-position}{box-color}{label-color}{border-color}{text-color}
+\newcommand*\annotatedFigureBoxCustom[8]{\draw[#5,thick,rounded corners] (#1) rectangle (#2);\node at (#4) [fill=#6,thick,shape=circle,draw=#7,inner sep=2pt,font=\sffamily,text=#8] {\textbf{#3}};}
+%\annotatedFigureBox{bottom-left}{top-right}{label}{label-position}
+\newcommand*\annotatedFigureBox[4]{\annotatedFigureBoxCustom{#1}{#2}{#3}{#4}{white}{white}{black}{black}}
+\newcommand*\annotatedFigureText[4]{\node[draw=none, anchor=south west, text=#2, inner sep=0, text width=#3\linewidth,font=\sffamily] at (#1){#4};}
+\newenvironment {annotatedFigure}[1]{\centering\begin{tikzpicture}
+	\node[anchor=south west,inner sep=0] (image) at (0,0) { #1};\begin{scope}[x={(image.south east)},y={(image.north west)}]}{\end{scope}\end{tikzpicture}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 %------------- for code inline in the text-----------------------------------------------
 \definecolor{evenmorelightgray}{gray}{0.95}
 %\newcommand{\inlinecode}[1]{\colorbox{verylightgray}{\lstinline[basicstyle=\ttfamily\color{white}]{#1}}}
@@ -205,7 +219,7 @@ headsepline, % Uncomment to get a line under the header
 
 \thesistitle{Controlling Self-Driving Race Cars with Deep Neural Networks} %print with \ttitle
 
-\supervisor{Leon Sütfeld \\ Prof. Dr. Gordon Pipa} %print with \supname
+\supervisor{Leon René Sütfeld \\ Prof. Dr. Gordon Pipa} %print with \supname
 \examiner{}
 \degree{Bachelor of Science} %print with \degreename
 \author{Christoph Stenkamp} %print with \authorname
@@ -281,9 +295,9 @@ headsepline, % Uncomment to get a line under the header
 	
 	\begin{abstract}
 		\addchaptertocentry{\abstractname} % Add the abstract to the table of contents
-		State-of-the-art self-driving cars rely on handcrafted algorithms to control the car's movement. As those systems rely on complete understanding of the environment, tactical decisions such as optimizing its speed are not considered as factor in their driving profile.
-		In this thesis, a racing simulation will be paired with state-of-the-art deep learning techniques to investigate how to maximize a self-driving car’s operational capabilities. The racing simulation was given as a game implemented with the Unity game engine, to which this thesis adds the capabilities to be played and learned using artificial agents.
-		After discussing the implementation of environment and agent, first experiments are conducted concerning the best reward-function, the effect of supervised pre-training and required inputs to the agent.
+		State-of-the-art self-driving cars depend on handcrafted algorithms to control the car's movement. As those systems depend on complete understanding of the environment, tactical decisions such as optimizing its speed are not considered as a factor in their driving profile.
+		In this thesis, a racing simulation will be paired with state-of-the-art deep learning techniques to investigate how to maximize a self-driving car’s operational capabilities. Building on a racing simulation given as a game implemented with the Unity game engine, this thesis adds functionality to enable artificial agents to play and learn it. Further, first capable agents that sucessfully learn the environment are provided.
+		After discussing the implementation of environment and agent, first experiments are conducted concerning the best model and reward-function and the effect of supervised pre-training.
 	\end{abstract}
 
 	%----------------------------------------------------------------------------------------
@@ -305,8 +319,8 @@ headsepline, % Uncomment to get a line under the header
 	\begin{acknowledgements}
 		\addchaptertocentry{\acknowledgementname} % Add the acknowledgements to the table of contents
 		This thesis is dedicated to my friends and family.\\
-		A big thanks goes to my supervisors as well as my proof-readers, and also to Alex for his help his code.\\
-		I am most grateful to my girlfriend Marie, who had the hard task of all: Enduring me while writing this thesis, while consistently proof-reading and helping me focus.
+		A big thanks goes to my supervisors as well as my proof-readers, and also to Alex for his help and his code.\\
+		I am most grateful to my girlfriend Marie, who had the hardest task of all: Enduring me while writing this thesis, while consistently proof-reading and helping me focus.
 	\end{acknowledgements}
 	
 	
@@ -370,22 +384,22 @@ headsepline, % Uncomment to get a line under the header
 	%	SYMBOLS
 	%----------------------------------------------------------------------------------------
 	
-	\begin{symbols}{lll} % Include a list of Symbols (a three column table)
-		
-		AUßERDEM NOCH NE SEITE wo ich die notation von terms erkläre... also codefunc und codeobj undso...
-		
-%		\addchaptertocentry{\symbolsname}
-		%TODO: die hier schöner, mit text drüber a la einheitliche symbole etc, und spaltennamen!
-		
-%		$a$ & distance & \si{\meter} \\
-%		$P$ & power & \si{\watt} (\si{\joule\per\second}) \\
-%		%Symbol & Name & Unit \\
+%	\begin{symbols}{lll} % Include a list of Symbols (a three column table)
 %		
-%		\addlinespace % Gap to separate the Roman symbols from the Greek (innerhalb derer: ALPHABETISCH)
+%		AUßERDEM NOCH NE SEITE wo ich die notation von terms erkläre... also codefunc und codeobj undso...
 %		
-%		$\omega$ & angular frequency & \si{\radian} \\
-		
-	\end{symbols}
+%%		\addchaptertocentry{\symbolsname}
+%		%TODO: die hier schöner, mit text drüber a la einheitliche symbole etc, und spaltennamen!
+%		
+%%		$a$ & distance & \si{\meter} \\
+%%		$P$ & power & \si{\watt} (\si{\joule\per\second}) \\
+%%		%Symbol & Name & Unit \\
+%%		
+%%		\addlinespace % Gap to separate the Roman symbols from the Greek (innerhalb derer: ALPHABETISCH)
+%%		
+%%		$\omega$ & angular frequency & \si{\radian} \\
+%		
+%	\end{symbols}
 	
 	%----------------------------------------------------------------------------------------
 	%	DEDICATION
@@ -410,6 +424,7 @@ headsepline, % Uncomment to get a line under the header
 	\include{Chapters/Chapter4} 
 	\include{Chapters/Chapter5} 
 	\include{Chapters/Chapter6} 
+	\include{Chapters/Chapter7} 
 	
 	%----------------------------------------------------------------------------------------
 	%	THESIS CONTENT - APPENDICES
@@ -427,6 +442,8 @@ headsepline, % Uncomment to get a line under the header
 	\include{Appendices/AppendixC}
 	\restoregeometry
 	\include{Appendices/AppendixD}
+	\restoregeometry
+	\include{Appendices/AppendixE}
 	\restoregeometry
 		
 

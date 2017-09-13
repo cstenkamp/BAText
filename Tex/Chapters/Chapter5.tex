@@ -80,7 +80,7 @@ As a working game was already provided by \leon of this thesis, so were some of 
 It is worth noting that most \term{possible vectors} are normalized after loading, according to (in part estimated) minimal- and maximal values, such that all their values in [0,1]. The corresponding \codeobj{MINVALS} and \codeobj{MAXVALS} are defined in \filename{read\_supervised.py}
 
 %############################################################################################
-\section{Implemented Models}
+\section{Implemented models}
 %############################################################################################
 
 Within the context of this thesis, two different models were developed that can be used for agents to learn and play the given game: a \keyword{Double Dueling Deep-Q-Learning} model, specified in the class \codeobj{DDDQN\_model} in \filename{models/dddqn.py}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN/blob/master/models/dddqn.py}} as well as a \keyword{Deep Deterministic Policy Gradient} model, specified in \codeobj{DDPG\_model} in \filename{models/ddpg.py}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN/blob/master/models/ddpg.py}} Both models learn via temporal differences and are in detail explained in chapters~\ref{ch:DQN}ff and \ref{ch:ddpg}, respectively. 
@@ -102,14 +102,12 @@ Both implemented models provide the possibility to load and save a model from/to
 
 
 While both models are implemented to be used by the described agent and in the described situation, they are general models for reinforcement learning -- and are as such usable to learn reasonable policies in any task described as markov decision process. To show the generality of the implemented models, a file \filename{gym\_test.py}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN/blob/master/gym\_test.py}} is provided. In this file, the implemented \codeobj{model}s are used to solve arbitrary \term{openAI-gym}-tasks. As the program flow of the interaction with a gym-environment differs to that one of the implemented program, the file contains specialized definitions of \codeobj{agent}, \codeobj{config} and \codeobj{memory} to work with the API-schema of \term{gym}. As \term{gym}-environments explicitly define \codeobj{terminal} and \codeobj{reward}, the \codeobj{agent} must for example not work with the \codeobj{gameState}, but contains only methods using the immediate \codeobj{agentState}. -- the way how an agent accesses its model is however equal to the agents for the given game. The \filename{gym\_test.py} can be used to test if a model is functional -- if a model works on several gym-tasks, it can be assumed that it is implemented correctly. Having such a method at hand is very handy during the implementation of reinforcement-learning agents, as it provides a reliable method to check where the reason for any errors may lie. Both implemented models were successfully tested on several tasks each\footnote{Note however, that using other gym-environments than the ones on which was tested (\codeobj{Pendulum-v0}, \codeobj{FrozenLake-v0}, \codeobj{MountainCar-v0} and \codeobj{CarRacing-v0}) may require implementing specific exploration or preprocessing techniques. Note further, that some environments can only be solved with models that allow for continuous action-spaces.}.
-\colorbox{red}{https://gym.openai.com/envs/CarRacing-v0}
+
 
 In the following two sections, I will at first explain the DQN-model and afterwards the DDPG-model. Note that both models are used in multiple agents each. The amount of input-values may just differ from agent to agent, and the presented network architecture is specific to one of the implemented agents, which will be explained in a following section.
 
 
 \subsection{DQN-model}
-
-\colorbox{red}{decaying LR is implemented but should only be used in svtrain}
 
 The class \codeobj{DDDQN\_model} \term{has} two \codeobj{DuelDQN}s, which are Deep Convolutional Neural Networks with Dueling Architectures, specified as computational graph using TensorFlow -- one of them being its online network, and the other the target network. The \codeobj{DDDQN\_model} combines then for the learning method of Double-Q-Learning (as detailed in section~\ref{ch:DQN}ff as well as appendix~\ref{AppendixA}) in its method \codefunc{q\_train\_step}. 
 
@@ -192,7 +190,7 @@ All layers are summarized with the function \codefunc{variable\_summary} from \f
 
 Just like the \codeobj{critic}, the \codeobj{actor} uses a \codeobj{conv\_actorNet} if \codeobj{agent.usesConv} and a \codeobj{lowdim\_actorNet} else.
 
-The network architecture of the high-dimensional critic can be inspected in figure~\ref{fig:2dact}. Its structure is similar to that of the high-dimensional critic, with the difference that the actor does take the actions as input, but connects the last hidden layer to three output neurons, corresponding to the values for the three actions. This \keyword{Outs}-layer is afterwards scaled, to yield the \keyword{ScaledOuts}-layer. All hidden units but the last use a \codeobj{tf.nn.relu} activation function, whereas the last uses a \inlinecode{tanh}-activation-function. While $tanh$ has a range of $[-1,1]$, the actions may have a different range (e.g. $acceleration \in [0,1]$). The final scaling layer adjusts the range correspondingly.
+The network architecture of the high-dimensional critic can be inspected in figure~\ref{fig:2dact}. Its structure is similar to that of the high-dimensional critic, with the difference that the actor does take the actions as input, but connects the last hidden layer to three output neurons, corresponding to the values for the three actions. This \keyword{Outs}-layer is afterwards scaled, to yield the \keyword{ScaledOuts}-layer. All hidden units but the last use a \codeobj{tf.nn.relu} activation function, whereas the last uses a \codeobj{tanh}-activation-function. While $tanh$ has a range of $[-1,1]$, the actions may have a different range (e.g. $acceleration \in [0,1]$). The final scaling layer adjusts the range correspondingly.
 
 \begin{figure}[h]
 	\centering 
@@ -220,7 +218,7 @@ Agents hat use the DDPG-model must overwrite the functions \codefunc{makeNetUsab
 It was further mentioned in section~\ref{sec:contexptheory} that an agent using a continuous model works better with noisy actions instead of completely random actions as exploration function. To do so, a method like \codefunc{make\_noisy}, and change the implemented \codefunc{randomAction(gameState)}.
 
 %############################################################################################
-\section{Implemented Agents}
+\section{Implemented agents}
 %############################################################################################
 
 In the course of this thesis, five different agents were implemented to both demonstrate how to use the given framework and answer the research questions stated in section~\ref{sec:researchquestions}.  The following table shows their names and distinctive properties: 
@@ -237,8 +235,7 @@ In the course of this thesis, five different agents were implemented to both dem
 \end{tabular}
 \end{flushleft}
 
-
-The agents differ in the used \keyword{model} (and through that their \keyword{exploration-function}), their \keyword{observation-function}, and if and how they incorporate \keyword{pretraining}. The UML-diagram in figure~\ref{fig:umlAgents} shows the attributes and methods that the respective actions overwrite (not however that it is incomplete and for example does not show the functions that are overwritten to incorporate a GUI).
+The agents differ in the used \keyword{model} (and through that their \keyword{exploration-function}), their \keyword{observation-function}, and if and how they incorporate \keyword{pretraining}. The UML-diagram in figure~\ref{fig:umlAgents} shows the attributes and methods that the respective actions overwrite (not however that it is incomplete and for example does not show the functions that are overwritten to incorporate a GUI). All agents and a training episode after crashing into a wall, completing a lap, turning around or after $60$ seconds driving-time without either of those.
 
 \begin{figure}[h]
 	\centering 
@@ -251,15 +248,23 @@ In the following sections, these functions will be described. Further, the used 
 
 \subsection{Pretraining}
 
+\label{sec:pretrainingcode}
+
 The exported \codeobj{.svlap}s from Unity are used to train an agent. Note however, that only complete, \codeobj{valid} laps are exported. This means, that it is guaranteed that no laps where the car steeres into the wall or drives too slow will be in the sample. It can thus also be safely assumed that all datapoints in the set are \textit{good}, in the sense of contributing to relatively fast lap. 
 
-\subsubsection{dqn\_sv\_agent}
+To assess the value of a pre-training, the model's method \codefunc{getAccuracy} is used. The \keyword{accuracy} as defined by this method is the percentage of all calculated actions that result into the same discretization than their counterpart from the dataset. While for the DDPG-model, another way of assessing the accuracy using gaussian distances could be used, it will not be considered in the remainder of this thesis when talking about \textit{accuracy}.
+
+\subsubsection{\term{dqn\_sv\_agent}}
 
 Using only good datapoints is perfectly suited for supervised training, where the agent lerns to do the same actions as provided in the dataset. The \filename{dqn\_sv\_agent} simply iterates over the dataset for a specified number of iterations, splitting the dataset into minibatches according to its settings. To do so, this agent specifies the \codefunc{preTrain}-function itself, as it is not specified in its only superclass, \codeobj{AbstractRLAgent}.
 
+The original definition of an agent's observation-function included, following \cite{mnih_human-level_2015}, the last actions an agent performed. Interestingly however, agents that included the action learned an action solely in dependance of this input. This makes sense, because a huge portion of consecutive actions are equal (for example when driving a straight track). Because of this, the agents were removed as part of the observation for all agents.
+
+The implementation forbids to use an agent that performed supervised pre-training to subsequently perform reinforcement learning. It does not make sense to re-use an agent that trained supervisedly for q-learning. While the a supervisedly trained agent may select the same agents than a q-learning correspondance, it does not ascribe any Q-values to these actions. As long as the $argmax$ is the same, it does not matter for a supervisedly trained agent if what the respective value of all actions are. As the $argmax$-operation is for example invariant to equal scaling of all actions, it is obvious that the chance that the respective activations correspond to actual q-values is extremely slight.
+
 \subsubsection{Other agents}
 
-While it is good for a supervisedly trained agent to learn only from good actions, the same cannot be said for q-learning agents. As mentioned before, q-training is normally used when the state dynamics of the underlying is unknown. It is easy to see that to learn accurately, a q-learning agent must thus get \textit{representative} samples of the environment. The actions in the dataset used for pretraining are all parts of \textit{good} rounds, where the car mostly drives at high speeds and does not crash into a wall. It is easy to see, that using only those samples is not representative for the environment. Almost all values in the dataset have a relatively high reward. If a q-learning agent is trained purely on samples with a high reward, it will assume that high rewards are representative for the entire environment and assign a high reward to all state-action pairs. Testing showed that this was actually the case, and that an agent trained this way did not learn at all. Because of this, in the \codefunc{preTrain}-function \codeobj{AbstractAgent}, the method \codefunc{make\_trainbatch} (printed in algorithm~\ref{alg:maketrainbatch}) is used. 
+While it is good for a supervisedly trained agent to learn only from good actions, the same cannot be said for q-learning agents. As mentioned before, q-training is normally used when the state dynamics of the underlying is unknown. It is easy to see that to learn accurately, a q-learning agent must thus get \textit{representative} samples of the environment. The actions in the dataset used for pretraining are all parts of \textit{good} rounds, where the car mostly drives at high speeds and does not crash into a wall. It is easy to see, that using only those samples is not representative for the environment. Almost all values in the dataset have a relatively high reward. If a q-learning agent is trained purely on samples with a high reward, it will assume that high rewards are representative for the entire environment and assign a high reward to all state-action pairs. Testing showed that this was actually the case, and that an agent trained this way did not learn at all. Because of this, in the \codefunc{preTrain}-function \codeobj{AbstractAgent}, the method \codefunc{make\_trainbatch} (printed in algorithm~\ref{alg:maketrainbatch}) is used.
 
 \begin{algorithm}[h]
 \begin{lstlisting}[language=Python, style=Python, frame=none]
@@ -277,64 +282,123 @@ def make_trainbatch(self,dataset,batchsize,epsilon=0):
 \label{alg:maketrainbatch}
 \end{algorithm}
 
-This method simulates an environment that rewards the actions from the pretraining as demanded and provides a reward of zero for any other action. While this makes it possible to perform q-pretraining, the result cannot be perfect, as all actions are punished hard.
+In the case of discrete actions, $a$ is saved as the $argmax$ of the one-hot vector. In this case, the method \codefunc{random\_unlike} returns an index dissimilar from that argmax. In the case of continouous actions, the action is discretized first, and the result afterwards dediscretized. While it was tried to instead add gaussian noise to the action while diminishing the reward only according to the gaussian distance of these two actions, testing that showed no success.
 
-\colorbox{red}{dass getAcurracy das flag likeDDPG hat}
-\colorbox{red}{dass beim DDPG ne bessere funktion mit gaussian distance überlegt ist aber nicht klappt}
-\colorbox{red}{dass results davon, und wie gut das pretraining übernommen werden kann, später gezeigt wird}
+This method simulates an environment that rewards the actions from the pretraining as demanded and provides a reward of zero for any other action. Using this method makes it possible to archieve reasonable accuracies with q-pretraining, where at least the performed action gets ascribed a correct Q-value. 
+
+Unfortunately, reinforcement learning agents that used pre-training in this fashion were still not able to correctly makeuse of it, as figure~\ref{sec:incorporatePre} will show.
 
 \subsection{Exploration}
 
--der sv-agent hat natürlich keine exploration, die anderen schon
+An agent uses an exploration function to learn about different states. As a supervised agent does not learn about the environment at all, it does not incorporate an exploration function.
 
-Only very basic exploration algorithms are provided in this thesis. There are two different methods used in the DQN-based agents compared to the agents with a DDPG-model, following their definition of an action. While in DDPG-based agents it holds that $action \subset \mathds{R}^{n \in \mathds{N}}$, in DQN-based agent the action is discretized into one unique value. 
+\subsubsection{\term{dqn\_rl\_agent} and \term{dqn\_novision\_rl\_agent}}
 
-ALEX: 
-With Deep Q-Networks the most common policy during training is $\epsilon$-greedy. $\epsilon$-greedy means, that for an $\epsilon$ portion of all actions a random action is chosen, otherwise the action with the highest Q value is chosen greedily.
-With continuous actions thats not an option. The DDPG actor at each timestep outputs an action vector of continuous values. For exploration the straight forward approach is to add some noise to those actions. Because we model some physical environment just adding noise would make the agents behavior very jumpy -- therefore Lillicrap et al. instead propose to sample from a continuous Ornstein-Uhlenbeck process. Such a process models the continuous behavior of a physical particle, with some friction $\theta$ and some diffusion $\sigma$.
+As the model of DQN-based agent discretizes the action into one unique value, so does its exploration function. Both these agents use the \codefunc{randomAction}-method as provided in \codeobj{AbstractRLAgent}. As the \codeobj{randomAction}-method is called with a probability of $\epsilon$ and the greedy result of \codeobj{policyAction} otherwise, their exploration algorithm corresponds to the standard $\epsilon$-greedy approach.
 
+The \codefunc{randomAction} itself selects an action purely by chance, while forbidding simultaneous activation of throttle and brake and forcing a throttle if the car stands.
 
+Even though it was not done for these agents, it would also be possible to incorporate higher-level information into the \codefunc{randomAction}-function. As the values required by the environment are continouos, the method could for example use the result of \codefunc{policyAction} and apply noise to it or select actions basing on the Boltzmann-exploration function. It is an open question how this would manifest in the performance of these agents.
 
-\subsubsection{dqn\_rl\_agent and dqn\_novision\_rl\_agent}
+\subsubsection{\term{ddpg\_rl\_agent} and \term{ddpg\_novision\_rl\_agent}}
 
--dass das in abstractrlagent ist
--das mit high-level information in der randomAction-funktion eigentlich ne wahrscheinlichkeitsmeasure über policyAction gemacht werden kann
--dass man ähnliche actions mit ner höheren wahrscheinlichkeit nehmen könnte, boltzmann, oder einfach eine normale dediscretisieren und noise drauf packen könnte
+As for DDPG-based actions it holds that $action \subset \mathds{R}^{n \in \mathds{N}}$, which makes it natural that their \codefunc{randomAction} also returns continouous values. For exploration the straight forward approach is to add some noise to their \codefunc{policyAction}. As explained in section~\ref{sec:contexptheory} and \cite{wawrzynski_control_2015}, pure random noise leads to very jerky behaviour, which is unrealistic for the given simulation. Because of that, temporal correlation is incorporated with an  Ornstein-Uhlenbeck process.
 
-\subsubsection{ddpg\_rl\_agent and ddpg\_novision\_rl\_agent}
+Modelling noise with an Ornstein-Uhlenbeck process changes the standard framework for $\epsilon$-greedy, as no completely random actions are taken anymore. Because noise is added to the result of a networks inference in all inferences, the method \codefunc{randomAction} is overwritten to return the value of \codefunc{policyAction}. 
 
--die expliziten values für den ornstein-uhlenbeck
+The parameter \codeobj{epsilon} is nevertheless incorporated to control how much noise influences the action of \codefunc{policyAction}. This method calculates every action according to its model, and then uses a \codefunc{make\_noisy}-function to add the temporally correlated noise to its result, as defined in section~\ref{sec:contexptheory}. The method \codefunc{make\_noisy} is specified in algorithm~\ref{alg:ornstein}. 
 
-\colorbox{red}{das experimentelle getstatecountfeaturevec, das aber noch nix tun will}
-getstatecountfeaturevec macht für das was ich mache mit meiner netzwerk-struktur keinen sinn (256 neurons direkt bevor es in die actions geht)
+In this method, the values for $\mu$, $\Theta$ and $\sigma$ are different for all three actions. A relatively high mean value $\mu$ for the throttle together with a low $\mu$ for the brake ensures, that the car will have a high prior probability to accelerate the car, instead of standing much. A lower $\Theta$ for the steering ensures that the temporal correlation is more relevant than reverting to the mean.
 
--explizites listing von der make\_noisy mit allen params
+Note that an agent that uses an Ornstein-Uhlenbeck exploration function must specify a \codeobj{_noiseState} variable, which is reset as soon as an episode ends.
+
+\begin{algorithm}[h]
+	\begin{lstlisting}[language=Python, style=Python, frame=none]
+self.OU_mu = [0.5, 0.05, 0.0]
+self.OU_theta = [0.85, 0.85, 0.6]
+self.OU_sigma = [0.1, 0.05, 0.3]
+
+def make_noisy(self, action):
+	def Ornstein(x,mu,theta,sigma):
+		return theta * (mu - x) + sigma * np.random.randn(1)
+	self._noiseState[0] = Ornstein(self._noiseState[0],  self.OU_mu[0] , self.OU_theta[0], self.OU_sigma[0])
+	self._noiseState[1] = Ornstein(self._noiseState[1],  brakemu,        self.OU_theta[1], self.OU_sigma[1])  
+	self._noiseState[2] = Ornstein(self._noiseState[2],  self.OU_mu[2] , self.OU_theta[2], self.OU_sigma[2])
+	action[0] += self.epsilon * self._noiseState[0]
+	action[1] += self.epsilon * self._noiseState[1]
+	action[2] += self.epsilon * self._noiseState[2]
+	action = np.array([clip(action[i],self.conf.action_bounds[i]) for i in range(len(action))])
+	return action
+	\end{lstlisting}%
+	\caption{Ornstein-Uhlenbeck process to generate noisy actions}
+	\label{alg:ornstein}
+\end{algorithm}
 
 
 \subsection{Reward}
+		
+\label{sec:reward}		
+		
+The success of a reinforcement learning agent hinges critically on its reward function. Especially in the domain of virtual racing simulations, there is much debate about what serves as a good reward. As listed in section~\ref{sec:relatedimplements}, the original DDPG-paper \cite{lillicrap_continuous_2015} used the car's velocity in direction of the street as reward. Applying this reward-function to the given progress did not lead to success (as figure~\ref{fig:dqnrewardspeedstuff} shows). If only speed is rewarded, the car accelerates as much as possible and simply crashes into the wall at the first turn. In this implementation as well as in many other, accelerating as much as possible is not the correct behaviour. In theory, a reinforcement learning agent should learn to accept a smaller reward in the current state in favor of a more desirable follow-up state, however no agent seemed to have explorated enough to learn that other possibilities besides the unevitable crash into the wall are possible by braking for a consecutive number of frames. 
+
+To create an agent that learns successfully, a reward-function must thus be implemented that rewards the \textit{correct} behaviour at any time, including braking. Consequently, it was decided to use a reward function that rewards high speeds only if a no sharp turn is ahead, and punishes high speeds otherwise. The resulting definition uses \codeobj{OtherInputs.WallDistVec[6]} (corresponding to the grey line in figure~\ref{fig:walldistvec}) to measure the distance of the next wall. The employed function to calculate the reward is specified in algorithm~\ref{alg:speedinrelationto}. A visualization of its value in dependence of speed and wall-distance can further be found in plot \textbf{D} of figure~\ref{fig:reward}.
+
+Note that a reward function must not provide more reward to get out of an undesired situation as it gives for not getting into such a situation in the first place, as that would lead to an agent intentionally generating such situations.
+
+\begin{algorithm}[h]
+	\begin{lstlisting}[language=Python, style=Python, frame=none]
+vvec1_hist, vvec2_hist, otherinput_hist, action_hist = gameState
+reward = otherinput_hist[0].WallDistVec[6]-otherinput_hist[0].SpeedSteer.speedInStreetDir+(80/250)
+reward = 1-(abs(reward)*3) if reward < 0 else (1-reward)+0.33
+reward = min(1,reward)
+reward += 0.3*otherinput_hist[0].SpeedSteer.speedInStreetDir
+	\end{lstlisting}%
+	\caption{Rewarding speed in relation to the wall-distance}
+	\label{alg:speedinrelationto}
+\end{algorithm}
+
+While an agent that used purely this definition of reward performed much better than one using only the speed, it turned out that adding other components to the reward optimized the performance and speed of learning even more. Figure~\ref{fig:reward} visualizes some other components that were additionally used. 
 
 \begin{figure}[h]
 	\centering 
-	\includegraphics[trim={5.5cm 1.8cm 4.5cm 2cm},clip,width=1.05\textwidth]{reward_components}
+	\begin{annotatedFigure}
+		{\includegraphics[trim={5.5cm 1cm 4.5cm 2cm},clip,width=1.05\textwidth]{reward_components}}
+		\annotatedFigureBox{0.052,0.93}{0.052,0.93}{A}{0.052,0.93}%bl
+		\annotatedFigureBox{0.395,0.93}{0.395,0.93}{B}{0.395,0.93}%bl
+		\annotatedFigureBox{0.74,0.93}{0.74,0.93}{C}{0.74,0.93}%bl
+		\annotatedFigureBox{0.052,0.45}{0.052,0.45}{D}{0.052,0.45}%bl
+		\annotatedFigureBox{0.4,0.45}{0.4,0.45}{E}{0.4,0.45}%bl
+		\annotatedFigureBox{0.74,0.45}{0.74,0.45}{F}{0.74,0.45}%bl
+	\end{annotatedFigure}
 	\caption{Reward-components}
 	\label{fig:reward}
 \end{figure}
 
+Plot \textbf{A} shows the sub-component of rewarding the car's \textit{traverse position}. As it is reasonable for the car to stay on the street (less slip and better control), doing so is rewarded. As long as the car stays on the street, it receives the full reward, whereas this reward decreases steeply from the \textit{curb} on.
 
--meine theorien: continuous, non-negative, aus ner shclehcten darf nicht besser sein als in einem guten eh sein)
--dass immer speed belohnen negativ ist, siehe ->problem bei ddpg, approach von dem kerastorcsguy, siehe kapitel \colorbox{red}{Daskapitel}
--die funktion wo man sich den durchgängingen reward in ner farbe plotten kann (auch bei \keystroke{H})
+Another component is the \textit{Minimum-Speed-Reward} (plot \textbf{C}): It is easily possible to keep a constant speed at all times. To ensure that driving to slow is punished, this function subtracts a value for speeds lower than $20\%$ of the maximum possibles speed. As the reward from algorithm~\ref{alg:speedinrelationto} sometimes rewards very low reward, it is useful to combine it with this component to discourage too slow speeds.
+
+If the \keyword{carAngle} is too big, it is also rewarded to steer back into the direction that decreases this angle. As the purpose of this component is to make the car steer back to the street if it is too close to a wall, this reward is only relevant if the traverse position of the car indicates that it is close to a wall. Plot \textbf{E} shows the preliminary steering-reward in dependence of car-angle and steering-command, and plot \textbf{F} shows the actually resulting reward, depending on the result from \textbf{E} and the car's traverse position. This steer-bonus is stated in lines 19-26 of the source code in appendix~\ref{AppendixD}. 
+
+These components are not all that are used in the final agent, but listing all of them would be beyond the scope of this thesis. The interested reader is therefore referred to appendix~\ref{AppendixD}, where the source-code of this function is given.
+
+The actual reward is a weighted sum of all these components, with the respective weights being a result of informal testing. Note that the final result is clipped as \codeother{reward = max(0, reward)}. It is a well-known fact that negative rewards impair the behaviour of an agent more than it helps. If for example the reward for being to far off-center is all negative, then the car would get a higher cumulative when it ends the episode by driving into a wall. To prevent such scenarios, all rewards but the one that ends the episode must be positive.
+
 
 \subsection{Observation}
 
+\label{sec:observation}
 
-\subsubsection{ddpg\_rl\_agent, dqn\_rl\_agent and dqn\_sv\_agent}
+An agent's observation-function is specified in its method \codefunc{getAgentState(gameState)}
+
+dass die action_hist raus ist
+
+\colorbox{red}{dass für pretraining die previous actions removed werden müssen weil der sonst nur von denen lernt! ...oder svtraining? oder wann?}
+
+\subsubsection{\term{ddpg\_rl\_agent}, \term{dqn\_rl\_agent} and \term{dqn\_sv\_agent}}
 
 
+schreiben wie ich die nenne "agents using minimaps as observation"
 
-\subsubsection{ddpg\_novison\_rl\_agent and dqn\_novision\_rl\_agent}
+\subsubsection{\term{ddpg\_novison\_rl\_agent} and \term{dqn\_novision\_rl\_agent}}
 
-
-\subsection{Others}
-
--dass ne runde nach 60 sekunden/wallhit/lapdone endet 
