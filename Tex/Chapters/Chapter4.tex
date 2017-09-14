@@ -12,7 +12,7 @@
 
 \newcommand{\codeobj}[1]{\colorbox{evenmorelightgray}{{\spaceskip=.95\fontdimen2\font minus \fontdimen4\font	\xspaceskip=0pt\relax \large\texttt{#1}}}}
 
-\newcommand{\codeother}[1]{\colorbox{evenmorelightgray}{\lstinline[basicstyle=\ttfamily\color{black}]{#1}}}
+\newcommand{\codeother}[1]{\colorbox{evenmorelightgray}{\lstinline[basicstyle=\ttfamily\color{black},keywordstyle=\ttfamily]{#1}}}
 
 
 \newcommand{\filename}[1] {{\spaceskip=.95\fontdimen2\font minus \fontdimen4\font
@@ -104,7 +104,8 @@ As is the general case in simulations, while every update-step of the physics ai
 
 As mentioned in the previous section, the action space required by the agent is continuous with $\mathcal{A} \subset \mathds{R}^3$. 
 
-The environment's state is a linear combination of different factors, as for example the car's speed, absolute position, current slip-values and much more. While certainly finite, it consists of many high-dimensional values: $\mathcal{S}_e \subset \mathds{R}^{n \in \mathds{N}}$. Because of certain factors in the implementation of the environment itself, the environment is indeterministic\footnote{The game is programmed in Unity, which has non-predictable physics. As discussed for example in \url{https://forum.unity3d.com/threads/is-unity-physics-is-deterministic.429778/}, this is because of the fact that any random-number-generator depends on the current system time, which is never fully equal in subsequent trials. Because the calculation of some states can be more complex than others, this effect can snowball even more -- longer calculation in one step leads to later timing of a subsequent update step, which can lead to a whole other trajectory along the state space, even though the start state was equal.}, while the start-state is always equal. As can in principle be argued that the environment's state corresponds to all information stored in the game's section of the computer's RAM, the game trivially fulfills the markov property. As the environment is only a single-agent system, the transition function of the environments can be expressed as a stochastic function of state and action: $\mathcal{S}_e \times \mathcal{A} \rightarrow \mathcal{S}_e$.
+The environment's state is a linear combination of different factors, as for example the car's speed, absolute position, current slip-values and much more. While certainly finite, it consists of many high-dimensional values: $\mathcal{S}_e \subset \mathds{R}^{n \in \mathds{N}}$. Because of certain factors in the implementation of the environment itself, the environment is indeterministic\footnote{The game is programmed in Unity, which has non-predictable physics. As discussed for example in \url{https://forum.unity3d.com/threads/is-unity-physics-is-deterministic.429778/}, this is because of the fact that any random-number-generator depends on the current system time, which is never fully equal in subsequent trials. Because the calculation of some states can be more complex than others, this effect can snowball even more -- longer calculation in one step leads to later timing of a subsequent update step, which can lead to a whole other trajectory along the state space, even though the start state was equal.}. As can in principle be argued that the environment's state corresponds to all information stored in the game's section of the computer's RAM, the game trivially fulfills the markov property. As the environment is only a single-agent system, the transition function of the environments can be expressed as a stochastic function of state and action: $\mathcal{S}_e \times \mathcal{A} \rightarrow \mathcal{S}_e$. 
+In contrast to many existing approaches(see section~\ref{sec:relatedimplements}), it was decided that the start-state is no distribution over all possible states, but always set to the same position, with speed and inertia set to zero. While this makes the game harder to be learned, it is more realistic and comparable to real situations.
 
 There is no formal definition of a reward returned by the environment in the game. While it could in theory be argued that the inverse of the time needed to complete a lap could be taken as the reward, it is obvious that this is infeasible due to many reasons: Finishing one lap takes several seconds, which means there are hundreds of iterations between start state and final state. Next to the obviously arising \keyword{credit assignment problem}, the chance of an agent even getting to the finish line without crashing is practically zero without rewarding intermediate progress. Instead, it makes sense to give more \keyword{dense} rewards. As mentioned in section~\ref{ch:projectcharacteristics}, the reward is also subject of experiments in the scope of this thesis. For the game to correspond to a proper environment, this reward must be a scalar value depending on state and action.
 
@@ -153,7 +154,7 @@ Scripts belonging to the game are coded using the programming language \term{C\#
 
 While the original framework of the game was coded in advance to this thesis by the \leonbase, \keyword{Leon Sütfeld}, most of this work was contributed by the author of this thesis to enable learning of the game and making it playable by a machine. While it will be explicitly stated what was already given later in this chapter, it is also referred to the respective branch on Github (\textit{Ba-rAIce -- LeonsVersion}\footnote{\url{https://github.com/cstenkamp/BA-rAIce/tree/LeonsVersion}}). The implementation of the agent was not influenced by any other people than the author of this work.
 
-In the description of the sourcecode, code-exerpts will be merged with the text. To distinguish code from text, these exerpts will be shaded in gray. A further distinction is made between \codefunc{methods()} and \codeobj{objects}, \codeobj{variables} and \codeobj{classes}. For the sake of brevity, the parameter list of \codefunc{methods} will be left out if not explicitly needed.\\
+In the description of the sourcecode, code-exerpts will be merged with the text. To distinguish code from text, these exerpts will be shaded in gray. A further distinction is made between \codefunc{methods()} and \codeobj{objects}, \codeobj{variables} and \codeobj{classes}. If not made obvious otherwise, classes are capitalized and objects lower-case. For the sake of brevity, the parameter list of \codefunc{methods} will be left out if not explicitly needed.\\
 
 \noindent The game, making up the environment, is completely independent of the agent and runs as a separate \keyword{process} on the machine. The agent is written in another programming language and must thus make up a distinct process as well. Because of that, it is necessary that agent and environment communicate over a protocoll that allows inter-process-communication. In this work, it was decided to use \keyword{Sockets} as means of communication. While explained in following section, it is for now important to know that sockets are best implemented as running in a separate \keyword{thread}, where they can send textual information to another socket running in another process.
 
@@ -271,6 +272,8 @@ Because the agent using this exported data is written in another programming lan
 
 \subsubsection{Communicating with an agent\footnote{\url{https://github.com/cstenkamp/BA-rAIce/blob/master/Assets/Scripts/AiInterface.cs}}\textsuperscript{,}\footnote{\label{footnoteAiInt}\url{https://github.com/cstenkamp/BA-rAIce/blob/master/Assets/Scripts/AsyncClient.cs}}}
 
+\label{sec:codeCommunAgent}
+
 %TODO to detect if the car hit a wall (which may require an agent to reset the environment), the wall has an attached WallColliderScript, that can notify an agent upon \inlinecode{onCollisionEnter} by sending the message "wallhit" via sockets.
 
 As already mentioned, the game is running live and is in general not stopped by the agent, as done for example when interfacing with the openAI gym (section~\ref{ch:rlframeworks}). Because of that, the speed of communication between agent and environment is a bottleneck in how good an agent can perform, and needs to be as fast and efficiently implemented as possible. To ensure quick reaction times, it was also decided that agent and game must run on the same machine, as sending the data to another machine increases the needed time drastically\footnote{This is the reason this project was implemented entirely under Windows: There is no stable Unity Editor for Linux, and there is no contemporary GPU-supporting TensorFlow under Mac. The only common ground for which both are available ist therefore the Windows platform.}.
@@ -295,72 +298,23 @@ Whenever data must be transmitted to the server, \codefunc{AiInt.SendToPython(st
 Messages from the server are stored in an object of type \codeobj{Response}, which is part of the \codeobj{ReceiverClient}. When the \codeobj{SenderClient} sends information to python, it always appends the current system-time. When the server sends a result basing on this input, it also returns the time of sending. Upon being updated, the \codeobj{response} takes another timestamp and calculates the response-time of the server and maintains a running average of these response times in \codeobj{lastRt}s. If this average reaction time is too high (\codeother{lastRTs.getAverage() > 2*Consts.MAX\_PYTHON\_RT}), the receiver-thread requests a QuickPause -- this stops the \codeobj{SenderClient} from sending further data, but not the asynchronous \codeobj{ReceiverClient}, which can thus catch up with its receiving progress. As soon as the latest chunk of data was returned by python (the time of which is known through \codeobj{AiInt.lastpythonupdate}), the receiver requests UnQuickPause.
 
 \paragraph{Main communication loop} 
-The main communication loop is specified in the methods \codefunc{Update()} and \codefunc{FixedUpdate()} of the AiInterface. 
+The main communication loop is specified in the methods \codefunc{Update()} and \codefunc{FixedUpdate()} of the AiInterface. As the former of those runs also when the game is in QuickPause-mode, this method is responsible to handle the \codeobj{othercommand}s sent from another socket. These commands may be to reset the car, or to activate/deactivate the QuickPause-mode. To differentiate these commands from steering-commands, the \codeobj{ReceiverClient.response} holds a respective field for \codeobj{othercommand}s.
 
-response hat nen copy-konstruktor
+The main loop of sending and receiving data to and from an agent however happens in the \codefunc{FixedUpdate()}-method. In this method, the data is both sent to a server and the response of a such is handled.
 
-AiInt...
--hat booleans für fixedresultusagetime und interpolateresults
--hat ne 20er-fixedsizequeue of responses (die geclonten) für die lastpythonresults
--hat lastunitytimeinbetween
--in StartedAIMode started es den sender- und receiverclient und called ConnectAsReceiver() (in which it starts the ReceiverCLient's clientSocket und den ReceiveLoop in einem neuem thread)
--in its update...
-	-it handles unfreeze-commands as described...
-	-also unfreezes "ConnectionDelay" every 2 seconds becasue its unreliable
-	-special commands "pleasereset", pleaseFreeze" und "pleaseUnFreeze" werden gehandled, muss ja hier sein (nd dann specialcommand auf false gesetzt)
--Has Key-Bindings for C,D,H
--In its fixedUpdate...
-	-it calls LoadAndSendToPython(force=false), which looks if enough time has passed and if so..... calls SendToPython(load_infos(false,false))... 
-		-load_infos....
-			-Falls Updateonlyifnew guckt es ob sich was geändert hat an position/rotation/action, und wenn nein sendet reloaded er nicht.. genauso wenig wen forbid_reload, hingegen schon wenn er bisher noch nichts hat...
-			-falls er reloaded, callt er GetAllInfos...
-			-GetAllInfos...
-				-ist die sammel-funktion für sämtliche vektors, visionsdisplays, das maybe-fake throttle(made here) und maybe-fake speed (from 
-				-to make sure centerdist ist 11 nach just_hit_wall wird das hier nochmal explizit gesetzt...
-				-callt  halt getspeedSteer, und DIESE methode macht halt maybefakespeed...
-		-SendToPython...
-			-calls senderclient.sendinanycase in nem extra thread.
-			-wenn der befehl "resetServer" ist startet era ußerdem die komplette clientsocket neu und sendet python seine updatepythonintervalms, was einmal gemacht wird, um zu ensuren dass die gleich sind
-	so viel zum thema senden... nun zum empfangen....
-	-FALLs nicht humantakingcontrol, dann...
-		message = response.getContent() (könnte auch die vorherige sein), und wenn sinnvoll...
-		falls nicht fixedresultusagetime setzt er sofort nn_throttle den rest, sodass der carcontroller sich das im nächsten durchlauf abholen kann. 
-		Falls doch enqueued der das erstmal nen clone davon in lastpythonresults, ûnd dann... [das vorderste ist das älteste]....
-			-falls NICHT interpolateresults, dann...
-				-falls das ÄLTESTE alt genug ist...
-			 	-Falls neue Items im buffer sind.... dequeue erstmal zu alte, falls zu alte da sind...
-			 	-und nimm dann das vorderste als neue nn_throttle und nn_controls.
-			 -ELSE
-			 	-
--AUßerdem hat das AiInt auch die methode notifyWallHit. Es gibt nen wallcolliderscript und das called oncollisionenter dieses script, das wiederum python drauf hinweist. EndRound similarly.
--on press of C it reconnects -> resetsserverconnecttrials, sets serverdown to falls, connects as receiver, sends python that it resettet.
--on press of D it disconnects (stops clients, sets srverdown to true)
-			
-			
-			
+\subparagraph{Sending}
+Every \codefunc{FixedUpdate()}-step, the \codeobj{AiInt} checks if enough time has passed to send the latest data to an agent (see alg.~\ref{alg:everyxseconds}) in the method \codefunc{LoadAndSendToPython}. If so, it calls its method \codefunc{load\_infos}. This method performs a quick check if the car's situation changed enough to require a reload of the data, simply passing the last result otherwise for efficiency-reasons. If the data is re-loaded, the method \codefunc{GetAllInfos()} is called, which aggregates all getter-function for the various vectors as well as the minimap-cameras into a string containing all the data. Note that speed as well as throttle-value as it is sent to a server is already possibly overwritten at this point. After aggregating it, the data is subsequently sent to python using the \codeobj{SenderClient} in a separate thread. In the current implementation, the game updates its agent in an interval of 10 FPS, a faster communication is however easily possible.
 
-the function \inlinecode{LoadAndSendToPython}.
+Furthermore, the \codeobj{AiInt} has the method \codefunc{notify\_wallhit}, which is called in the method \codefunc{onCollisionEnter} of a \codeobj{WallColliderScript} attached to the track's outline. This method notifies the server in form of a \textit{special command} if the car crashed into the track's wall to possibly reset it. Similar behaviour is triggered by the TimingScript upon completion of a lap.
 
-\colorbox{red}{dass ich dass wie das wryman-paper mit robotern mache, dass unity dafür zuständig ist zu interpolieren}
+\subparagraph{Receiving}
+Every \codefunc{FixedUpdate()}-step, the \codeobj{AiInt} checks the newest response. If Unity is not set for a \codeobj{Consts.fixedresultusagetime}, it immediately sets the values \codeobj{nn\_throttle}, \codeobj{nn\_brake} and \codeobj{nn\_steer}, such that the \codeobj{CarController} can use it in the next iteration. Otherwise, it appends a copy of the latest response to a buffer in the form of a fixed-size queue. Every \codefunc{FixedUpdate()}-step, the \codeobj{AiInt} checks if a new item is in the buffer that was sent exactly \codeobj{Consts.MAX\_PYTHON\_RT} milliseconds and sets the respective values for the \codeobj{CarController}. This buffer can also be used to interpolate between the respective controls to counter jittering of the car's controls. These values are however only used if the variable \codeobj{HumanTakingControl} is \codeobj{false}, which is toggled with a hit of \keystroke{H}. The used setting is comparable to \cite{wawrzynski_control_2015}, in that there are two levels of control -- The agent tells the car the desired position/speed of rotation of the cars actuators, and the lower-level tries to make the joints follow them.
 
-The used setting is comparable to \cite{wawrzynski_control_2015}. There are two levels of control: The agent tells the car the desired position/speed of rotation of the cars actuators, and the lower-level (->unity) tries to make the joints follow them
+
+
 
 %TODO - ungefähres UML-diagramm DES SPIELS!!
 %-ablaufdiagramm vom server-zeug dass zu dem von python passt
-%-Aufbau des exportierten XMLs (dabieschreiben dass action und speed 2 mal drin sind weil die von fake_speed affektiert sein könnten)
-%-beschreibung der optionen-konstanten
-%-dass bei ResetToPosition das AIInt pyhtoon drauf hinweist
-
--warum ich senden und empfangen mit nem DIFFERENT socket mache (dann ists in 2 threads und kann asyncrhon sein aka nichta ufgehalten werden)
--dass es entweder raw data oder special commands schickt
-
--nochmal drauf eingehen dass das spiel live ist
--das von leon gemalte ablaufdiagramm
-\colorbox{red}{dass der server alle 0.1 sekunden was von unity bekommt!}
-\colorbox{red}{dass der client mitbekommt wenn nen connection delay entsteht und dann 
-	Unity automatisch pausiert (deswgen quickpausereason)! mega das feature!!!}
-
-\colorbox{red}{dass das auto selbst environment ist ist auch so in \cite{wawrzynski_control_2015} (bei robots)}
 
 \subsection{The agent\footnote{I will rely heavily on UML sequence diagrams and class diagrams to explain program flow and classes of agents. In case a reader is unfamiliar with the standards of UML 2.0, it is referred to e.g. \url{https://www.ibm.com/developerworks/rational/library/3101.html} for sequence diagrams and \url{https://www.ibm.com/developerworks/rational/library/content/RationalEdge/sep04/bell/index.html} for class diagrams. In the main text, only small class-diagrams accompany the explanation of the code, with respective complete versions in  \colorbox{red}{appendix~\ref{BLABLABLA}.}}}
 
@@ -390,7 +344,7 @@ The main-thread listens for a termination of the user with \keystroke{CTRL}+\key
 
 \begin{figure}[h!]
 	\centering
-	\resizebox{1.1\textwidth}{!}{
+	\resizebox{1.01\textwidth}{!}{
 		\input{sequence_diagrams/server_main}
 	}
 	\caption{Sequence Diagram of the Server}
@@ -424,8 +378,6 @@ When talking about the \codeobj{inputval}, it was mentioned that it contains as 
 
 \subsubsection{Agents}
 
-\colorbox{red}{dass der AbstractAgent noch containers KENNT und darauf zugreifen kann, das aber bis zu den specific agents weg-abstrahiert ist.. conf wird aber immer mit übergeben}
-
 Until it gets to the agent, neither the observation nor the reward is set. Thus, the agent needs to specify its own functions for its observation (given environment-state) and reward (given state and action). Because of this, some methods of an agent receive the \codeobj{gameState} instead of the \codeobj{agentState}, in contrast to other approaches. Furthermore, the server notifies the agent of specific events that happened in the game, to which the agent could react by resetting the environment and starting a new episode. These methods, next to the obvious ones of performing an action or conducting a learning-step, must thus be specified by an agent. When describing the agent in this section, only those functions are relevant, as the inner workings of the server are hidden to the agent.
 
 \paragraph{Inheritance relation}
@@ -435,7 +387,7 @@ To ease the implementation of agents, they all inherit from a superclass called 
 In the scope of this thesis, multiple agents where developed, using different models, vectors and approaches. In the final version of the implementation there are five exemplary agents left, which can all be found in the directory \filename{agents}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN/tree/master/agents}}. 
 
 Figure~\ref{fig:agentMINI} depicts the inheritance-relation of an agent and its super-classes using an UML-diagram.
-\begin{figure}[h]
+\begin{figure}[h!]
 	\centering 
 	\includegraphics[width=\textwidth]{uml_diagrams/agent_inText.1}  
 	\caption[UML-diagram of an agent and its super-classes]{incomplete UML-diagram of an agent and its super-classes. A more complete version can be seen in \colorbox{red}{appendix~\ref{BLABLABLA}}}
@@ -458,7 +410,7 @@ Next to \codefunc{getAgentState(gameState)}, there are several other helper-func
 
 In its \codefunc{\_\_init\_\_}, called when \codeobj{server} creates the \codeobj{agent}, the classes \codeobj{AbstractAgent} and \codeobj{AbstractRLAgent} define some assumptions about about the configuration of its \term{features}. These variables can be overwritten by its subclasses if their actual configeration differs, such that these variables are reliable information about the agent's configuration of \term{features}. When initializing its memory or its model, the agent also passes a reference to itself, such that the configuration-variables are accessible from inside those objects. 
 
-The server calls not only the \codefunc{\_\_init\_\_}, but also the \codefunc{initForDriving}. In this function, the agent's memory is (according to its \term{features}) initialized, as well as an \term{evaluator}. The evaluator is an independent object, specified in \term{evaluator.py}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN/blob/master/evaluator.py}}. It provides functions to save information about the agent's driving performance in the form of running averages of the agent's rewards, q-values, progress per episode or others to an XML-file. \colorbox{red}{This can be inspected by running the file FILENAME123, which \\ produces the plots like those used in chapter~\ref{ch:analysis}.} If the application is not run with the argument \codeother{-noplot}, the evaluator also plots these running averages live, using the library \codeobj{matplotlib}. The agent uses the evaluator by calling its method \codefunc{eval\_episodeVals}, passing respective parameters. The performance of a human can be evaluated by using any kind of agent that uses the evalutor and overwriting the agent's actions by pressing \keystroke{H}. An exemplary plot can be inspected in figure~\ref{fig:plot}.
+The server calls not only the \codefunc{\_\_init\_\_}, but also the \codefunc{initForDriving}. In this function, the agent's memory is (according to its \term{features}) initialized, as well as an \term{evaluator}. The evaluator is an independent object, specified in \term{evaluator.py}\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN/blob/master/evaluator.py}}. It provides functions to save information about the agent's driving performance in the form of running averages of the agent's rewards, q-values, progress per episode or others to an XML-file. The result of the respective file can be inspected by running \codeother{python show\_plot.py --agent AGENT}, which was also used to produce the plots from chapter~\ref{ch:resultsanalysis}. If the application is not run with the argument \codeother{-noplot}, the evaluator also plots these running averages live, using the library \codeobj{matplotlib} (note that the number of iterations as stated by the live-plotter restarts every new run). The agent uses the evaluator by calling its method \codefunc{eval\_episodeVals}, passing respective parameters. The performance of a human can be evaluated by using any kind of agent that uses the evalutor and overwriting the agent's actions by pressing \keystroke{H}. An exemplary plot can be inspected in figure~\ref{fig:plot}.
 
 During runtime, the agent's \codefunc{performAction(gameState, pastState)} is called. It is provided by \codeobj{AbstractAgent} (and overwritten by \codeobj{AbstractRLAgent}), and does not need to be changed by agents in the general case. The function checks if an action should be taken, converts the given \codeobj{gameState} into an \codeobj{agentState} and provides the action. Where this action is taken from is decided in this function -- it can use the previous action (a variable \codeobj{action\_repeat} is specified in it with similar reasoning than that of the DQN\cite{mnih_human-level_2015}), a random action (by calling \codefunc{randomAction(agentState)}) or an action according to its model (\codefunc{policyAction(agentState)}). The implementation given in the \codeobj{AbstractRLAgent} assumes a simple $\epsilon$-greey approach, such that \codefunc{randomAction} with a probability $\epsilon$, where epsilon decreases over time. In agents where it is desired to overwrite the this exploration method, either the \codefunc{performAction}-function can be overwritten, or (as done in the provided DDPG-based agents) the \codefunc{randomAction} simply returns \codefunc{policyAction}, and the actual exploration-technique is integrated into the \codefunc{policyAction}-function. 
 \codefunc{performAction(gameState, pastState)} cares for updating the server's \codeobj{outputval}, such that all issues of communication (next to eg. having to work with the \codeobj{gameState}) are abstracted away from \codeobj{policyAction} and \codeobj{randomAction}. 
@@ -475,7 +427,7 @@ An agent using a DDPG- or DQN-model requires a replay memory, such that its ANN 
 
 It is possible to use the \codeobj{"parallel"} learn-mode or the \codeobj{"between"} learn-mode (as specified in \codeobj{conf}). If the learning mode is set to the latter, \codefunc{performAction} starts the execution of a specified number of learning steps in a specified interval, according to \codeobj{conf}'s configuration of \codeobj{ForEveryInf} and \codeobj{ComesALearn}. This corresponds basically to the \term{update frequency} of the DQN\cite{mnih_human-level_2015}. Learning is specified in the method \codefunc{learnANN()}, itself executed by \codefunc{dauerlearnANN(steps)}. To perform the actual learning, the former extracts a batch of a specified number of transitions from its replay memory using \codefunc{create\_QLearnInputs\_from\_MemoryBatch} and performs the model's method \codefunc{q\_train\_step} on the extracted batch. 
 
-Performing a q-train-step takes significantly longer than performing an inference. While the given agents are fast enough to perform an inference-step in between two updates with new information about the game (everything that happens in the main loop between the Unity-client sending data and doing it again in figure~\ref{fig:sequenceserver}), they loose a significant amount of time when also having perform a train-step. Because of this, additionally to Unity's client automatically pausing the game if Python's response is delayed too much \colorbox{red}{does it??}, the class \codeobj{AbstractRLAgent} includes methods ask the client to freeze itself. In doing so, it uses another string-array \codeobj{freezeInfReasons} to which a reason is appended for every call of \codefunc{freezeInf(reason)}, and popped for every call of \codefunc{unFreezeInf(reason)}, with similar reasoning than described for the QuickPause-functionality of the game. If the respective conditions apply, a message \codeobj{"pleaseFreeze"} is sent to the client, such that the agent has time to perform its learning-steps. Once it is done, it notifies the client by sending \codeobj{"pleaseUnFreeze"}. As it was a design decision that the game runs as smoothly as possible, it was decided to not rigidly perform one learning-step every 
+Performing a q-train-step takes significantly longer than performing an inference. While the given agents are fast enough to perform an inference-step in between two updates with new information about the game (everything that happens in the main loop between the Unity-client sending data and doing it again in figure~\ref{fig:sequenceserver}), they loose a significant amount of time when also having perform a train-step. Because of this, additionally to Unity's client automatically pausing the game if Python's response is delayed too much (see section~\ref{sec:codeCommunAgent}), the class \codeobj{AbstractRLAgent} includes methods ask the client to freeze itself. In doing so, it uses another string-array \codeobj{freezeInfReasons} to which a reason is appended for every call of \codefunc{freezeInf(reason)}, and popped for every call of \codefunc{unFreezeInf(reason)}, with similar reasoning than described for the QuickPause-functionality of the game. If the respective conditions apply, a message \codeobj{"pleaseFreeze"} is sent to the client, such that the agent has time to perform its learning-steps. Once it is done, it notifies the client by sending \codeobj{"pleaseUnFreeze"}. As it was a design decision that the game runs as smoothly as possible, it was decided to not rigidly perform one learning-step every 
 \term{update frequency} steps, but to increase the respective batchsizes (for example $100$ learn steps every $400$ steps), such that the game is not constantly interrupted due to learning steps. 
 
 Because the agent was also developed with the learn mode \codeobj{"between"} in mind, respective functions can also be found in the agent and server. If this mode is set, then the method \codefunc{dauerlearnANN} is run by the server in a separate thread (started in its main-method). To keep the ratio of learning steps and inference roughly constant at all times, the methods \codefunc{checkIfAction} and \codefunc{dauerLearnANN} provide functionality to freeze either learning or inference, if the respective thread was faster than the other. For that, a \codefunc{freezeLearn}-method is necessary, which sets a respective boolean value to \codeobj{false}, stopping the learning. A ratio of $4:1$, as already done in the original DQN, showed to decrease the amount of time any thread must be frozen the most.
@@ -522,7 +474,7 @@ The class \codeobj{AbstractAgent} does not access any functions of the agent's m
 
 An agent however that extends \codeobj{AbstractRLAgent} must provide a model that implements the (because of python's duck typing only hypothetical) interface specified in figure~\ref{fig:modelsInt}. In the functions specified in that diagram, the abbreviations [s], [a], [r] and [t] stand for arrays of \codeobj{agentState}, \codeobj{action}, \codeobj{reward} and the boolean flag $t = t_t$ (\codeobj{terminal}). The methods provided by the interface are all the ones necessary to perform adequate Q-learning.
 
-\begin{figure}[h]
+\begin{figure}[h!]
 	\centering 
 	\includegraphics[width=.4\textwidth]{uml_diagrams/models_inText2.1}
 	\caption{UML-diagram of the interface a model must implement}

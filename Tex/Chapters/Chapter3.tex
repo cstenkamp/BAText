@@ -1,3 +1,5 @@
+\newcolumntype{P}[1]{>{\RaggedRight\hspace{0pt}}p{#1}}
+
 \chapter{Related work}
 
 \label{ch:relatedwork}
@@ -87,6 +89,23 @@ One of the first approaches to learn how to drive using an end-to-end neural net
 A modernized version, doing essentially the same thing with modern techniques and far more computing power is NVIDIA's \keyword{End to End Learning for Self-Driving Cars}\cite{bojarski_end_2016}. In this approach, they used a convolutional neural network producing direct steering commands from a single front-facing camera. For that, a labelled dataset of 72 hours of real driving data was collected to train a 9-layer convolutional network (1 normalization layer, 5 convolutional layer, 3 dense layers), producing the steering command as a single output neuron (hence continuous, but again no throttles or brake). The network was trained supervisedly, minimizing the mean-squared error between the output and the command of the human driver saved in the dataset. To remove bias towards driving straight, the training data included a higher proprotion of frames representing curves. 
 The performance of the resulting network was tested in a simulation that presented testing data to the network, comparing the produced steering to the real driving command. If the simulated car drove too far off-road, an intervention was simulated setting the virtual car back to the ground truth of the corresponding frame of the original dataset. In this testing, the simulated car had statistically two interventions per ten minutes of driving. It is worth noting, that creating a huge labelled dataset postulates no problem in modern times anymore\footnote{\keyword{Tesla} for example generates thousands of hours of driving data each day: \url{https://qz.com/694520/tesla-has-780-million-miles-of-driving-data-and-adds-another-million-every-10-hours/}}.
 
+Table~\ref{tb:svapproaches} summarizes known modern supervised approaches to self-driving cars, listing their model, input, output and optimization function.
+
+
+\begin{table}[h]
+	\renewcommand{\arraystretch}{1.2}
+	\begin{flushleft}
+		\scriptsize
+		\begin{tabular}{P{1.6cm}P{1.9cm}P{2.2cm}P{2.5cm}P{2.5cm}P{2.3cm}}
+			Project & trained on & model & input & output & optimization function \\
+			\hline
+			Nvidia Autopilot\tablefootnote{\url{https://github.com/SullyChen/Autopilot-TensorFlow}} & Annotated real-world data & TensorFlow-implementation of \cite{bojarski_end_2016} & vision of front-facing camera & continuous steering-command & MSE to actual steering\\
+			TensorKart by Kevin Hughes\tablefootnote{\url{https://kevinhughes.ca/blog/tensor-kart}} & Mariokart 64 & Tensorflow-model similar to Nvidia Autopilot & console screen & joystick command as vector & euclidian distance to recorded action\\
+		\end{tabular}
+	\end{flushleft}
+	\caption{Supervised approaches to learn autonomous driving}
+	\label{tb:svapproaches}
+\end{table}
 
 \subsection{Reinforcement learning}
 
@@ -116,51 +135,28 @@ Interesting is for example the 3D-scanning \textit{LIDAR} sensor that can produc
 
 \label{sec:relatedimplements}
 
-There are several known implementations that perform reinforcement learning on driving simulations. A lot of them use the metioned TORCS as their environment, while also some other, more or less realistic driving simulations are incorporated. The following two tables summarize some of the known implementation. 
-
-\colorbox{red}{Note that this table also contains non-reinforcement training agents. AM ARSCH NOTE DASS DIE EINE HIER FALSCH STEHT}
-
-\colorbox{red}{dass der torcs-keras die ddpg-reward funktion verbessert hat
-die O-U-werte vom torcs-keras-guy}
-
-\colorbox{red}{wie wichtig der ornstein-uhlenbeck ist}
-
-\colorbox{red}{dass man auch im video vom keras-torcs-guy sieht wie krass der shaked!}
-
-
-\newcolumntype{P}[1]{>{\RaggedRight\hspace{0pt}}p{#1}}
-
-DDPG auf torc hat übrigens im pixel-case nen sehrsehr ählnichen punktestand wie im low-dimensional case (1840 vs 1876 im best case, -393 vs -401 im average case).
-
-\begin{table}[h]
-\renewcommand{\arraystretch}{1.2}
-\begin{flushleft}
-	\scriptsize
-	\begin{tabular}{P{1.4cm}P{1.7cm}P{2cm}P{2.3cm}P{2.3cm}P{1.8cm}}
-		Project & trained on & model & input & output & optimization function \\
-		\hline
-		Nvidia Autopilot\tablefootnote{\url{https://github.com/SullyChen/Autopilot-TensorFlow}} & Annotated real-world data & TensorFlow-implementation of \cite{bojarski_end_2016} & vision of front-facing camera & continuous steering-command & MSE to actual steering\\
-		TensorKart by Kevin Hughes\tablefootnote{\url{https://kevinhughes.ca/blog/tensor-kart}} & Mariokart 64 & Tensorflow-model similar to Nvidia Autopilot & console screen & joystick command as vector & euclidian distance to recorded action\\
-	\end{tabular}
-\end{flushleft}
-\label{tb:svapproaches}
-\caption{Supervised approaches to learn autonomous driving}
-\end{table}
+There are several known implementations that perform reinforcement learning on driving simulations. The usual testbed for such implementation is TORCS -- in fact, it was the common framework for all found related implementation. Using one and the same environment to train on is a good way to compare actual performances of agents -- it is however also worth to use another implementation to test for the algorithm's generality. Table~\ref{tb:rlapproaches} shows some known implementations that perform reinforcement learning on driving simulations. 
 
 \begin{table}[h]
 	\begin{flushleft}
 		{\def\arraystretch{2}\tabcolsep=3pt
 		\scriptsize
-		\begin{tabular}{P{1cm}P{1.3cm}P{1.1cm}P{2.3cm}P{2.3cm}P{2.8cm}P{2.1cm}}
+		\begin{tabular}{P{1.2cm}P{1.5cm}P{1.3cm}P{2.5cm}P{2.5cm}P{3cm}P{2.45cm}}
 		Project & trained on & model & input & output & reward & performance\\
 		\hline
-		DDPG \cite{lillicrap_continuous_2015} & TORCS & DDPG & visual input as provided by TORCS & (throttle, brake, steer) $\subset \mathds{R}^{n \in \mathds{N}}$ & velocity along the track direction, penalty of -1 for collisions &  \multirow{2}{1.8cm}{\textit{some replicas were able to learn reasonable policies that re able to complete a circuit around the track}. \cite{lillicrap_continuous_2015}}\\
-		DDPG \cite{lillicrap_continuous_2015} & TORCS & DDPG & low-dimensional, similar to \cite{loiacono_simulated_2013} & (throttle, brake, steer) $\subset \mathds{R}^{n \in \mathds{N}}$ & velocity along the track direction, penalty of -1 for collisions & \\
-		DDPG-Keras-Torcs\tablefootnote{\url{https://yanpanlau.github.io/2016/10/11/Torcs-Keras.html}} & TORCS & DDPG implemented in Keras & angle, 19 range finder sensors, distance between car and track axis, speed along x,y,z axis, wheel rotation, car engine rotation (subset of \cite{loiacono_simulated_2013}) & (throttle, brake, steer) $\subset \mathds{R}^{n \in \mathds{N}}$ & velocity along the track-direction minus velocity in transverse direction & reasonable policy after 2000 episodes\tablefootnote{see \url{https://www.youtube.com/watch?time_continue=4&v=4hoLGtnK_3U}}\\
-		A3C \cite{mnih_asynchronous_2016} & \colorbox{red}{TODO}
+		DDPG \cite{lillicrap_continuous_2015} & TORCS & DDPG & visual input as provided by TORCS & (throttle, brake, steer) $\subset \mathds{R}^{n \in \mathds{N}}$ & velocity along the track direction, penalty of -1 for collisions &  \multirow{2}{1.8cm}{\textit{some replicas were able to learn reasonable policies that are able to complete a circuit around the track}. (quote \cite{lillicrap_continuous_2015})}\\
+		DDPG \cite{lillicrap_continuous_2015} & TORCS & DDPG & low-dimensional, similar to \cite{loiacono_simulated_2013} & (throttle, brake, steer) $\subset \mathds{R}^{n \in \mathds{N}}$ & velocity along the track direction, penalty of -1 for collisions & \\[28px]
+		DDPG-Keras-Torcs by Ben Lau\cite{ben_lau_using_2016} & TORCS & DDPG implemented in Keras & angle, 19 range finder sensors, distance between car and track axis, speed along x,y,z axis, wheel rotation, car engine rotation (subset of \cite{loiacono_simulated_2013}) & (throttle, brake, steer) $\subset \mathds{R}^{n \in \mathds{N}}$ & velocity along the track-direction minus velocity in transverse direction & reasonable policy after 2000 episodes\tablefootnote{see \url{https://www.youtube.com/watch?time_continue=4&v=4hoLGtnK_3U}}\\
+		A3C \cite{mnih_asynchronous_2016} & TORCS & Asynchronous advantage actor-critic & visual input as provided by TORCS & unknown discretization of (throttle, brake, steer) & velocity along the track direction & betwen $75\%$ and $90\%$ of the score of a human tester after 12 hours of training\\
 	\end{tabular}
 	}
 	\end{flushleft}
-\label{tb:rlapproaches}
 \caption{RL approaches to learn autonomous driving}
+\label{tb:rlapproaches}
 \end{table}
+
+An interesting result is made by \citet{lillicrap_continuous_2015}, which used their algorithm on both low-dimensional input as well as visual input with almost the same average performance. It can thus be assumed that both representations of the agent's \keyword{observation} can in general lead to comparable final results.
+
+Note that the the velocity along the track-direction is a popular reward-function, at least in part used in all implementations. While it seems to work reasonably well in combination with a good model, \cite{ben_lau_using_2016} mentions that solely this reward can lead to the problem of the car accelerating too much -- an issue that is very relevant to this thesis as well.
+
+Note further, that all of the listed approaches incorporate a stochastic start state distribution: The agent ist initialized at random speeds at varying positions of the track. While this makes it easier for reinforcement learning agents to train the whole track, it is an impossible premise in real-life.

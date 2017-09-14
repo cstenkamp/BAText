@@ -2,7 +2,6 @@
 
 \label{ch:implementationresults}
 
-blablabla dass die das ergebnis von --langem-- rumprobieren sind
 
 %############################################################################################
 \section{Possible vectors}
@@ -123,7 +122,7 @@ An overview of the general network architecture, as used by the \codeobj{dqn\_rl
 
 \begin{figure}[h]
 	\centering 
-	\includegraphics[trim={1.22cm 3.4cm 1.15cm 3cm},clip,width=1.05\textwidth]{draw_convnet/dqn}
+	\includegraphics[trim={1.22cm 3.4cm 1.15cm 3cm},clip,width=1.02\textwidth]{draw_convnet/dqn}
 	\caption{The used convolutional DQN with a dueling architecture}
 	\label{fig:dqn_graph}
 \end{figure}
@@ -174,7 +173,7 @@ The network-architecture of the low-dimensional critic (\codeobj{lowdim\_criticN
 
 \begin{figure}[h]
 	\centering 
-	\includegraphics[trim={3.7cm 4.4cm 2cm 3cm},clip,width=1.05\textwidth]{draw_convnet/critic-lowd}
+	\includegraphics[trim={3.7cm 4.4cm 2cm 3cm},clip,width=.98\textwidth]{draw_convnet/critic-lowd}
 	\caption{Low-dimensional critic}
 	\label{fig:lowdcrit}
 \end{figure}
@@ -194,7 +193,7 @@ The network architecture of the high-dimensional critic can be inspected in figu
 
 \begin{figure}[h]
 	\centering 
-	\includegraphics[trim={1.22cm 5.03cm 0.4cm 3cm},clip,width=1.05\textwidth]{draw_convnet/actor-2d}
+	\includegraphics[trim={1.22cm 5.03cm 0.4cm 3cm},clip,width=1.01\textwidth]{draw_convnet/actor-2d}
 	\caption{Convolutional actor}
 	\label{fig:2dact}
 \end{figure}
@@ -203,7 +202,7 @@ The structure of the low-dimensional critic (figure~\ref{fig:lowdact}) is fairly
 
 \begin{figure}[h]
 	\centering 
-	\includegraphics[trim={2.7cm 4.2cm 0.8cm 3cm},clip,width=1.05\textwidth]{draw_convnet/actor-lowd}
+	\includegraphics[trim={2.7cm 4.2cm 0.8cm 3cm},clip,width=1.01\textwidth]{draw_convnet/actor-lowd}
 	\caption{Low-dimensional actor}
 	\label{fig:lowdact}
 \end{figure}
@@ -310,7 +309,7 @@ The parameter \codeobj{epsilon} is nevertheless incorporated to control how much
 
 In this method, the values for $\mu$, $\Theta$ and $\sigma$ are different for all three actions. A relatively high mean value $\mu$ for the throttle together with a low $\mu$ for the brake ensures, that the car will have a high prior probability to accelerate the car, instead of standing much. A lower $\Theta$ for the steering ensures that the temporal correlation is more relevant than reverting to the mean.
 
-Note that an agent that uses an Ornstein-Uhlenbeck exploration function must specify a \codeobj{_noiseState} variable, which is reset as soon as an episode ends.
+Note that an agent that uses an Ornstein-Uhlenbeck exploration function must specify a \codeobj{\_noiseState} variable, which is reset as soon as an episode ends.
 
 \begin{algorithm}[h]
 	\begin{lstlisting}[language=Python, style=Python, frame=none]
@@ -362,7 +361,7 @@ While an agent that used purely this definition of reward performed much better 
 \begin{figure}[h]
 	\centering 
 	\begin{annotatedFigure}
-		{\includegraphics[trim={5.5cm 1cm 4.5cm 2cm},clip,width=1.05\textwidth]{reward_components}}
+		{\includegraphics[trim={5.5cm 1cm 4.5cm 2cm},clip,width=1\textwidth]{reward_components}}
 		\annotatedFigureBox{0.052,0.93}{0.052,0.93}{A}{0.052,0.93}%bl
 		\annotatedFigureBox{0.395,0.93}{0.395,0.93}{B}{0.395,0.93}%bl
 		\annotatedFigureBox{0.74,0.93}{0.74,0.93}{C}{0.74,0.93}%bl
@@ -389,16 +388,31 @@ The actual reward is a weighted sum of all these components, with the respective
 
 \label{sec:observation}
 
-An agent's observation-function is specified in its method \codefunc{getAgentState(gameState)}
-
-dass die action_hist raus ist
-
-\colorbox{red}{dass für pretraining die previous actions removed werden müssen weil der sonst nur von denen lernt! ...oder svtraining? oder wann?}
+An agent's observation-function is specified in its method \codefunc{getAgentState(gameState)}, which creates the \codeobj{agentState} used for its model and its memory from the \codeobj{gameState}. \codeobj{AbstractAgent} specifies an observation-function that can be used by sub-classes. This function is only overwritten by the agents termed $novision$-agents, specifically the \term{ddpg\_novison\_rl\_agent} and the \term{dqn\_novision\_rl\_agent}.
 
 \subsubsection{\term{ddpg\_rl\_agent}, \term{dqn\_rl\_agent} and \term{dqn\_sv\_agent}}
 
+These agents use the result of both mini-maps (see section~\ref{ch:thevectors}) in their definition of agent-state. As suggested by \citet{mnih_human-level_2015}, an agent uses the \term{M} most recent states as its observation, with \term{M} (\codeobj{config.history\_frame\_nr}) set to four. This ensures that the agent has a way of inferring trajectories from the static images. While this should in theory be enough to calculate the current velocity, testing showed that additionally passing the current velocity improved the accuracy on a supervised test set. Note that this velocity is passed to the network in the form of a vector instead of a single number.
 
-schreiben wie ich die nenne "agents using minimaps as observation"
+The actual two-dimensional input to a network of this form does not consist of four feature maps, but of eight, as both mini-maps are stacked before handing it in as input. Both maps are provided in the hope that one of them provides a coarse overview, whereas the other helps precise navigation. Note that the mini-maps record mostly the track in front of the car, not the surroundings of it.
+
+While in the original DQN as put forward by \citet{mnih_human-level_2015} the last action are also input to the agent, this is removed in the current version of the implementation. Supervised testing showed, that an agent only learns to repeat its last action -- which is the correct behaviour in a high percentage of cases, but does not generalize at all when applied to new scenarios. As informal testing showed that there seemed to be no benefit of providing the action altogether, it was decided to remove this input from the agent's observation in all scenarios. It is however possible to change that back by uncommenting the respective line in \codefunc{AbstractRLAgent.getAgentState}.
+
+Note that as mentioned before, an agent's state treates the convolutional input (in this case the minimaps) separately from the other inputs, which in this case consists only of the speed. The third information of an agent's state is the information whether a car stands to forbid braking -- according to this observation-function, this input is \codeobj{true} if the car drives slower than $4\%$ of its maximum-speed, corresponding to roughly $6km/h$.
 
 \subsubsection{\term{ddpg\_novison\_rl\_agent} and \term{dqn\_novision\_rl\_agent}}
 
+The observation of the $novision$-agents does not use the minimaps, to save on memory required for the replay buffer. Because of that, the respective convolutional input of the \codeobj{agentState} is \codeobj{None}. To make up for that loss, the agent instead uses a low-level information. As the provided information is already explained in section~\ref{ch:thevectors}, a numeration of the used vectors must suffice here:
+\begin{itemize}[noitemsep]
+	\item CenterDistVec
+	\item values $5-11$ from SpeedSteer 
+	\item StatusVector
+	\item WallDistVec
+	\item LookAheadVec
+\end{itemize}
+
+All of these input-values are scaled to a range of $[0,1]$, such that values on a naturally high scale do not influence the agent's policy out of proportion.
+
+Note, that these agents also do not provide the past action, with similar reasoning than above. Testing even showed that providing the motor torque and steer information (values 1-4 from \textit{SpeedSteer}) is just as destructive: If this vector was provided, an agent learned to hit the throttle if the motor torque was already high, and to steer into the direction the steering angles already suggested. Removing these elements from an agent's observation was a necessary condition for a capable policy.
+
+While \textit{WallDistVec} and \textit{LookAheadVec} provide information of the course of the track in front of the car, it does (just like the mini-maps) not provide information about the course of the track to the side of the car. Incorporating fixed range-finder sensors, as suggested by \cite{loiacono_simulated_2013}, may be a worthy addition in future implementations.

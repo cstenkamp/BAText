@@ -1,72 +1,75 @@
-
-
 \chapter{Discussion and future directions}
+
+In retrospect, all of the objectives of this thesis were met. The game was sucessfully transformed into an efficiently working platform for research on reinforcement learning, and several agents were implemented that learn reasonable policies. The resulting framework also makes it easy to add new agents without deep understanding of the specific implementation.
 
 \section{Platform}
 
--dass sich herausgestellt hat das simultaneous inference and learning a lot slower ist!
--die performance vom server
--multiple unity instances (feier-text)
--unity zeit verdoppeln
--feed dict performance and getting rid of it https://github.com/tensorflow/tensorflow/issues/2919
--dank sockets können agent und env easypeasy auf verschiedenen maschinen sein
--wie praktisch das mit dem info senden ist, dass das mit torcs-env-accessen nicht so einfach wäre
--wie viel arbeit die socketkommunikation war und wie überraschend effizient die ist
-%scalability: mit minimal arbeit könnte man mehrere unity-instanzen haben die sich am reclistenport anmelden, an nen eigenen receiverthread weitergeleitet werden, eigenen inputval haben um das bottleneck instanzen erzeugen zu umgehen
-%den anderen emma-text wie man weitere instanzen hinzufügen kann
--dass es zur beschleuniung möglich wäre mehrere aggregatoren zu haben, die immer die recht aktuellste policy haben und mit unity interagieren und das nem learn-thread schicken, auf verschiedenen Maschinen
--wie einfach man gute reward-definitionen finden kann mit -die funktion wo man sich den durchgängingen reward in ner farbe plotten kann (auch bei \keystroke{H})
+It was a long way until the setup of environment, client and server was at the state it is in the final version. The socket-connection alone has gone through many versions to come to the final version it is at right now. It is surprising how efficient this version is -- an average response time of $20-30ms$ inclusive the TensorFlow-inference is on par with for example the delay of \keyword{openAI Universe}\footnote{\url{https://github.com/openai/universe}}, and it allows for a connection of up to $40$ FPS, which should be enough time for any agents to learn (the DQN ran for example with only $20$ FPS). A further addition that can be made in the future is to increase Unity's internal \codeobj{time.TimeScale} to up to twice its current value -- for that, however, the millisecond-intervals must also be adjusted.
+
+In a prior version, learning and inference were performed simultaneously in different threads. It showed however, the runtime decreased by a factor of ten if both must access the same TensorFlow model. This could change if the usage of TensorFlow \codeobj{feed\_dict} was  replaced by thread-safe \codeobj{queue}s instead\footnote{see \url{https://github.com/tensorflow/tensorflow/issues/2919}}. A multi-agent solution is imaginable, in which a threaded TensorFlow graph is feeded via different threads. While it is an open question if the non-asynchronous models as presented in this thesis benefit from multithreaded feeding, it was not subsequently performed due to the increased runtime. 
+
+In implementations where target- and online-network are updated only regularly (like the original DQN) it is especially easy to outsource the learning thread to a remote machine, where the only exchange on information are updates of the replay memory and occasional updates of the computation graph. A further possibility to speed up the learning process could be to allow multiple Unity-clients that all aggregate samples for the same agent, stemming from the same policy. It is an open question how much delay delay is to be expected if server and environment run on different machines. As a major bottleneck of this implementation is generating samples, it is expected that this would increse the speed of learning drastically.
+
+An important and distinctive difference of this platform to others is the fact that it is live, and that a user can interfere into anything an agent does. This is especially convenient to see if an agent's Q-values are reasonable. Further, a human's performance can be evaluated just like the performance of agents, also with respect to reward an Q-values as an agent would ascribe them. Having a live visual feedback of the reward (\codeother{if config.showColorArea}) comes also really handy to figure out how useful a used reward is.
+
+A major focus point of this work was to make it as easy as possible to add further agents, models and \keyword{vectors}. A user implementing a new agent or model only needs to create a respective class that implements the interface stated in figure~\ref{fig:agentMINI} or figure~\ref{fig:modelsInt} and put it in the respective folder. Training for any new agent can be started by executing \codeother{python server.py --agent NEW\_AGENT}. All details of communicating with the environment or its memory are abstracted away by abstract classes. Adding further vectors is also easily done, as it just needs to be implemented in Unity and added to the namedtuple \codeobj{OtherInputs}. Sending all possible vectors to an agent, such that the agent decides what to make of it allows for a various amount of agents, and adding new components that rely on the environment's state is far easier than in other known environments like TORCS.
+
+It is a matter of further research, if the used observations are well enough, or if there are other vectors that must be added to increase the performance of agents. Further, it is necessary to add further circuits to the game to test the generalizing capacity of agents. 
+
 
 \section{Agents}
 
-Nächsten Sachen die ich machen würde...
--count-based exploration stuff: https://arxiv.org/pdf/1706.08090.pdf / https://arxiv.org/abs/1703.01310
--prioritized experience replay: https://arxiv.org/abs/1511.05952
--auf der dqn-front https://arxiv.org/pdf/1602.01783.pdf A3C
+Some of the implemented agent were able to learn successful driving policies, even though their time to complete a track is far worse than that of a human tester. This may suggest that individual components or hyperparameters are not optimized, however one has to keep in mind that no agent trained for longer than $500.000$ steps, which stands in comparison to $50.000.000$ training steps in the original DQN-paper and $2.500.000$ steps in the DDPG-paper. Due to the nature of all current deep reinforcement learning algorithms, the change of hyperparameters manifest as qualitative changes in the policy only after several hour. While temporal constraints did not allow for much further testing beyond what is depicted in this thesis, there is reason to be optimistic about the capacity of the used agents. 
 
--dass die ddpg-gaussiandistance-pretraining function nicht funktioniert
+For many components, there are however ways to test them more efficiently. The included \filename{gym\_test.py} script is for example a very good way to test if an implemented model works. The file expects the same interface of an agent, and as many of the gym-environments are much easier than the given game, testing can be done much faster. To test a new definition of the observation-function, it is useful to first create a supervised agent that uses this observation function, as such an agent can test much faster if the dataset is even \textit{seperable} under a certain definition of observation.
 
-\colorbox{red}{das experimentelle getstatecountfeaturevec, das aber noch nix tun will}
-getstatecountfeaturevec macht für das was ich mache mit meiner netzwerk-struktur keinen sinn (256 neurons direkt bevor es in die actions geht)
+Racing games are generally an exceptionally hard case for reinforcement learning because of their highly correlated states. To encounter for example the situation of \textit{being fast in a turn}, an agent first needs to drive reasonably enough to speed up, which impossible purely by chance. While it would of course help to start the agent's initial state stochastically, also including those situations, such a situation was not considered as it is unrealistic in real situations.
 
--dass wir beim pretraining die andere methode genommen hätten aaaaaaber die nicht gekappt hat
+Testing seemed to show that this game is in fact harder than TORCS, as agents that successfully perform in TORCS show no success in this environment. The game as it is right now is especially hard, as it starts with a long straight stretch and a very sharp tun afterwards. Many agents learned in the first epsiodes that accelerating as much as possible provides maximum reward, which leads to them driving into the wall over and over, as did for example the agent that uses the reward function from \cite{lillicrap_continuous_2015}. Analysis of this reward-function also showed that iterations of high reward do not correspond to iterations of much progress, which is a further argument against such a function. A likely reason for why this game is so prone to crashing into the first turn is that unlike in other approaches (see section~\ref{sec:relatedimplements}), the car starts always at the same position of the track. While it was demanded to not use a stochastic start state distribution, it would be interesting to see if a simpler definition of reward works better if that would be done. It has to be kept in mind however that while the current definition of reward is very complex and probably far from optimal, it appears to be somewhat reasonable, as it is the only tested reward-function that helped an agent learn sucessful policies.
 
--dass man mit supervised agents testen kann ob dataset separable (-dataset is separable as can be tested by dqn\_sv\_agent)
--und gym_test
+There are many open ends that would probably improve the performance of agents a lot, that could not be implemented yet due to temporal constraints. A very interesting approach is for example to incorporate a pseudocount-based exploration function as suggested by \cite{ostrovski_count-based_2017} or \cite{martin_count-based_2017}. While it was tried to incorporate such a density-model into the current implementation (this is why the low-dimensional critic from figure~\ref{fig:lowdcrit} has 20 final hidden units), it did not succeed yet. It is however assumed that doing so would improve the speed of learning of agents a lot, as it can be used to force an agent to only explore in unkown situations. This would reduce the amount of training episodes where a car spontaneously steers into a wall while at full speed. Optimal would be an agent that largely follows its policy for the known part of the track, exploring only in later sections. Besides that, openAI recently suggested that incorporating \textit{parameter noise} as a means of providing additional exploration greatly improves performance\footnote{\url{https://blog.openai.com/better-exploration-with-parameter-noise/}} of both implemented algorithms.
 
--da qualitative änderungen sich literally immer erst nach tagen bemerkbar machen war paramter-tuning EXTREM langwierig und ist noch nicht done
--was die nächsten schritte sind, was ich erwarte und warum. Klar machen was save ist und was vermutugn.
--it is obvious, that DQN cannot be as good as DDPG - (wheel must be turned xy to avoid the obstacle because either note enough movement (z < xy) or course of dimensionality)
--die neuesten openAi algorithmen...!
+Another approach that speeds up learning is \textit{prioritized experience replay}, as introduced by \cite{schaul_prioritized_2015}. Next to that, there are architectures that can wrap the implemented approaches in a multi-threaded fashion such as  A3C\cite{mnih_asynchronous_2016} or GORILA\cite{nair_massively_2015}, which would probably also greatly improve the speed of learning.
 
--man kann a3c nutzen statt dqn
--wie schlecht die anderen eigentlcih funktioniert haben so "fleigt aus der ersten kurve, klappt bei konstant 1.8kmh speed"... meins fährt gut bei max-speed, und fährt hin und wieder ganze runden I mean thats good!!
+The current pace of improvements in the field of deep reinforcement learning is very quick. In the midst of writing this thesis a new technique, termed \textit{Proximal Policy Optimization} \cite{schulman_proximal_2017} surpassed the performance of the used algorithms in many MuJoCo physics-tasks. A future direction would be to implement this algorithm and compare its performance to that of the two used algorithms.
 
--dass man mit dem SV-agent testen kann ob dataset separable, praktischerweise kann das supervisednet ja die gleiche struktur haben wie das dqn (gucken kann ob dieseundjene state-definition sinnvoll ist)
+Unfortunately, this thesis did not find a way to properly incorporate pretraining into a q-learning agent, neither for DQN-based agents nor for DDPG-based agents. The implemented algorithm (\ref{alg:maketrainbatch}) helped that q-pretraining archieves reasonable testing set accuracy, but did not speed up the learning process of actual training. It is assumed that this is because the method sets no reward for any other action. However, another version of the \codefunc{make\_trainbatch}-function that also rewards noisy actions basing on their gaussian distance (the code for which is still in \filename{ddpg\_novision\_rl\_agent}) did not solve this problem either. The solution to this problem remains unknown and a matter of further research.
 
--dass er definitiv lernt vor ner wand zu bremsen, dank der reward function, war nen langer weg bis dahin.
+Due to memory constraints of the provided working station, the agents that require a \keyword{visionvector} were not tested extensively. Further research may go into this direction to test how good the performance of agents that rely purely on these vision-vectors is in comparison to agents that receive low-level information. It is also interesting to figure out what the minimal observation is that an agent requires to infer a capable driving policy. Many other approaches, like the original DDPG \cite{lillicrap_continuous_2015} or \textit{NVIDIA}s approach \cite{bojarski_end_2016} use the same visual information than a human receives as input. It is worth following the same approach in this implementation.
 
--dass actions als input (beosnder bei pretraining) sehr schlecht ist da der dann lernt immer die vorherige zu machen
+Furthermore, there is no real good way to assess an agent's performance so far. In pre-training, the accuracy simply taken as the percentage of actions that have the same discretized action than the supervised label or as the mean gaussian distance of those. This is similar to other approaches (e.g. \cite{bojarski_end_2016}) in that it assumes that the human performance is the ground truth of optimal performance. This approach has however several disadvantages -- for example, an agent simply driving forward has already a reasonable accuracy according to this measure, or the fact that tiny difference in steering can make the difference between driving optimally and crashing into a wall. As section~\ref{sec:resultsupervised} shows, this measure of accuracy does not correlate with actual driving performance. The only useful measure is therefore so far the agent's progress an laptime. An optimal method to measure performance that works in both use cases would be to compare every point of the policy's trajectory with that of an optimal algorithm, like for example the introduced $RRT^*$ algorithm.
 
-Die paper die bei openAI erwähnt waren die das ganze in viel kreasser sind, die Dota spielen können etc!
-dass ich gerne hätte dass das am anfang der policy folgt und am ende weiter exploriert, damit es auchdie letzte kurve lernt... genau dafür ware halt intrinsic motivation und prioritized experience replay
+Another future direction could be, to introduce rewards that change throughout the training process. At start, the agent could be rewarded for making some kind of progress, whereas only lateron its speed and laptime become more relevant. So far, it did also not matter if an agent drives a \textit{valid} round in which it stays on the track-surface at all times. A more strict punishment of driving off-track or even resetting the car if it does so are imaginable to counter this behaviour. This could also be introduced only after an agent learned a useful driving policy.
 
-\chapter{Conclusion}
+This thesis has shown that existing agents from the literature (see~\ref{sec:relatedimplements}) cannot be straight-forward applied to the implemented simulated racing platform. Further testing must show if the reason of that is the deterministic start-state as used here, or if the TORCS environment is more condoning for short-sighted action generation than this implementation. If the latter is the case, it questions if the TORCS environment is a good testbed for long-sighted action planning. Another interesting task would also be to transfer the resulted agents from this implementation, including their observation and reward-definition, to the TORCS environment to see how they perform in comparison to agents from the literature. 
+
+Normally when dealing with self-driving cars, there are countless additional issues, each making up a whole new challenge on their own. Examples for thoseare wheather conditions (snow, rain, fog), pedestrians, other cars, reflections, merging into ongoing traffic, and many more situations. The situation considered here is a small sample of all situations a real car must handle. A further plan for this project is to approach more of these situations. An interesting idea is for example to introduce semantic parameters to the neural network, telling the agent information about friction-properties of the road, such that one and the same agent can transfer its knowledge to new situations. This approach may lead to a similar appraoch than \keyword{InfoGAN}\cite{chen_infogan:_2016} in the realm of reinforcement learning.
+
+\section {Conclusion}
+
+In conclusion, the developed framework has proven to provide a reasonable reinforcement learning environment and enables quick creation and inclusion of new agents with distinct observation- and reward functions. It is therefore suited well to serve as a research platform for reinforcement learning in self-driving cars and even showed some possible weaknesses in other such platforms, such as TORCS. 
+
+While the optimization of in this thesis proposed functions and parameters will have to be continued by future research, they already enabled learning of reasonable driving-policies. This success was achieved even though the proposed framework seemed more difficult than average.
+
+Due to a large amount of possible improvements that did not fit under the scope of this thesis, the author is optimistic that further optimization of the agents and their performance is possible and that the developed framework will be a useful tool for further development. 
+
+Generally, the field of reinforcement learning is making quick progress, and the possibilities of virtual training to be applied in physical self-driving cars are endless.
+It will be interesting to see, in what direction this research will go and how long it will take for reinforcement learning applications to become a norm in our everyday lives.  
 
 
-[wennde testen wilslt ob dataset seperable ist, guckste in sv\_agent, wennde wissen willst ob das model funktioniert, guckste in gym\_text]
 
-
--wie gut dieses framework mittlerweile funktioniert, und was für ein langer weg das dahin war (dass das definitiv was war das ne ganze arbeit füllt, aber zukünftige arbeiten jetzt super gut darauf gehen, weil wegen bam framework.)
--das das framework definitiv comparable zu dem given in den beiden torcs-papern (BEIDE NOCHMAL ZITIEREN!!) ist.
--dass ich kein anderes paper gesehen habe dass sinvolle sachen macht... das virutal to real macht 9 discrete actions, das ddpg-torcs-ding macht "sometimes useful pocicies", ...
-
-Normally when dealing with self-driving cars, there are countless additional issues, each making up a whole new challenge on their own, like wheather conditions (snow, rain, fog), pedestrians, other cars, reflections, merging into ongoing traffic, ...
-we make it easier here.
-
-"Fragestellung aus der Einleitung wird erneut aufgegriffen und die Arbeitsschritte
-werden resümiert"
-Zusammen mit der Conclusion 10\% der Gesamtlänge
+%\colorbox{red}{schreiben dass superviele auf torc lernen, aber wer lernt schon auf seiner eigenen platform, thats new and cool !!!!!!!!}
+%
+%-wie gut dieses framework mittlerweile funktioniert, und was für ein langer weg das dahin war (dass das definitiv was war das ne ganze arbeit füllt, aber zukünftige arbeiten jetzt super gut darauf gehen, weil wegen bam framework.)
+%-das das framework definitiv comparable zu dem given in den beiden torcs-papern (BEIDE NOCHMAL ZITIEREN!!) ist.
+%-dass ich kein anderes paper gesehen habe dass sinvolle sachen macht... das virutal to real macht 9 discrete actions, das ddpg-torcs-ding macht "sometimes useful pocicies", ...
+%
+%Normally when dealing with self-driving cars, there are countless additional issues, each making up a whole new challenge on their own, like wheather conditions (snow, rain, fog), pedestrians, other cars, reflections, merging into ongoing traffic, ...
+%we make it easier here.
+%
+%"Fragestellung aus der Einleitung wird erneut aufgegriffen und die Arbeitsschritte
+%werden resümiert"
+%Zusammen mit der Conclusion 10\% der Gesamtlänge
 
 
 

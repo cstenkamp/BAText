@@ -248,6 +248,7 @@
 	file = {arXiv\:1412.6980 PDF:C\:\\Users\\Marie\\Zotero\\storage\\39GTZPRV\\Kingma und Ba - 2014 - Adam A Method for Stochastic Optimization.pdf:application/pdf;arXiv.org Snapshot:C\:\\Users\\Marie\\Zotero\\storage\\RIFHPF7T\\1412.html:text/html}
 }
 
+
 @techreport{rummery_-line_1994,
 	title = {On-{Line} {Q}-{Learning} {Using} {Connectionist} {Systems}},
 	author = {Rummery, G. A. and Niranjan, M.},
@@ -540,5 +541,73 @@
 	year = {2015},
 	note = {arXiv: 1511.00561},
 	keywords = {Computer Science - Learning, Computer Science - Computer Vision and Pattern Recognition, Computer Science - Neural and Evolutionary Computing},
-	file = {arXiv\:1511.00561 PDF:C\:\\Users\\Marie\\Zotero\\storage\\I2YMREY5\\Badrinarayanan et al. - 2015 - SegNet A Deep Convolutional Encoder-Decoder Archi.pdf:application/pdf}
+	file = {arXiv\:1511.00561 PDF:C\:\\Users\\Marie\\Zotero\\storage\\I2YMREY5\\Badrinarayanan et al. - 2015 - SegNet A Deep Convolutional Encoder-Decoder Archi.pdf:application/pdf;arXiv.org Snapshot:C\:\\Users\\Marie\\Zotero\\storage\\NCYSKLT9\\1511.html:text/html}
+}
+
+@article{ostrovski_count-based_2017,
+	title = {Count-{Based} {Exploration} with {Neural} {Density} {Models}},
+	url = {http://arxiv.org/abs/1703.01310},
+	abstract = {Bellemare et al. (2016) introduced the notion of a pseudo-count, derived from a density model, to generalize count-based exploration to non-tabular reinforcement learning. This pseudo-count was used to generate an exploration bonus for a DQN agent and combined with a mixed Monte Carlo update was sufficient to achieve state of the art on the Atari 2600 game Montezuma's Revenge. We consider two questions left open by their work: First, how important is the quality of the density model for exploration? Second, what role does the Monte Carlo update play in exploration? We answer the first question by demonstrating the use of PixelCNN, an advanced neural density model for images, to supply a pseudo-count. In particular, we examine the intrinsic difficulties in adapting Bellemare et al.'s approach when assumptions about the model are violated. The result is a more practical and general algorithm requiring no special apparatus. We combine PixelCNN pseudo-counts with different agent architectures to dramatically improve the state of the art on several hard Atari games. One surprising finding is that the mixed Monte Carlo update is a powerful facilitator of exploration in the sparsest of settings, including Montezuma's Revenge.},
+	urldate = {2017-09-13},
+	journal = {arXiv:1703.01310 [cs]},
+	author = {Ostrovski, Georg and Bellemare, Marc G. and Oord, Aaron van den and Munos, Remi},
+	month = mar,
+	year = {2017},
+	note = {arXiv: 1703.01310},
+	keywords = {Computer Science - Artificial Intelligence},
+	file = {arXiv\:1703.01310 PDF:C\:\\Users\\Marie\\Zotero\\storage\\MNLW8CES\\Ostrovski et al. - 2017 - Count-Based Exploration with Neural Density Models.pdf:application/pdf;arXiv.org Snapshot:C\:\\Users\\Marie\\Zotero\\storage\\624RMJNW\\1703.html:text/html}
+}
+
+@article{nair_massively_2015,
+	title = {Massively {Parallel} {Methods} for {Deep} {Reinforcement} {Learning}},
+	url = {http://arxiv.org/abs/1507.04296},
+	abstract = {We present the first massively distributed architecture for deep reinforcement learning. This architecture uses four main components: parallel actors that generate new behaviour; parallel learners that are trained from stored experience; a distributed neural network to represent the value function or behaviour policy; and a distributed store of experience. We used our architecture to implement the Deep Q-Network algorithm (DQN). Our distributed algorithm was applied to 49 games from Atari 2600 games from the Arcade Learning Environment, using identical hyperparameters. Our performance surpassed non-distributed DQN in 41 of the 49 games and also reduced the wall-time required to achieve these results by an order of magnitude on most games.},
+	urldate = {2017-09-13},
+	journal = {arXiv:1507.04296 [cs]},
+	author = {Nair, Arun and Srinivasan, Praveen and Blackwell, Sam and Alcicek, Cagdas and Fearon, Rory and De Maria, Alessandro and Panneershelvam, Vedavyas and Suleyman, Mustafa and Beattie, Charles and Petersen, Stig and Legg, Shane and Mnih, Volodymyr and Kavukcuoglu, Koray and Silver, David},
+	month = jul,
+	year = {2015},
+	note = {arXiv: 1507.04296},
+	keywords = {Computer Science - Learning, Computer Science - Artificial Intelligence, Computer Science - Neural and Evolutionary Computing, Computer Science - Distributed, Parallel, and Cluster Computing},
+	annote = {Comment: Presented at the Deep Learning Workshop, International Conference on Machine Learning, Lille, France, 2015},
+	file = {arXiv\:1507.04296 PDF:C\:\\Users\\Marie\\Zotero\\storage\\HRXNY738\\Nair et al. - 2015 - Massively Parallel Methods for Deep Reinforcement .pdf:application/pdf;arXiv.org Snapshot:C\:\\Users\\Marie\\Zotero\\storage\\MB5E4GTD\\1507.html:text/html}
+}
+
+@article{schulman_proximal_2017,
+	title = {Proximal {Policy} {Optimization} {Algorithms}},
+	url = {http://arxiv.org/abs/1707.06347},
+	abstract = {We propose a new family of policy gradient methods for reinforcement learning, which alternate between sampling data through interaction with the environment, and optimizing a "surrogate" objective function using stochastic gradient ascent. Whereas standard policy gradient methods perform one gradient update per data sample, we propose a novel objective function that enables multiple epochs of minibatch updates. The new methods, which we call proximal policy optimization (PPO), have some of the benefits of trust region policy optimization (TRPO), but they are much simpler to implement, more general, and have better sample complexity (empirically). Our experiments test PPO on a collection of benchmark tasks, including simulated robotic locomotion and Atari game playing, and we show that PPO outperforms other online policy gradient methods, and overall strikes a favorable balance between sample complexity, simplicity, and wall-time.},
+	urldate = {2017-09-14},
+	journal = {arXiv:1707.06347 [cs]},
+	author = {Schulman, John and Wolski, Filip and Dhariwal, Prafulla and Radford, Alec and Klimov, Oleg},
+	month = jul,
+	year = {2017},
+	note = {arXiv: 1707.06347},
+	keywords = {Computer Science - Learning},
+	file = {arXiv\:1707.06347 PDF:C\:\\Users\\Marie\\Zotero\\storage\\H66TI3VS\\Schulman et al. - 2017 - Proximal Policy Optimization Algorithms.pdf:application/pdf;arXiv.org Snapshot:C\:\\Users\\Marie\\Zotero\\storage\\BA5T8XMU\\1707.html:text/html}
+}
+
+@article{chen_infogan:_2016,
+	title = {{InfoGAN}: {Interpretable} {Representation} {Learning} by {Information} {Maximizing} {Generative} {Adversarial} {Nets}},
+	shorttitle = {{InfoGAN}},
+	url = {http://arxiv.org/abs/1606.03657},
+	abstract = {This paper describes InfoGAN, an information-theoretic extension to the Generative Adversarial Network that is able to learn disentangled representations in a completely unsupervised manner. InfoGAN is a generative adversarial network that also maximizes the mutual information between a small subset of the latent variables and the observation. We derive a lower bound to the mutual information objective that can be optimized efficiently, and show that our training procedure can be interpreted as a variation of the Wake-Sleep algorithm. Specifically, InfoGAN successfully disentangles writing styles from digit shapes on the MNIST dataset, pose from lighting of 3D rendered images, and background digits from the central digit on the SVHN dataset. It also discovers visual concepts that include hair styles, presence/absence of eyeglasses, and emotions on the CelebA face dataset. Experiments show that InfoGAN learns interpretable representations that are competitive with representations learned by existing fully supervised methods.},
+	urldate = {2017-09-14},
+	journal = {arXiv:1606.03657 [cs, stat]},
+	author = {Chen, Xi and Duan, Yan and Houthooft, Rein and Schulman, John and Sutskever, Ilya and Abbeel, Pieter},
+	month = jun,
+	year = {2016},
+	note = {arXiv: 1606.03657},
+	keywords = {Computer Science - Learning, Statistics - Machine Learning},
+	file = {arXiv\:1606.03657 PDF:C\:\\Users\\Marie\\Zotero\\storage\\YS8PTFYB\\Chen et al. - 2016 - InfoGAN Interpretable Representation Learning by .pdf:application/pdf;arXiv.org Snapshot:C\:\\Users\\Marie\\Zotero\\storage\\F3Q4RT42\\1606.html:text/html}
+}
+
+@misc{ben_lau_using_2016,
+	title = {Using {Keras} and {Deep} {Deterministic} {Policy} {Gradient} to play {TORCS}},
+	url = {https://yanpanlau.github.io/2016/10/11/Torcs-Keras.html},
+	urldate = {2017-09-14},
+	author = {{Ben Lau}},
+	month = oct,
+	year = {2016},
+	file = {Using Keras and Deep Deterministic Policy Gradient to play TORCS | Ben Lau:C\:\\Users\\Marie\\Zotero\\storage\\8ZXL3VUA\\Torcs-Keras.html:text/html}
 }
