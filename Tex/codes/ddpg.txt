@@ -4,8 +4,8 @@ class DDPG_model():
 		self.critic = Critic(self.session)    
 		self.actor = Actor(self.session) 
 		self.session.run(tf.global_variables_initializer())
-		self.session.run(_netCopyOps(self.actor.target, self.actor.online)) 
-		self.session.run(_netCopyOps(self.critic.target, self.critic.online))
+		self.session.run(netCopyOps(self.actor.target, self.actor.online)) 
+		self.session.run(netCopyOps(self.critic.target, self.critic.online))
 		#replay buffer defined by the agent
 		
 	#exploration noise added by the agent
@@ -15,7 +15,7 @@ class DDPG_model():
 		#agent adds exploration noise afterwards
 		#done by the agent
 		#done by the agent
-	def train_step(self, batch): #also called for every step t
+	def q_train_step(self, batch): #also called for every step t
 		oldstates, actions, rewards, newstates, terminals = batch
 		targetActorAction = self.actor.predict(newstates, "target")
 		targetCriticQ = self.critic.predict(newstates, targetActorAction, "target")
@@ -35,7 +35,7 @@ class Actor(object):
 		with tf.variable_scope("actor"):
 			self.online = lowdim_actorNet(inputsize, num_actions, actionbounds)
 			self.target = lowdim_actorNet(inputsize, num_actions, actionbounds, name="target")
-			self.smoothTargetUpdate = _netCopyOps(self.online, self.target, 0.001)
+			self.smoothTargetUpdate = netCopyOps(self.online, self.target, 0.001)
 			# provided by the critic network
 			self.action_gradient = tf.placeholder(tf.float32, [None, num_actions], name="actiongradient")
 			self.actor_gradients = tf.gradients(self.online.scaled_out, self.online.trainables, -self.action_gradient)
@@ -53,7 +53,7 @@ class Critic(object):
 		with tf.variable_scope("critic"):
 			self.online = lowdim_criticNet(inputsize, num_actions)
 			self.target = lowdim_criticNet(inputsize, num_actions, name="target")    
-			self.smoothTargetUpdate = _netCopyOps(self.online, self.target, 0.001)
+			self.smoothTargetUpdate = netCopyOps(self.online, self.target, 0.001)
 			self.target_Q = tf.placeholder(tf.float32, [None, 1], name="target_Q")
 			self.loss = tf.losses.mean_squared_error(self.target_Q, self.online.Q)
 			self.optimize = tf.train.AdamOptimizer(1e-3).minimize(self.loss)
@@ -68,7 +68,7 @@ class Critic(object):
 	def update_target_network(self):
 		self.session.run(self.smoothTargetUpdate)
 
-def _netCopyOps(fromNet, toNet, tau = 1):
+def netCopyOps(fromNet, toNet, tau = 1):
 	op_holder = []
 	for idx,var in enumerate(fromNet.trainables[:]):
 		op_holder.append(toNet.trainables[idx].assign((var.value()*tau) + ((1-tau)*toNet.trainables[idx].value())))

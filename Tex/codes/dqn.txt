@@ -5,24 +5,24 @@ class DDDQN_model():
 		self.onlineQN = DuelDQN("onlineNet", inputsize, num_action)
 		self.targetQN = DuelDQN("targetNet", inputsize, num_action)
 		self.sess.run(tf.global_variables_initializer())
-		self.sess.run(_netCopyOps(self.targetQN, self.onlineQN))
+		self.sess.run(netCopyOps(self.targetQN, self.onlineQN))
 		
 	#see agent	
 	def inference(self, statesBatch): #called for every step t
-	
-		return self.sess.run([self.onlineQN.predict, self.onlineQN.Qout], feed_dict={self.onlineQN.inputs: statesBatch})
+		#model is not accessed if random action
+		return self.sess.run([self.targetQN.predict, self.targetQN.Qout], feed_dict=self.targetQN.make_inputs(oldstates, carstands, is_training=False))
 	#see agent
 	#see agent
 	#see agent
-	def q_learn(self, batch): #also called for every step t
+	def q_train_step(self, batch): #also called for every step t
 		oldstates, actions, rewards, newstates, terminals = batch
-		action = self.sess.run(self.onlineQN.predict, {self.onlineQN.inputs:newstates})
+		act = self.sess.run(self.onlineQN.predict, {self.onlineQN.inputs:newstates})
 		folgeQ = self.sess.run(self.targetQN.Qout, {self.targetQN.inputs:newstates})
-		doubleQ = folgeQ[range(len(terminals)),action]  
+		doubleQ = folgeQ[range(len(terminals)),act]  
 		consider_stateval = -(terminals - 1)
 		targetQ = rewards + (0.99 * doubleQ * consider_stateval)
-		self.sess.run(self.onlineQN.q_OP, feed_dict={self.onlineQN.inputs:oldstates, self.onlineQN.targetQ:targetQ, self.onlineQN.targetA:actions})
-		self.sess.run(_netCopyOps(self.onlineQN, self.targetQN, 0.001)) 
+		self.sess.run(self.onlineQN.q_OP, feed_dict=self.onlineQN.make_inputs(oldstates, targetQ=targetQ, actions=actions)
+		self.sess.run(netCopyOps(self.onlineQN, self.targetQN, 0.001)) 
 		return
 		
 		
@@ -101,7 +101,7 @@ class DuelDQN():
 		self.trainables = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=name)		
 		
 		
-def _netCopyOps(fromNet, toNet, tau = 1):
+def netCopyOps(fromNet, toNet, tau = 1):
 	op_holder = []
 	for idx,var in enumerate(fromNet.trainables[:]):
 		op_holder.append(toNet.trainables[idx].assign((var.value()*tau) + ((1-tau)*toNet.trainables[idx].value())))	
