@@ -10,7 +10,7 @@ class DDDQN_model():
 	#see agent	
 	def inference(self, statesBatch): #called for every step t
 		#model is not accessed if random action
-		return self.sess.run([self.targetQN.predict, self.targetQN.Qout], feed_dict={self.targetQN.inputs: statesBatch, self.targetQN.stands_input:False})
+		return self.sess.run([self.targetQN.predict,self.targetQN.Qout],feed_dict={self.targetQN.inputs:statesBatch,self.targetQN.stands_input:False})
 	#see agent
 	#see agent
 	#see agent

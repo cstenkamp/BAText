@@ -27,11 +27,10 @@ chapterinoneline, % Uncomment to place the chapter title next to the number on o
 \usepackage[plain]{algorithm}
 \usepackage{amsmath}
 \usepackage{dsfont}
-\usepackage{hyperref}
 \usepackage{array}
 \usepackage{graphicx}
 \usepackage[nodayofweek,level]{datetime}
-\hypersetup{colorlinks=false} % hides the links in the PDF but not in printed text
+%\hypersetup{colorlinks=false} % hides the links in the PDF but not in printed text
 %others would be: \hypersetup{...  urlcolor= .. citecolor = .. allcolor = .. hidelinks }
 \usepackage{pifont,calc,xcolor}
 \usepackage{soul}
@@ -48,17 +47,27 @@ chapterinoneline, % Uncomment to place the chapter title next to the number on o
 \usepackage{tikz}
 \usepackage{sequence_diagrams/pgf-umlsd}
 \usepgflibrary{arrows} % for pgf-umlsd
+\usepackage[backend=biber,natbib=true, minbibnames=5, maxbibnames=8]{biblatex}
+\setcounter{biburllcpenalty}{7000}
+\setcounter{biburlucpenalty}{8000}
+ \usepackage[autostyle=true]{csquotes} 
+\usepackage[scaled=0.72]{beramono}
+\usepackage{parcolumns}
+\usepackage{listings}
+\usepackage{lscape}
+%\usepackage{hyperref}
+%\hypersetup{colorlinks=false}
+%\usepackage[hidelinks]{hyperref}
 
 
 %\usepackage[backend=bibtex,style=authoryear,natbib=true]{biblatex} 
-\usepackage[backend=biber,natbib=true, minbibnames=5, maxbibnames=8]{biblatex} 
+
 %\addbibresource{chapter2basics.bib}
 \addbibresource{chapter3basics.bib}
 
 %\bibliography{example.bib}
 
 
-\usepackage[autostyle=true]{csquotes} 
 
 %to include .1 files as metapost
 \DeclareGraphicsRule{.1}{mps}{*}{}
@@ -79,10 +88,7 @@ chapterinoneline, % Uncomment to place the chapter title next to the number on o
 %----------------------------------------------------------------------------------------
 %	TO INCLUDE THE CODE COMPARISONS IN THE APPENDIX
 %----------------------------------------------------------------------------------------
-\usepackage[scaled=0.72]{beramono}
-\usepackage{parcolumns}
-\usepackage{listings}
-\usepackage{lscape}
+
 
 
 
@@ -106,14 +112,14 @@ chapterinoneline, % Uncomment to place the chapter title next to the number on o
 	morekeywords={for, do, end},
 	sensitive=false,
 	morecomment=[l]{#},
-	morestring=[b]"
+	morestring=[b]
 }
 
 \lstset{language=Python,
 	commentstyle=\color{gray},
 }
 	
-\lstdefinestyle{CSharp}{language=C#,
+\lstdefinestyle{CSharp}{language=[sharp]C,
 	numberblanklines=false
 	,basicstyle=\ttfamily%
 	,breaklines=true%
@@ -181,7 +187,6 @@ chapterinoneline, % Uncomment to place the chapter title next to the number on o
 %----------------------------------------------------------------------------------------
 
 
-\usepackage{tikz}
 \usetikzlibrary{arrows,positioning} 
 \tikzset{
 	%Define style for boxes
@@ -213,6 +218,8 @@ chapterinoneline, % Uncomment to place the chapter title next to the number on o
 	}\hspace*{-0.37em}
 }
 
+
+
 %----------------------------------------------------------------------------------------
 %	THESIS INFORMATION
 %----------------------------------------------------------------------------------------
@@ -236,6 +243,7 @@ chapterinoneline, % Uncomment to place the chapter title next to the number on o
 	\hypersetup{pdftitle=\ttitle} 
 	\hypersetup{pdfauthor=\authorname} 
 	\hypersetup{pdfkeywords=\keywordnames} 
+	\hypersetup{colorlinks=false}
 }
 
 \newlength{\ucht}
