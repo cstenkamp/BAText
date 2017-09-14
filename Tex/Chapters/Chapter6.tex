@@ -1,26 +1,26 @@
 \chapter{Results -- Performance and Analysis}
 \label{ch:resultsanalysis}
 
-As stated in the introduction, in the course of this thesis not only platform and agents were implemented, but the agents were also tested in an attempt answer the research questions from section~\ref{sec:researchquestions}. The testing took place on a \keyword{Windows 10 Pro} machine, using GPU-accelerated Tensorflow with an \keyword{NVIDIA GeForce GTX 970} graphics card. In this section, the performance of several agents is visualized and compared to assess their quality. Trends in these plots serve as basis to answer the research questions. 
+As stated in the introduction, in the course of this thesis not only platform and agents were implemented, but the agents were also tested in an attempt to answer the research questions from section~\ref{sec:researchquestions}. The testing took place on a \keyword{Windows 10 Pro} machine, using GPU-accelerated Tensorflow with an \keyword{NVIDIA GeForce GTX 970} graphics card. In this section, the performance of several agents is visualized and compared to assess their quality. 
 
-Unfortunately, the analysis of the implemented agents was restricted a lot by the time limit of this thesis, which also incorporated implementing the platform and writing this text. Also, testing if models and agents while implementing them takes a significant amount of time, as mistakes can be seen only after hours of training. Because also training the agent takes a significant amount of time, the plots given here are the result of much less training episodes than in for example \cite{mnih_human-level_2015}.
+Unfortunately, the analysis of the implemented agents was restricted a lot by the time limit of this thesis, which also incorporated implementing the platform and writing this text. Also, testing models and agents while implementing them takes a significant amount of time, as mistakes become apparent only after hours of training. Because training the agent also takes a significant amount of time, the plots given here are the result of much less training episodes than in for example \cite{mnih_human-level_2015}. The reliably found trends in these plots can nevertheless serve as a basis to answer the posed research questions.
 
 If not explicitly mentioned otherwise, all agents use the same hyperparameters, as specified in their respective file\footnote{All agent's path is \url{https://github.com/cstenkamp/BA-rAIce-ANN/tree/master/agents}. The title of the respective file is stated in text and figure.} or in the general config-file\footnote{\url{https://github.com/cstenkamp/BA-rAIce-ANN/blob/master/config.py}}.
 
 
 \section{General performance}
 
-The general performance of agents can only be assessed in comparison to a baseline. In figures~\ref{fig:humandrive} and figures~\ref{fig:randomdrive}, exemplary laps as driven by a human or a random policy are depicted. In both plots, en episode is either ended by hitting a wall, finishing a round or after 60 seconds time. Note that negative progresses are possible because all agents start at a certain point around $8\%$ in front of the start/finish line. Laptime also advances not until this line is passed.
+The general performance of agents can only be assessed in comparison to a baseline. In figures~\ref{fig:humandrive} and figures~\ref{fig:randomdrive}, exemplary laps as driven by a human and a random policy are depicted. In both plots, an episode is either ended by hitting a wall, finishing a round or after 60 seconds time. Note that negative progresses are possible because all agents start at a certain point around $8\%$ in front of the start/finish line. THe laptime counter does also not start until this line is passed.
 
-As can be seen in figure~\ref{fig:randomdrive}, the baseline performance of a random agent is negligible. While it sometimes advances some distance and does not bump into walls for some seconds, it can unmistakenly be seen that the baseline as provided by a random policy is almost zero.
+As can be seen in figure~\ref{fig:randomdrive}, the baseline performance of a random agent is negligible. While it sometimes advances some distance and does not bump into walls for several seconds, it can unmistakenly be seen that the baseline progress as provided by a random policy is on avarage around zero.
 
-Figure~\ref{fig:humandrive} shows the performance of a human tester with several hours of driving experience for this game. Many of the episodes driven by a human also end with the car hitting the wall, however there are also many episodes in which a full lap was driven. The time taken for an episode by human testers lays between $32$ and $60$ seconds (typically around $32$-$35$ seconds), with no lap driven faster than that.
+Figure~\ref{fig:humandrive} shows the performance of a human tester with several hours of driving experience for this game. Many of the episodes driven by a human also end with the car hitting the wall, which can be explained by a human driver trying to minimize the laptime and accelerating too much. However, there are also many episodes in which a full lap was driven. The time taken for an episode by human testers lays between $32$ and $60$ seconds (typically around $32$-$35$ seconds), with no lap driven faster than that.
 
 As can be seen in the progress-plots of the agents (for example in figure~\ref{fig:ddpg_result}), the game appears to have some very obvious local optima. These local optima are at about $16\%$, $40\%$, $60\%$ and $75\%$ and correspond to sharp curves of the track.
 
-Due to severe memory contraints of the provided machine and the fact that agents need a replay memory of hundreds of thousands of states, testing of RL-agents using the minimaps as observation was impossible. However, as the supervised agent that also relied on this observation achieved an outstanding accuracy, it can be assumed that all findings for the $novision$-agents also hold for their respective counterpart.
+Due to severe memory constraints of the provided machine and the fact that agents need a replay memory of hundreds of thousands of states, testing of RL-agents using the minimaps as observation was impossible. However, as the supervised agent that also relied on this observation achieved an outstanding accuracy, it can be assumed that all findings for the $novision$-agents also hold for their respective counterpart.
 
-The first research question, formalized as \textit{how agents that rely purely on pretraining perform in comparison to reinforcement learning agents}, will be answered in the following section.
+The first research question, formalized as \textit{how agents relying purely on pretraining perform in comparison to reinforcement learning agents}, will be answered in the following section.
 
 \subsection{Supervised agents}
 \label{sec:resultsupervised}
@@ -40,19 +40,19 @@ Testing showed that agents that rely purely on supervised pre-training are not a
 	\label{fig:sv_result}
 \end{figure}
 
-As can be seen in this plot, high testing set accuracy does not mean that an agent drives a useful policy. An interesting finding was, that if a maximum-speed of $80$ kph ($33\%$ of \codeobj{Consts.maxSpeed}) was given for both generating the dataset as well as the agent that learns on it, some supervised agents were able to learn successful policies, completing a lap almost every time.
+As can be seen in this plot, high testing set accuracy does not mean that an agent achieves a useful policy. An interesting finding was, that if a maximum-speed of $80$ kph ($33\%$ of \codeobj{Consts.maxSpeed}) was given for both generating the dataset as well as for the agent that learns on it, some supervised agents were able to learn successful policies, completing a lap almost every time.
 
 \subsection{RL agents}
 
 The first and foremost result is, that some agents were able to learn successful policies that are able to drive complete laps in a reasonable time. Exemplary performances of the \term{dqn\_novision\_rl\_agent} and the \term{ddpg\_novision\_rl\_agent} are represented in figures \ref{fig:dqn_result} and \ref{fig:ddpg_result}. Note that the training for both agents was terminated as soon as they learned a policy that completes the circuit. Note further, that in all plots that smooth over a specified number of episodes, the maximum reward, Q-value and progress of these episodes is taken.
 
-Testing of the generated Q-values showed that the model that the agents learned has many expected properties, for example 1) the state-value of a state immediately in front of wall is much lower than everywhere else, 2) the q-value of braking is lower than the one of accelerating in a straight street, but higher in close proximities to a turn or wall, 3) steering away from a wall has a higher Q-value than doing nothing or driving towards it, and 4) driving fast leads generally to higher state-values than driving slow. 
+Testing of the generated Q-values showed that the model that the agents learned has many desired properties, for example 1) the state-value of a state immediately in front of a wall is much lower than everywhere else, 2) the q-value of braking is lower than the one of accelerating in a straight street, but higher in close proximities to a turn or wall, 3) steering away from a wall has a higher Q-value than doing nothing or driving towards it, and 4) driving fast leads generally to higher state-values than driving slow. 
 
-It is also very obvious that agents seem to often learn \textit{turn by turn}, in that the track between the sharp turns is always easily made, whereas an agent always seems to need a large number of episodes to overcome a new turn.
+It is also very obvious that agents seem to often learn \textit{turn by turn}, in that the straight track between sharp turns can be driven easily, whereas a large number of episodes is needed to overcome every new turn.
 
 \section{Discretizing actions}
 
-This section serves to answer the stated research question of \textit{how different models perform in comparison, and specifically if discretizing the action-space impairs performance}. To do so, the difference between performances of the \term{dqn\_novision\_rl\_agent} and the \term{ddpg\_novision\_rl\_agent} will be elaborated.
+This section serves to answer the posed research question of \textit{how different models perform in comparison, and specifically if discretizing the action-space impairs performance}. To do so, the difference between performances of the \term{dqn\_novision\_rl\_agent} and the \term{ddpg\_novision\_rl\_agent} will be elaborated.
 Both agents use the same reward function as specified in section~\ref{sec:reward}, as well as the \term{novision}-observation function from section~\ref{sec:observation}. They only differ in their model and, due to that, their exploration-function.
 
 An exemplary performance of the \term{dqn\_novision\_rl\_agent} can be seen in figure~\ref{fig:dqn_result}. The performance of the \term{ddpg\_novision\_rl\_agent} is depicted in figure~\ref{fig:ddpg_result}.
@@ -69,7 +69,7 @@ An exemplary performance of the \term{dqn\_novision\_rl\_agent} can be seen in f
 \end{figure}
 
 
-In both cases, the Q-value, average reward and progress increases throughout training. Both agents are further able to complete a whole lap. To do so, DQN-agent required however around 3000 training episodes (over 400.000 minibatch-trainingsteps), whereas the DDPG-agent needed only around 1400 episodes (corresponding to less than 300.000 inferences). It is further interesting, the DQN-agent seems to learn incrementally, where each turn requires hundreds of training-iterations until it is mastered. In contrast to that, the DDPG-agent seems to generalize better from the first part of the track towards the whole track, as can be seen in the very steep learning curve towards the end.
+In both cases, Q-value, average reward and progress increase throughout training. Both agents are further able to complete a whole lap. To do so, DQN-agent required around 3000 training episodes (over 400.000 minibatch-trainingsteps), whereas the DDPG-agent only needed around 1400 episodes (corresponding to less than 300.000 inferences). It is further interesting, that the DQN-agent seems to learn sequentially, where each turn requires hundreds of training-iterations until it is mastered. In contrast to that, the DDPG-agent seems to generalize better from the first part of the track towards the whole track, as can be seen in the very steep learning curve towards the end.
 
 \begin{figure}[h!]
 	{%
@@ -83,9 +83,9 @@ In both cases, the Q-value, average reward and progress increases throughout tra
 \end{figure}
 
 
-This result shows that while an agent that discretizes the action-space can certainly learn the track, an agent that does so seems to learn slower than its continuous counterpart. As the continuous agent however also used a better exploration function, it is an open question how much of this performance gain must be accredited to that. 
+This result shows that while an agent discretizing the action-space can certainly learn the track, an agent that does so seems to learn slower than its continuous counterpart. As the continuous agent however also used a better exploration function, it remains a question to further investigation how much of this performance gain must be accredited to that. 
 
-Another question that remains open is, how much faster the laps driven by a continuous agent are will ultimately be. No full lap driven by either of the agents finished in less than $50$ seconds time, which is a lot more than the human average. As the action-space of continuous agents includes that of the discretized agents, it is certain that the upper limit of the former's maximal performance is least as high, and probably much higher, than that of the latter.
+Another question that remains open is, how much faster the laps driven by a continuous agent will ultimately be. No full lap driven by either of the agents finished in less than $50$ seconds time, which is a lot more than the human average. As the action-space of continuous agents includes that of the discretized agents, it is certain that the upper limit of the former's maximal performance is least as high, and probably much higher, than that of the latter.
 
 Interestingly, both algorithms oversteer a lot even in straight track sections, which leads to \textit{jittering} movement. This seems to be a general problem of the employed techniques, as it is seen throughout many other implementations\footnote{see for example this video \url{https://www.youtube.com/watch?v=4hoLGtnK_3U}, which is the performance of the implementation of the project \textit{DDPG-Keras-Torcs} as listed in table~\ref{tb:rlapproaches}.}.
 
@@ -93,7 +93,7 @@ Interestingly, both algorithms oversteer a lot even in straight track sections, 
 \section{Incorporating pretraining}
 \label{sec:incorporatePre}
 
-One question this thesis aimed to answer is \textit{how to incorporate pretraining into reinforcedly learning agents}. As explained in section~\ref{sec:pretrainingcode}, an agent that trained supervisedly does not adequatly \keyword{transfer} this knowledge when applied to a reinforcement leaning paradigm. In this thesis, it was tried to find a solution for that by setting correct Q-values for the respective actions, while setting a Q-value of zero for all others.
+One question this thesis aimed to answer is \textit{how to incorporate pretraining into reinforcedly learning agents}. As explained in section~\ref{sec:pretrainingcode}, an agent that trained supervisedly does not adequately \keyword{transfer} this knowledge when applied to a reinforcement learning paradigm. In this thesis, it was tried to find a solution for that by setting correct Q-values for the respective actions, while setting a Q-value of zero for all others.
 
 To test if pretraining an agent increases the learning pace, an agent that performed q-pretraining as specified in section~\ref{sec:pretrainingcode} subsequently underwent normal reinforcement training. Specifically, a \term{ddpg\_novision\_rl\_agent} was pre-trained for $40.000$ pretraining steps on a dataset consisting of $46$ laps (around $14.000$ individual datapoints), such that it had a testing set performance of $96\%$. While the testing set accuracy is high, this agent barely got further than the first turn of the track.
 
@@ -114,7 +114,7 @@ All in all, this agent completed its first full circuit after around 1900 episod
 
 While not printed in this thesis, the plot of a pretrained \term{dqn\_novision\_rl\_agent} showed the same properties than the one described.
 
-Concluding it must be said, that this thesis did not find a successful way to incorporate a pretraining based on manually driven rounds. This can be due to three main reasons: 1) the dataset was to small and must be extended, 2) it is simply not possible to learn from only \textit{good} rounds, or 3) the employed method is not the correct approach. Further resarch must be taken, especially trying to find a better method than the used one.
+In conclusion it has to be said, that this thesis did not find a successful way to incorporate a pretraining based on manually driven rounds. This can be due to three main reasons: 1) the dataset was too small and must be extended, 2) it is simply not possible to learn from only \textit{good} rounds, or 3) the employed method is not the correct approach. Further resarch must be taken, especially trying to find a better method than the one used.
 
 \section{Reward function}
 
@@ -132,7 +132,7 @@ One of the research questions asked \textit{what a good reward function looks li
 \end{figure}
 
 In the original DDPG-Paper, the authors used as reward only \textit{the velocity of the car projected along the track direction and a penalty of -1 for collisions.}(quote \cite{lillicrap_continuous_2015}). In the given simulation, this corresponds to the feature \codeobj{SpeedSteer.SpeedInStreetDir}, with the collision punished in \codefunc{handle\_commands}. Figure~\ref{fig:dqnrewardspeedstuff} shows the performance of an agent that uses this reward function. 
-As can be seen in the respective plot, this reward does not lead to successful results after $2500$ episodes, whereas the its average reward is almost maximal. As this reward function does not reward braking at all, the agent does not learn so and almost every episode ends with the car skidding at the first turn.
+As can be seen in the respective plot, this reward does not lead to successful results after $2500$ episodes, whereas its average reward is almost maximal. As this reward function does not reward braking at all, the agent does not learn to do so and almost every episode ends with the car skidding at the first turn.
 
 \begin{figure}[h]
 	{%
@@ -145,4 +145,4 @@ As can be seen in the respective plot, this reward does not lead to successful r
 	\label{fig:dqnrewardinrelationtowall}
 \end{figure}
 
-To demonstrate the contributions of the other reward-components, figure~\ref{fig:dqnrewardinrelationtowall} shows the performance of an agent with the other reward-components removed (corresponding to lines 1-4 from algorithm~\ref{alg:speedinrelationto}). While the progress makes it appear that the agent learns a useful policy, the plot of the lap-time shows that almost every episode ended because of the time limitof 60 seconds. As this reward-function does always reward driving fast, it is no reasonable reward-function on its own.
+To demonstrate the contributions of the other reward-components, figure~\ref{fig:dqnrewardinrelationtowall} shows the performance of an agent with the other reward-components removed (corresponding to lines 1-4 from algorithm~\ref{alg:speedinrelationto}). While the progress makes it appear as if the agent learns a useful policy, the plot of the lap-time shows that almost every episode ended because of the time limit of 60 seconds. As this reward-function does always reward driving fast, it is no reasonable reward-function on its own.

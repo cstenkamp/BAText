@@ -41,6 +41,7 @@ chapterinoneline, % Uncomment to place the chapter title next to the number on o
 \usepackage{multirow}
 \usepackage{footnote}
 \makesavenoteenv{tabular}
+\usepackage{enumitem}
 
 \usepackage[stable]{footmisc}
 
@@ -294,6 +295,8 @@ chapterinoneline, % Uncomment to place the chapter title next to the number on o
 	%----------------------------------------------------------------------------------------
 	
 	\begin{abstract}
+		\pagenumbering{gobble}
+		\pagestyle{empty}
 		\addchaptertocentry{\abstractname} % Add the abstract to the table of contents
 		State-of-the-art self-driving cars depend on handcrafted algorithms to control the car's movement. As those systems depend on complete understanding of the environment, tactical decisions such as optimizing its speed are not considered as a factor in their driving profile.
 		In this thesis, a racing simulation will be paired with state-of-the-art deep learning techniques to investigate how to maximize a self-driving car’s operational capabilities. Building on a racing simulation given as a game implemented with the Unity game engine, this thesis adds functionality to enable artificial agents to play and learn it. Further, first capable agents that sucessfully learn the environment are provided.
@@ -317,9 +320,10 @@ chapterinoneline, % Uncomment to place the chapter title next to the number on o
 	%----------------------------------------------------------------------------------------
 	
 	\begin{acknowledgements}
+		\pagenumbering{roman}
 		\addchaptertocentry{\acknowledgementname} % Add the acknowledgements to the table of contents
 		This thesis is dedicated to my friends and family.\\
-		A big thanks goes to my supervisors as well as my proof-readers, and also to Alex for his help and his code.\\
+		A big thanks goes to my supervisors as well as my proof-readers, and also to Alex for answering many questions.\\
 		I am most grateful to my girlfriend Marie, who had the hardest task of all: Enduring me while writing this thesis, while consistently proof-reading and helping me focus.
 	\end{acknowledgements}
 	
