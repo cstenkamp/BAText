@@ -25,7 +25,7 @@ The first research question, formalized as \textit{how agents relying purely on 
 \subsection{Supervised agents}
 \label{sec:resultsupervised}
 
-It is hard to assess the performance of purely supervisedly trained agents. Most agents achieved an accuracy of more than $95\%$ on a testing set\footnote{Supervised agents are tested on the \codeobj{.svlap}-files found in \url{https://github.com/cstenkamp/BA-rAIce-ANN/tree/master/SavedLaps}. To generate a testing set, one of the files was removed from the training set.}, but failed completely when tested as agent on the game. The reason for this is easy to see: In this game, one false action at the start can only be fatal, and a supervised agent cannot learn to recover from this mistake.
+It is hard to assess the performance of purely supervisedly trained agents. Most agents achieved an accuracy of more than $95\%$ on a testing set\footnote{Supervised agents are tested on the \codeobjFN{.svlap}-files found in \url{https://github.com/cstenkamp/BA-rAIce-ANN/tree/master/SavedLaps}. To generate a testing set, one of the files was removed from the training set.}, but failed completely when tested as agent on the game. The reason for this is easy to see: In this game, one false action at the start can only be fatal, and a supervised agent cannot learn to recover from this mistake.
 
 Testing showed that agents that rely purely on supervised pre-training are not able to drive around the track when tested. Figure~\ref{fig:sv_result} shows this exemplary in the form of an agent that was trained for 75 episodes on a dataset of $27$ exported laps, achieving a testing set accuracy of $93\%$.
 
@@ -36,7 +36,7 @@ Testing showed that agents that rely purely on supervised pre-training are not a
 		\fbox{\includegraphics[width=.5\textwidth]{performance_plots/svagent_75pretrains}}%
 	}%
 	\centering
-	\caption[Exemplary performance of the dqn\_sv\_agent]{Exemplary performance of the dqn\_sv\_agent.}
+	\caption[Exemplary performance of the \term{dqn\_sv\_agent}]{Exemplary performance of the \term{dqn\_sv\_agent}.}
 	\label{fig:sv_result}
 \end{figure}
 
@@ -64,7 +64,7 @@ An exemplary performance of the \term{dqn\_novision\_rl\_agent} can be seen in f
 		\fbox{\includegraphics[trim={2.2cm 0cm 1cm 0cm},clip,width=\textwidth]{performance_plots/dqn_bestresult_meinreward_average10_3500ep}}%
 	}%
 	\centering
-	\caption[Exemplary performance of the dqn\_novison\_rl\_agent]{Exemplary performance of the dqn\_novison\_rl\_agent. Plots are smoothed by averaging over 10 episodes.}
+	\caption[Exemplary performance of the \codeobj{dqn\_novison\_rl\_agent}]{Exemplary performance of the \codeobj{dqn\_novison\_rl\_agent}. Plots are smoothed by averaging over 10 episodes.}
 	\label{fig:dqn_result}
 \end{figure}
 
@@ -78,7 +78,7 @@ In both cases, Q-value, average reward and progress increase throughout training
 		\fbox{\includegraphics[width=.9\textwidth]{performance_plots/ddpg_bestresult_meinreward_average10_1400ep}}%
 	}%
 	\centering
-	\caption[Exemplary performance of the ddpg\_novison\_rl\_agent]{Exemplary performance of the ddpg\_novison\_rl\_agent. Plots are smoothed by averaging over 10 episodes.}
+	\caption[Exemplary performance of the \term{ddpg\_novison\_rl\_agent}]{Exemplary performance of the \term{ddpg\_novison\_rl\_agent}. Plots are smoothed by averaging over 10 episodes.}
 	\label{fig:ddpg_result}
 \end{figure}
 
@@ -87,7 +87,7 @@ This result shows that while an agent discretizing the action-space can certainl
 
 Another question that remains open is, how much faster the laps driven by a continuous agent will ultimately be. No full lap driven by either of the agents finished in less than $50$ seconds time, which is a lot more than the human average. As the action-space of continuous agents includes that of the discretized agents, it is certain that the upper limit of the former's maximal performance is least as high, and probably much higher, than that of the latter.
 
-Interestingly, both algorithms oversteer a lot even in straight track sections, which leads to \textit{jittering} movement. This seems to be a general problem of the employed techniques, as it is seen throughout many other implementations\footnote{see for example this video \url{https://www.youtube.com/watch?v=4hoLGtnK_3U}, which is the performance of the implementation of the project \textit{DDPG-Keras-Torcs} as listed in table~\ref{tb:rlapproaches}.}.
+Interestingly, both algorithms oversteer a lot even in straight track sections, which leads to \textit{jittering} movement. This seems to be a general problem of the employed techniques, as it is seen throughout many other implementations\footnote{see for example this video \url{https://www.youtube.com/watch?v=4hoLGtnK_3U} [accessed on 1st September, 2017], which is the performance of the implementation of the project \textit{DDPG-Keras-Torcs} as listed in table~\ref{tb:rlapproaches}.}.
 
 
 \section{Incorporating pretraining}
@@ -106,7 +106,7 @@ Figure~\ref{fig:ddpg_incorpPre} shows the performance of this agent in actual re
 		\fbox{\includegraphics[trim={2.2cm 0cm 1cm 0cm},clip,width=\textwidth]{performance_plots/ddpg_meinward_average5_1900eps_2500pretrainepisodesauf17datasets}}%
 	}%
 	\centering
-	\caption[Exemplary performance of the ddpg\_novison\_rl\_agent after 40000 pretrain steps]{Exemplary performance of the ddpg\_novison\_rl\_agent after 40000 pretraining steps. Plots are smoothed by averaging over 5 episodes.}
+	\caption[Exemplary performance of the \codeobj{ddpg\_novison\_rl\_agent} after 40000 pretrain steps]{Exemplary performance of the \codeobj{ddpg\_novison\_rl\_agent} after 40000 pretraining steps. Plots are smoothed by averaging over 5 episodes.}
 	\label{fig:ddpg_incorpPre}
 \end{figure}
 
@@ -127,7 +127,7 @@ One of the research questions asked \textit{what a good reward function looks li
 		\fbox{\includegraphics[width=.75\textwidth, height=.3\textheight ]{performance_plots/dqn_rewardspeed_smooth10_2600ep}}%
 	}%
 	\centering
-	\caption[Exemplary performance of the dqn\_novison\_rl\_agent with the reward function from \cite{lillicrap_continuous_2015}]{Exemplary performance of the dqn\_novison\_rl\_agent with the reward function from \cite{lillicrap_continuous_2015}. Plots are smoothed by averaging over 10 episodes.}
+	\caption[Exemplary performance of the \term{dqn\_novison\_rl\_agent} with the reward function from \cite{lillicrap_continuous_2015}]{Exemplary performance of the \term{dqn\_novison\_rl\_agent} with the reward function from \cite{lillicrap_continuous_2015}. Plots are smoothed by averaging over 10 episodes.}
 	\label{fig:dqnrewardspeedstuff}
 \end{figure}
 
@@ -141,7 +141,7 @@ As can be seen in the respective plot, this reward does not lead to successful r
 		\fbox{\includegraphics[width=.75\textwidth, height=.3\textheight]{performance_plots/dqn_rewardinrelationtowalldist_smooth1_900ep}}%
 	}%
 	\centering
-	\caption[Exemplary performance of the dqn\_novison\_rl\_agent with SpeedInRelationToWallDist as only reward.]{Exemplary performance of the dqn\_novison\_rl\_agent with SpeedInRelationToWallDist as only reward. Plots are not smoothed.}
+	\caption[Exemplary performance of the \term{dqn\_novison\_rl\_agent} with SpeedInRelationToWallDist as only reward.]{Exemplary performance of the \term{dqn\_novison\_rl\_agent} with SpeedInRelationToWallDist as only reward. Plots are not smoothed.}
 	\label{fig:dqnrewardinrelationtowall}
 \end{figure}
 
