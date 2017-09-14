@@ -10,7 +10,7 @@ class DDDQN_model():
 	#see agent	
 	def inference(self, statesBatch): #called for every step t
 		#model is not accessed if random action
-		return self.sess.run([self.targetQN.predict, self.targetQN.Qout], feed_dict=self.targetQN.make_inputs(oldstates, carstands, is_training=False))
+		return self.sess.run([self.targetQN.predict, self.targetQN.Qout], feed_dict={self.targetQN.inputs: statesBatch, self.targetQN.stands_input:False})
 	#see agent
 	#see agent
 	#see agent
@@ -21,7 +21,7 @@ class DDDQN_model():
 		doubleQ = folgeQ[range(len(terminals)),act]  
 		consider_stateval = -(terminals - 1)
 		targetQ = rewards + (0.99 * doubleQ * consider_stateval)
-		self.sess.run(self.onlineQN.q_OP, feed_dict=self.onlineQN.make_inputs(oldstates, targetQ=targetQ, actions=actions)
+		self.sess.run(self.onlineQN.q_OP, feed_dict={self.onlineQN.inputs:oldstates, self.onlineQN.targetQ:targetQ, self.onlineQN.targetA:actions})
 		self.sess.run(netCopyOps(self.onlineQN, self.targetQN, 0.001)) 
 		return
 		
@@ -29,8 +29,8 @@ class DDDQN_model():
 class Agent():
 	def __init__(self, inputsize):
 		self.inputsize = inputsize
-		self.model = DDDQN_model 
-		self.memory = Memory(10000, self)  #for definition see code
+		self.model = DDDQN_model #or DDPG_model
+		self.memory = Memory(500000, self)  #for definition see code
 		self.action_repeat = 4
 		self.update_frequency = 4
 		self.batch_size = 32
@@ -38,39 +38,42 @@ class Agent():
 		self.epsilon = 0.05
 		self.last_action = None
 		self.repeated_action_for = self.action_repeat
-		
-	def runInference(self, gameState, pastState):
-		self.addToMemory(gameState, pastState)
-		inputs = self.getAgentState(*gameState)
+
+	def performAction(self, gameState, pastState):
+		self.numsteps += 1
 		self.repeated_action_for += 1
-		if self.repeated_action_for < self.action_repeat:
-			toUse, toSave = self.last_action		   
+		self.addToMemory(gameState, pastState)
+		if self.stepsAfterStart <= self.conf.headstart_num:
+			toUse, toSave = self.headstartAction() 
+		elif self.repeated_action_for < self.action_repeat:
+			toUse, toSave = self.last_action 
 		else:
-			self.repeated_action_for = 0
-			if self.canLearn() and np.random.random() > self.epsilon:
-				action, _ = self.model.inference(inputs) 
-				toSave = self.dediscretize(action[0])
-				toUse = "["+str(throttle)+", "+str(brake)+", "+str(steer)+"]"
+			agentState = self.getAgentState(*gameState) #may be overridden
+			if len(self.memory) >= self.conf.replaystartsize:
+				self.epsilon = decrease(epsilon)
+				if np.random.random() < self.epsilon:
+					toUse, toSave = self.randomAction(agentState)
+				else:
+					toUse, toSave = self.policyAction(agentState)
 			else:
-				toUse, toSave = self.randomAction() #for definition see code
+				toUse, toSave = self.randomAction(agentState)
 			self.last_action = toUse, toSave
 		self.containers.outputval.update(toUse, toSave) 
-		self.numsteps += 1
-		if self.numsteps % self.update_frequency == 0 and len(self.memory) > self.replaystartsize):
-			self.learnStep()
-			
-	def learnStep(self):
-		QLearnInputs = self.memory.sample(self.batch_size)
-		self.model.q_learn(QLearnInputs)   
+		if self.numsteps % self.conf.ForEveryInf == 0:
+			self.learnStep(self.conf.ComesALearn)		
+
+	def learnStep(self, iterations):
+		for i in range(iterations):
+			QLearnInputs = self.memory.sample(self.batch_size)
+			self.model.q_train_step(QLearnInputs)   
 		
 	def addToMemory(self, gameState, pastState): 
 			s = self.getAgentState(*pastState)  #for definition see code
-			a = self.getAction(*pastState)	  #for definition see code
+			a = self.getAction(*pastState)	    #for definition see code
 			r = self.calculateReward(*gameState)#for definition see code
 			s2= self.getAgentState(*gameState)  #for definition see code
 			t = False #will be updated if episode did end
 			self.memory.append([s,a,r,s2,t])		
-
 		
 class DuelDQN():
 	def __init__(self, name, inputsize, num_actions):  
@@ -99,7 +102,6 @@ class DuelDQN():
 			q_trainer = tf.train.AdamOptimizer(learning_rate=0.00025)
 			q_OP = q_trainer.minimize(self.q_loss)		 
 		self.trainables = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=name)		
-		
 		
 def netCopyOps(fromNet, toNet, tau = 1):
 	op_holder = []
